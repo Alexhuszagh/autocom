@@ -7,7 +7,7 @@
 
 #include "autocom.hpp"
 
-#include <iostream>
+#include <cstdio>
 
 namespace com = autocom;
 
@@ -17,14 +17,14 @@ namespace com = autocom;
 int main(int argc, char *argv[])
 {
     com::Dispatch dispatch("VBScript.RegExp");
-    dispatch.put("Pattern", L"is.");
+    dispatch.put("Pattern", L"\\w+");
     dispatch.put("IgnoreCase", TRUE);
     dispatch.put("Global", TRUE);
 
     // get matches
     INT index, length;
     com::Bstr text;
-    for (auto match: dispatch.iter("Execute", L"IS1 is2 IS3 is4")) {
+    for (auto match: dispatch.iter("Execute", L"A(b) c35 d_[x] yyy")) {
         match.get("FirstIndex", index);
         match.get("Length", length);
         match.get("Value", text);

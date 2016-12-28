@@ -6,6 +6,8 @@ Lattice is a C++11 interface for the Component Object Model (COM), inspired by [
 **Table of Contents**
 
 - [Motivation](#motivation)
+- [Interface](#interface)
+- [Reference](#reference)
 - [Building](#building)
 - [Contributors](#contributors)
 - [License](#license)
@@ -14,6 +16,48 @@ Lattice is a C++11 interface for the Component Object Model (COM), inspired by [
 
 AutoCom is a modern COM interface library for C++11. No more manually dispatching parameters by hand.
 // TODO: finish motivation, do this later
+
+## Interface
+
+AutoCom supports both early and late-binding interfaces, for both compile-time interface wrapping and dynamic dispatchers.
+
+**Early-binding**
+
+```
+
+```
+
+**Late-binding**
+
+```cpp
+#include "autocom.hpp"
+#include <cstdio>
+
+
+int main(int argc, char *argv[])
+{
+    com::Dispatch dispatch("VBScript.RegExp");
+    dispatch.put("Pattern", L"\\w+");
+    dispatch.put("IgnoreCase", TRUE);
+    dispatch.put("Global", TRUE);
+
+    // get matches
+    INT index, length;
+    com::Bstr text;
+    for (auto match: dispatch.iter("Execute", L"A(b) c35 d_[x] yyy")) {
+        match.get("FirstIndex", index);
+        match.get("Length", length);
+        match.get("Value", text);
+        printf("Match found from %d-%d and is '%S'\n", index, index+length, text.string);
+    }
+
+    return 0;
+}
+```
+
+## Reference
+
+// TODO:
 
 ## Building
 
