@@ -47,11 +47,11 @@ TEST(DispParams, SetPrimitive)
     INT integer;
 
     // this could or could not be safe, depending on the compiler
-    dp.setArgs(com::SafeBool(boolean), com::SafeInt(integer));
+    dp.setArgs(com::PutBool(boolean), com::PutInt(integer));
     EXPECT_EQ(dp.params()->rgvarg[0].vt, 22);
     EXPECT_EQ(dp.params()->rgvarg[1].vt, 11);
 
-    dp.setArgs(com::SafeBool(boolean));
+    dp.setArgs(com::PutBool(boolean));
     EXPECT_EQ(dp.params()->rgvarg[0].vt, 11);
 }
 
@@ -65,6 +65,6 @@ TEST(DispParams, SetString)
     dp.setArgs("narrow");
     EXPECT_EQ(dp.params()->rgvarg[0].vt, 8);
 
-    //dp.setArgs(com::SafeBstr("narrow"));
-    //EXPECT_EQ(dp.params()->rgvarg[0].vt, 8);
+    dp.setArgs(com::PutBstr());
+    EXPECT_EQ(dp.params()->rgvarg[0].vt, 8);
 }

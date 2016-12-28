@@ -25,9 +25,9 @@ int main(int argc, char *argv[])
     INT index, length;
     com::Bstr text;
     for (auto match: dispatch.iter("Execute", L"IS1 is2 IS3 is4")) {
-        match.get("FirstIndex", &index);
-        match.get("Length", &length);
-        match.get("Value", &text);
+        match.get("FirstIndex", index);
+        match.get("Length", length);
+        match.get("Value", text);
         printf("Match found from %d-%d and is '%S'\n", index, index+length, text.string);
     }
 

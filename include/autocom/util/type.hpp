@@ -22,28 +22,28 @@ namespace autocom
 // -------
 
 
-/** \brief Type wrapper for passing by value.
+/** \brief Type wrapper for passing by as an R-value.
  *
  *  \warning The object is copied (or moved) into the container
  *  and to the variant.
  */
 template <typename T>
-class ValueWrapper
+class RValueWrapper
 {
 protected:
-    typedef ValueWrapper<T> This;
+    typedef RValueWrapper<T> This;
 
     T t = T();
 
 public:
-    ValueWrapper() = default;
-    ValueWrapper(const This&) = default;
+    RValueWrapper() = default;
+    RValueWrapper(const This&) = default;
     This & operator=(const This&) = default;
-    ValueWrapper(This &&) = default;
+    RValueWrapper(This &&) = default;
     This & operator=(This &&) = default;
 
-    ValueWrapper(const T &t);
-    ValueWrapper(T &&t);
+    RValueWrapper(const T &t);
+    RValueWrapper(T &&t);
 
     // DATA
     explicit operator T() const;
@@ -56,25 +56,25 @@ public:
  *  must outlived the lifetime of the caller.
  */
 template <typename T>
-class PointerWrapper
+class LValueWrapper
 {
-    typedef T* P;
-    typedef PointerWrapper<T> This;
+protected:
+    typedef T& R;
+    typedef LValueWrapper<T> This;
 
-    P p = nullptr;
+    R r;
 
 public:
-    PointerWrapper() = default;
-    PointerWrapper(const This&) = default;
+    LValueWrapper() = delete;
+    LValueWrapper(const This&) = default;
     This & operator=(const This&) = default;
-    PointerWrapper(This &&) = default;
+    LValueWrapper(This &&) = default;
     This & operator=(This &&) = default;
 
-    PointerWrapper(P &p);
-    PointerWrapper(T &t);
+    LValueWrapper(R r);
 
     // DATA
-    explicit operator P() const;
+    explicit operator R() const;
 };
 
 // TODO: need a vector and array....
@@ -87,7 +87,7 @@ public:
 /** \brief Construct from copy of type.
  */
 template <typename T>
-ValueWrapper<T>::ValueWrapper(const T &t):
+RValueWrapper<T>::RValueWrapper(const T &t):
     t(t)
 {}
 
@@ -95,7 +95,7 @@ ValueWrapper<T>::ValueWrapper(const T &t):
 /** \brief Construct from moved type.
  */
 template <typename T>
-ValueWrapper<T>::ValueWrapper(T &&t):
+RValueWrapper<T>::RValueWrapper(T &&t):
     t(std::move(t))
 {}
 
@@ -103,7 +103,7 @@ ValueWrapper<T>::ValueWrapper(T &&t):
 /** \brief Convert explicitly to the type.
  */
 template <typename T>
-ValueWrapper<T>::operator T() const
+RValueWrapper<T>::operator T() const
 {
     return t;
 }
@@ -112,44 +112,37 @@ ValueWrapper<T>::operator T() const
 /** \brief Construct from copy of type.
  */
 template <typename T>
-PointerWrapper<T>::PointerWrapper(P &p):
-    p(p)
+LValueWrapper<T>::LValueWrapper(R r):
+    r(r)
 {}
 
-
-/** \brief Construct from moved type.
- */
-template <typename T>
-PointerWrapper<T>::PointerWrapper(T &t):
-    p(&t)
-{}
 
 
 /** \brief Convert explicitly to the type.
  */
 template <typename T>
-PointerWrapper<T>::operator P() const
+LValueWrapper<T>::operator R() const
 {
-    return p;
+    return r;
 }
 
 // MACROS
 // ------
 
 
-/** \brief Wraps an object to be passed by value.
+/** \brief Wrap object to be passed as an R-value.
  *
  *  Wraps non-array objects via inheritance. Inheritance is prevent
  *  implicit conversion of similar types, using a different class
  *  definition for each type.
  *
- *  The value is copied into DispParams.
+ *  The value is forwarded and copied into the variant.
  */
-#define AUTOCOM_WRAP_VALUE(T, Name)                                     \
-    class Name: public ValueWrapper<T>                                  \
+#define AUTOCOM_WRAP_RVALUE(T, Name)                                     \
+    class Name: public RValueWrapper<T>                                 \
     {                                                                   \
     protected:                                                          \
-        typedef ValueWrapper<T> Base;                                   \
+        typedef RValueWrapper<T> Base;                                  \
                                                                         \
     public:                                                             \
         typedef T type;                                                 \
@@ -157,102 +150,111 @@ PointerWrapper<T>::operator P() const
     }
 
 
-/** \brief Wraps an object to be passed by pointer.
+/** \brief Wrap object to be passed as an L-value.
  *
  *  Wraps non-array objects via inheritance. Inheritance is prevent
  *  implicit conversion of similar types, using a different class
  *  definition for each type.
  *
- *  The pointer is copied into DispParams.
+ *  The reference is forwarded and assigned to from the variant, or
+ *  copied into the variant.
  */
-#define AUTOCOM_WRAP_REFERENCE(T, Name)                                 \
-    class Name: public PointerWrapper<T>                                \
+#define AUTOCOM_WRAP_LVALUE(T, Name)                                    \
+    class Name: public LValueWrapper<T>                                 \
     {                                                                   \
     protected:                                                          \
-        typedef PointerWrapper<T> Base;                                 \
+        typedef LValueWrapper<T> Base;                                  \
                                                                         \
     public:                                                             \
-        typedef T* type;                                                \
+        typedef T& type;                                                \
         using Base::Base;                                               \
     }
 
 
-/** \brief Wraps an object to be passed by pointer.
+/** \brief Wrap object pointer to be passed as an R-value.
  */
-#define AUTOCOM_WRAP_POINTER(T, Name)                                   \
-    AUTOCOM_WRAP_REFERENCE(T, Name##Pointer);                           \
+#define AUTOCOM_WRAP_RVALUE_POINTER(T, Name)                            \
+    AUTOCOM_WRAP_RVALUE(T*, Name##Pointer);                             \
     typedef Name##Pointer Name##Ptr
 
-
-/** \brief Wraps an object to be passed by double pointer.
- *
- *  The pointer to the pointer is copied into DispParams.
+/** \brief Wrap object pointer to be passed as an L-value.
  */
-#define AUTOCOM_WRAP_DOUBLE_POINTER(T, Name)                            \
-    AUTOCOM_WRAP_POINTER(T*, Name##Double);                             \
-    typedef Name##DoublePtr Name##DblPtr;                               \
-    typedef Name##DoublePointer Name##DblPointer;
+#define AUTOCOM_WRAP_LVALUE_POINTER(T, Name)                            \
+    AUTOCOM_WRAP_LVALUE(T*, Name##Pointer);                             \
+    typedef Name##Pointer Name##Ptr
 
+/** \brief Wrap object.
+ */
+#define AUTOCOM_WRAP_VALUE(T, Name)                                     \
+    AUTOCOM_WRAP_RVALUE(T, Put##Name);                                  \
+    AUTOCOM_WRAP_LVALUE(T, Get##Name);
+
+/** \brief Wrap object pointer.
+ */
+#define AUTOCOM_WRAP_POINTER(T, Name)                                   \
+    AUTOCOM_WRAP_RVALUE_POINTER(T, Put##Name);                          \
+    AUTOCOM_WRAP_LVALUE_POINTER(T, Get##Name);
 
 /** \brief Generic type wrapper via macro.
  */
 #define AUTOCOM_WRAPPER(T, Name)                                        \
     AUTOCOM_WRAP_VALUE(T, Name);                                        \
-    AUTOCOM_WRAP_POINTER(T, Name);                                      \
-    AUTOCOM_WRAP_DOUBLE_POINTER(T, Name)
+    AUTOCOM_WRAP_POINTER(T, Name);
 
 
 // TYPES
 // -----
 
-AUTOCOM_WRAP_VALUE(std::nullptr_t, SafeNull);
-AUTOCOM_WRAPPER(VARIANT_BOOL, SafeBool);
-AUTOCOM_WRAPPER(CHAR, SafeChar);
-AUTOCOM_WRAPPER(UCHAR, SafeUChar);
-AUTOCOM_WRAPPER(SHORT, SafeShort);
-AUTOCOM_WRAPPER(USHORT, SafeUShort);
-AUTOCOM_WRAPPER(INT, SafeInt);
-AUTOCOM_WRAPPER(UINT, SafeUInt);
-AUTOCOM_WRAPPER(LONG, SafeLong);
-AUTOCOM_WRAPPER(ULONG, SafeULong);
-AUTOCOM_WRAPPER(FLOAT, SafeFloat);
-AUTOCOM_WRAPPER(DOUBLE, SafeDouble);
-AUTOCOM_WRAPPER(BSTR, SafeBstr);
-AUTOCOM_WRAPPER(CURRENCY, SafeCurrency);
-AUTOCOM_WRAPPER(SCODE, SafeError);
-AUTOCOM_WRAPPER(DATE, SafeDate);
-AUTOCOM_WRAPPER(LONGLONG, SafeLongLong);
-AUTOCOM_WRAPPER(ULONGLONG, SafeULongLong);
-AUTOCOM_WRAPPER(DECIMAL, SafeDecimal);
-AUTOCOM_WRAPPER(IUnknown*, SafeIUnknown);
-AUTOCOM_WRAPPER(IDispatch*, SafeIDispatch);
+AUTOCOM_WRAP_RVALUE(std::nullptr_t, PutNull);
+AUTOCOM_WRAPPER(VARIANT_BOOL, Bool);
+AUTOCOM_WRAPPER(CHAR, Char);
+AUTOCOM_WRAPPER(UCHAR, UChar);
+AUTOCOM_WRAPPER(SHORT, Short);
+AUTOCOM_WRAPPER(USHORT, UShort);
+AUTOCOM_WRAPPER(INT, Int);
+AUTOCOM_WRAPPER(UINT, UInt);
+AUTOCOM_WRAPPER(LONG, Long);
+AUTOCOM_WRAPPER(ULONG, ULong);
+AUTOCOM_WRAPPER(FLOAT, Float);
+AUTOCOM_WRAPPER(DOUBLE, Double);
+AUTOCOM_WRAPPER(BSTR, Bstr);
+AUTOCOM_WRAPPER(CURRENCY, Currency);
+AUTOCOM_WRAPPER(SCODE, Error);
+AUTOCOM_WRAPPER(DATE, Date);
+AUTOCOM_WRAPPER(LONGLONG, LongLong);
+AUTOCOM_WRAPPER(ULONGLONG, ULongLong);
+AUTOCOM_WRAPPER(DECIMAL, Decimal);
+AUTOCOM_WRAPPER(IUnknown*, IUnknown);
+AUTOCOM_WRAPPER(IDispatch*, IDispatch);
 
 #ifdef HAVE_PROPSYS
-    AUTOCOM_WRAPPER(LARGE_INTEGER, SafeLargeInteger);
-    AUTOCOM_WRAPPER(ULARGE_INTEGER, SafeULargeInteger);
-    AUTOCOM_WRAPPER(FILETIME, SafeFiletime);
-    AUTOCOM_WRAPPER(CLSID, SafeClsid);
-    AUTOCOM_WRAPPER(GUID, SafeGuid);
-    AUTOCOM_WRAPPER(CLIPDATA, SafeClipData);
-    AUTOCOM_WRAPPER(IStream, SafeIStream);
-    AUTOCOM_WRAPPER(IStream, SafeIStreamObject);
-    AUTOCOM_WRAPPER(IStorage, SafeIStorage);
-    AUTOCOM_WRAPPER(IStorage, SafeIStorageObject);
-    AUTOCOM_WRAPPER(LPVERSIONEDSTREAM, SafeLpVersionedStream);
-    AUTOCOM_WRAPPER(Bstr, SafeBlob);
-    AUTOCOM_WRAPPER(Bstr, SafeBlobObject);
-    AUTOCOM_WRAPPER(LPSTR, SafeLpstr);
-    AUTOCOM_WRAPPER(LPWSTR, SafeLpwstr);
+    AUTOCOM_WRAPPER(LARGE_INTEGER, LargeInteger);
+    AUTOCOM_WRAPPER(ULARGE_INTEGER, ULargeInteger);
+    AUTOCOM_WRAPPER(FILETIME, Filetime);
+    AUTOCOM_WRAPPER(CLSID, Clsid);
+    AUTOCOM_WRAPPER(GUID, Guid);
+    AUTOCOM_WRAPPER(CLIPDATA, ClipData);
+    AUTOCOM_WRAPPER(IStream, IStream);
+    AUTOCOM_WRAPPER(IStream, IStreamObject);
+    AUTOCOM_WRAPPER(IStorage, IStorage);
+    AUTOCOM_WRAPPER(IStorage, IStorageObject);
+    AUTOCOM_WRAPPER(LPVERSIONEDSTREAM, LpVersionedStream);
+    AUTOCOM_WRAPPER(Bstr, Blob);
+    AUTOCOM_WRAPPER(Bstr, BlobObject);
+    AUTOCOM_WRAPPER(LPSTR, Lpstr);
+    AUTOCOM_WRAPPER(LPWSTR, Lpwstr);
 #endif      // HAVE_PROPSYS
 
 
 // CLEANUP
 // -------
 
+#undef AUTOCOM_WRAP_RVALUE
+#undef AUTOCOM_WRAP_LVALUE
+#undef AUTOCOM_WRAP_RVALUE_POINTER
+#undef AUTOCOM_WRAP_LVALUE_POINTER
 #undef AUTOCOM_WRAP_VALUE
-#undef AUTOCOM_WRAP_REFERENCE
 #undef AUTOCOM_WRAP_POINTER
-#undef AUTOCOM_WRAP_DOUBLE_POINTER
 #undef AUTOCOM_WRAPPER
 
 }   /* autocom */

@@ -31,12 +31,14 @@ bool changeVariantType(VARIANT &variant,
     const VARTYPE vt);
 
 #ifdef HAVE_PROPSYS
+
     /** \brief Convert PROPVARIANT data to new type.
      *
      *  \return             Type coercion was successful
      */
     bool changeVariantType(PROPVARIANT &variant,
         const VARTYPE vt);
+
 #endif          // HAVE_PROPSYS
 
 // MACROS -- SETTERS
@@ -110,26 +112,25 @@ bool changeVariantType(VARIANT &variant,
 
 /** \brief Type-safe wrapper for value setters.
  */
-#define AUTOCOM_SAFE_VALUE_SETTER(safe, vartype, field)                 \
-    AUTOCOM_SAFE_MOVE(safe, vartype, field)                             \
-    AUTOCOM_SAFE_COPY(safe, vartype, field)
+#define AUTOCOM_SAFE_VALUE_SETTER(type, vartype, field)                 \
+    AUTOCOM_SAFE_MOVE(Put##type, vartype, field)                        \
+    AUTOCOM_SAFE_COPY(Put##type, vartype, field)
 
 /** \brief Type-safe wrapper for pointer setters.
  */
-#define AUTOCOM_SAFE_POINTER_SETTER(safe, vartype, field)               \
-    AUTOCOM_SAFE_MOVE(safe##Ptr, vartype | VT_BYREF, p##field)          \
-    AUTOCOM_SAFE_COPY(safe##Ptr, vartype | VT_BYREF, p##field)
+#define AUTOCOM_SAFE_POINTER_SETTER(type, vartype, field)               \
+    AUTOCOM_SAFE_VALUE_SETTER(type##Ptr, vartype | VT_BYREF, p##field)
 
 /** \brief Generalized type-safe wrappers for a given type.
  *
  *  Since the type is specialized for TypeWrapper, which provides
  *  a conversion-safe wrapper, any automation type can be passed.
  *
- *  AUTOCOM_SAFE_SETTER(BOOL, boolVal, boolVal)
+ *  AUTOCOM_SAFE_SETTER(Bool, boolVal, boolVal)
  */
-#define AUTOCOM_SAFE_SETTER(safe, vartype, field)                       \
-    AUTOCOM_SAFE_VALUE_SETTER(safe, vartype, field)                     \
-    AUTOCOM_SAFE_POINTER_SETTER(safe, vartype, field)
+#define AUTOCOM_SAFE_SETTER(type, vartype, field)                       \
+    AUTOCOM_SAFE_VALUE_SETTER(type, vartype, field)                     \
+    AUTOCOM_SAFE_POINTER_SETTER(type, vartype, field)
 
 /** \brief Generalized dispparams setter overloaded for a primitive type.
  *
@@ -181,7 +182,7 @@ void setVariant(VariantType &variant,
  */
 template <typename VariantType>
 void setVariant(VariantType &variant,
-    SafeNull value)
+    PutNull value)
 {
     variant.vt = VT_NULL;
 }
@@ -282,44 +283,44 @@ AUTOCOM_CLASS_SETTER(IDispatch*, VT_DISPATCH, pdispVal)
 #endif      // HAVE_PROPSYS
 
 // SAFE
-AUTOCOM_SAFE_SETTER(SafeBool, VT_BOOL, boolVal)
-AUTOCOM_SAFE_SETTER(SafeChar, VT_I1, cVal)
-AUTOCOM_SAFE_SETTER(SafeUChar, VT_UI1, bVal)
-AUTOCOM_SAFE_SETTER(SafeShort, VT_I2, iVal)
-AUTOCOM_SAFE_SETTER(SafeUShort, VT_UI2, uiVal)
-AUTOCOM_SAFE_SETTER(SafeInt, VT_INT, intVal)
-AUTOCOM_SAFE_SETTER(SafeUInt, VT_UINT, uintVal)
-AUTOCOM_SAFE_SETTER(SafeLong, VT_I4, lVal)
-AUTOCOM_SAFE_SETTER(SafeULong, VT_UI4, ulVal)
-AUTOCOM_SAFE_SETTER(SafeFloat, VT_R4, fltVal)
-AUTOCOM_SAFE_SETTER(SafeDouble, VT_R8, dblVal)
-AUTOCOM_SAFE_SETTER(SafeLongLong, VT_I8, llVal)
-AUTOCOM_SAFE_SETTER(SafeULongLong, VT_UI8, ullVal)
-AUTOCOM_SAFE_SETTER(SafeBstr, VT_BSTR, bstrVal)
-AUTOCOM_SAFE_SETTER(SafeCurrency, VT_CY, cyVal)
-AUTOCOM_SAFE_SETTER(SafeError, VT_ERROR, scode)
-AUTOCOM_SAFE_SETTER(SafeDate, VT_DATE, date)
-AUTOCOM_SAFE_SETTER(SafeIUnknown, VT_UNKNOWN, punkVal)
-AUTOCOM_SAFE_SETTER(SafeIDispatch, VT_DISPATCH, pdispVal)
-AUTOCOM_SAFE_POINTER_SETTER(SafeDecimal, VT_DECIMAL, decVal)
+AUTOCOM_SAFE_SETTER(Bool, VT_BOOL, boolVal)
+AUTOCOM_SAFE_SETTER(Char, VT_I1, cVal)
+AUTOCOM_SAFE_SETTER(UChar, VT_UI1, bVal)
+AUTOCOM_SAFE_SETTER(Short, VT_I2, iVal)
+AUTOCOM_SAFE_SETTER(UShort, VT_UI2, uiVal)
+AUTOCOM_SAFE_SETTER(Int, VT_INT, intVal)
+AUTOCOM_SAFE_SETTER(UInt, VT_UINT, uintVal)
+AUTOCOM_SAFE_SETTER(Long, VT_I4, lVal)
+AUTOCOM_SAFE_SETTER(ULong, VT_UI4, ulVal)
+AUTOCOM_SAFE_SETTER(Float, VT_R4, fltVal)
+AUTOCOM_SAFE_SETTER(Double, VT_R8, dblVal)
+AUTOCOM_SAFE_SETTER(LongLong, VT_I8, llVal)
+AUTOCOM_SAFE_SETTER(ULongLong, VT_UI8, ullVal)
+AUTOCOM_SAFE_SETTER(Bstr, VT_BSTR, bstrVal)
+AUTOCOM_SAFE_SETTER(Currency, VT_CY, cyVal)
+AUTOCOM_SAFE_SETTER(Error, VT_ERROR, scode)
+AUTOCOM_SAFE_SETTER(Date, VT_DATE, date)
+AUTOCOM_SAFE_SETTER(IUnknown, VT_UNKNOWN, punkVal)
+AUTOCOM_SAFE_SETTER(IDispatch, VT_DISPATCH, pdispVal)
+AUTOCOM_SAFE_POINTER_SETTER(Decimal, VT_DECIMAL, decVal)
 // VT_VECTOR
 // VT_ARRAY
 #ifdef HAVE_PROPSYS
-    AUTOCOM_SAFE_SETTER(SafeLargeInteger, VT_I8, hVal)
-    AUTOCOM_SAFE_SETTER(SafeULargeInteger, VT_UI8, uhVal)
-    AUTOCOM_SAFE_SETTER(SafeFiletime, VT_FILETIME, filetime)
-    AUTOCOM_SAFE_SETTER(SafeClsid, VT_CLSID, puuid)
-    AUTOCOM_SAFE_SETTER(SafeGuid, VT_CLSID, puuid)
-    AUTOCOM_SAFE_SETTER(SafeClipData, VT_CF, pclipdata)
-    AUTOCOM_SAFE_VALUE_SETTER(SafeIStream, VT_STREAM, pStream)
-    AUTOCOM_SAFE_VALUE_SETTER(SafeIStreamObject, VT_STREAMED_OBJECT, pStream)
-    AUTOCOM_SAFE_VALUE_SETTER(SafeIStorage, VT_STORAGE, pStorage)
-    AUTOCOM_SAFE_VALUE_SETTER(SafeIStorageObject, VT_STORED_OBJECT, pStorage)
-    AUTOCOM_SAFE_VALUE_SETTER(SafeLpVersionedStream, VT_VERSIONED_STREAM, pVersionedStream)
-    AUTOCOM_SAFE_VALUE_SETTER(SafeBlob, VT_BLOB, blob)
-    AUTOCOM_SAFE_VALUE_SETTER(SafeBlobObject, VT_BLOBOBJECT, blob)
-    AUTOCOM_SAFE_VALUE_SETTER(SafeLpstr, VT_LPSTR, pszVal)
-    AUTOCOM_SAFE_VALUE_SETTER(SafeLpwstr, VT_LPWSTR, pwszVal)
+    AUTOCOM_SAFE_SETTER(LargeInteger, VT_I8, hVal)
+    AUTOCOM_SAFE_SETTER(ULargeInteger, VT_UI8, uhVal)
+    AUTOCOM_SAFE_SETTER(Filetime, VT_FILETIME, filetime)
+    AUTOCOM_SAFE_SETTER(Clsid, VT_CLSID, puuid)
+    AUTOCOM_SAFE_SETTER(Guid, VT_CLSID, puuid)
+    AUTOCOM_SAFE_SETTER(ClipData, VT_CF, pclipdata)
+    AUTOCOM_SAFE_VALUE_SETTER(IStream, VT_STREAM, pStream)
+    AUTOCOM_SAFE_VALUE_SETTER(IStreamObject, VT_STREAMED_OBJECT, pStream)
+    AUTOCOM_SAFE_VALUE_SETTER(IStorage, VT_STORAGE, pStorage)
+    AUTOCOM_SAFE_VALUE_SETTER(IStorageObject, VT_STORED_OBJECT, pStorage)
+    AUTOCOM_SAFE_VALUE_SETTER(LpVersionedStream, VT_VERSIONED_STREAM, pVersionedStream)
+    AUTOCOM_SAFE_VALUE_SETTER(Blob, VT_BLOB, blob)
+    AUTOCOM_SAFE_VALUE_SETTER(BlobObject, VT_BLOBOBJECT, blob)
+    AUTOCOM_SAFE_VALUE_SETTER(Lpstr, VT_LPSTR, pszVal)
+    AUTOCOM_SAFE_VALUE_SETTER(Lpwstr, VT_LPWSTR, pwszVal)
 #endif      // HAVE_PROPSYS
 
 // CLEANUP -- SETTERS
@@ -358,10 +359,10 @@ AUTOCOM_SAFE_POINTER_SETTER(SafeDecimal, VT_DECIMAL, decVal)
                                                                         \
     template <typename VariantType>                                     \
     void getVariant(VariantType &variant,                               \
-        type *value)                                                    \
+        type &value)                                                    \
     {                                                                   \
         AUTOCOM_CONVERT_TYPE(variant, vartype)                          \
-        *value = variant.field;                                         \
+        value = variant.field;                                         \
     }
 
 
@@ -373,9 +374,9 @@ AUTOCOM_SAFE_POINTER_SETTER(SafeDecimal, VT_DECIMAL, decVal)
     void getVariant(VariantType &variant,                               \
         safe &value)                                                    \
     {                                                                   \
-        typedef typename safe::type Type;                               \
+        auto &ref = typename safe::type(value);                         \
         AUTOCOM_CONVERT_TYPE(variant, vartype)                          \
-        *Type(value) = variant.field;                                   \
+        ref = variant.field;                                            \
     }
 
 
@@ -406,23 +407,23 @@ AUTOCOM_SAFE_POINTER_SETTER(SafeDecimal, VT_DECIMAL, decVal)
  *
  *  AUTOCOM_SAFE_VALUE_GETTER(SafeBool, VT_BOOL, boolVal)
  */
-#define AUTOCOM_SAFE_VALUE_GETTER(safe, vartype, field)                 \
-    AUTOCOM_SAFE_GET(safe##Ptr, vartype, field)
+#define AUTOCOM_SAFE_VALUE_GETTER(type, vartype, field)                 \
+    AUTOCOM_SAFE_GET(Get##type, vartype, field)
 
 /** \brief Define a getter for type by reference.
  *
  *  AUTOCOM_SAFE_POINTER_GETTER(SafeBool, VT_BOOL, boolVal)
  */
-#define AUTOCOM_SAFE_POINTER_GETTER(safe, vartype, field)               \
-    AUTOCOM_SAFE_GET(safe##DblPtr, vartype | VT_BYREF, p##field)
+#define AUTOCOM_SAFE_POINTER_GETTER(type, vartype, field)               \
+    AUTOCOM_SAFE_VALUE_GETTER(type##Ptr, vartype | VT_BYREF, p##field)
 
 /** \brief Define a getter for type by value and by reference.
  *
  *  AUTOCOM_SAFE_GETTER(SafeBool, VT_BOOL, boolVal)
  */
-#define AUTOCOM_SAFE_GETTER(safe, vartype, field)                       \
-    AUTOCOM_SAFE_VALUE_GETTER(safe, vartype, field)                     \
-    AUTOCOM_SAFE_POINTER_GETTER(safe, vartype, field)
+#define AUTOCOM_SAFE_GETTER(type, vartype, field)                       \
+    AUTOCOM_SAFE_VALUE_GETTER(type, vartype, field)                     \
+    AUTOCOM_SAFE_POINTER_GETTER(type, vartype, field)
 
 // FUNCTIONS -- GETTERS
 // --------------------
@@ -432,10 +433,10 @@ AUTOCOM_SAFE_POINTER_SETTER(SafeDecimal, VT_DECIMAL, decVal)
  */
 template <typename VariantType>
 void getVariant(VariantType &variant,
-    VARIANT **value)
+    VARIANT *value)
 {
     AUTOCOM_CONVERT_TYPE(variant, VT_VARIANT | VT_BYREF);
-    *value = variant.pvarVal;
+    value = variant.pvarVal;
 }
 
 
@@ -443,11 +444,11 @@ void getVariant(VariantType &variant,
  */
 template <typename VariantType>
 void getVariant(VariantType &variant,
-    Bstr *value)
+    Bstr &value)
 {
     AUTOCOM_CONVERT_TYPE(variant, VT_BSTR);
-    value->clear();
-    value->string = variant.bstrVal;
+    value.clear();
+    value.string = variant.bstrVal;
 }
 
 
@@ -455,11 +456,11 @@ void getVariant(VariantType &variant,
  */
 template <typename VariantType>
 void getVariant(VariantType &variant,
-    Bstr **value)
+    Bstr *&value)
 {
     AUTOCOM_CONVERT_TYPE(variant, VT_BSTR | VT_BYREF);
-    (*value)->clear();
-    (*value)->string = *variant.pbstrVal;
+    value->clear();
+    value->string = *variant.pbstrVal;
 }
 
 // GENERIC
@@ -492,42 +493,42 @@ AUTOCOM_POINTER_GETTER(DECIMAL, VT_DECIMAL, decVal)
 #endif      // HAVE_PROPSYS
 
 // SAFE
-AUTOCOM_SAFE_GETTER(SafeBool, VT_BOOL, boolVal)
-AUTOCOM_SAFE_GETTER(SafeChar, VT_I1, cVal)
-AUTOCOM_SAFE_GETTER(SafeUChar, VT_UI1, bVal)
-AUTOCOM_SAFE_GETTER(SafeShort, VT_I2, iVal)
-AUTOCOM_SAFE_GETTER(SafeUShort, VT_UI2, uiVal)
-AUTOCOM_SAFE_GETTER(SafeInt, VT_INT, intVal)
-AUTOCOM_SAFE_GETTER(SafeUInt, VT_UINT, uintVal)
-AUTOCOM_SAFE_GETTER(SafeLong, VT_I4, lVal)
-AUTOCOM_SAFE_GETTER(SafeULong, VT_UI4, ulVal)
-AUTOCOM_SAFE_GETTER(SafeFloat, VT_R4, fltVal)
-AUTOCOM_SAFE_GETTER(SafeLongLong, VT_I8, llVal)
-AUTOCOM_SAFE_GETTER(SafeULongLong, VT_UI8, ullVal)
-AUTOCOM_SAFE_GETTER(SafeDouble, VT_R8, dblVal)
-AUTOCOM_SAFE_GETTER(SafeBstr, VT_BSTR, bstrVal)
-AUTOCOM_SAFE_GETTER(SafeCurrency, VT_CY, cyVal)
-AUTOCOM_SAFE_GETTER(SafeIUnknown, VT_UNKNOWN, punkVal)
-AUTOCOM_SAFE_GETTER(SafeIDispatch, VT_DISPATCH, pdispVal)
-AUTOCOM_SAFE_POINTER_GETTER(SafeDecimal, VT_DECIMAL, decVal)
+AUTOCOM_SAFE_GETTER(Bool, VT_BOOL, boolVal)
+AUTOCOM_SAFE_GETTER(Char, VT_I1, cVal)
+AUTOCOM_SAFE_GETTER(UChar, VT_UI1, bVal)
+AUTOCOM_SAFE_GETTER(Short, VT_I2, iVal)
+AUTOCOM_SAFE_GETTER(UShort, VT_UI2, uiVal)
+AUTOCOM_SAFE_GETTER(Int, VT_INT, intVal)
+AUTOCOM_SAFE_GETTER(UInt, VT_UINT, uintVal)
+AUTOCOM_SAFE_GETTER(Long, VT_I4, lVal)
+AUTOCOM_SAFE_GETTER(ULong, VT_UI4, ulVal)
+AUTOCOM_SAFE_GETTER(Float, VT_R4, fltVal)
+AUTOCOM_SAFE_GETTER(LongLong, VT_I8, llVal)
+AUTOCOM_SAFE_GETTER(ULongLong, VT_UI8, ullVal)
+AUTOCOM_SAFE_GETTER(Double, VT_R8, dblVal)
+AUTOCOM_SAFE_GETTER(Bstr, VT_BSTR, bstrVal)
+AUTOCOM_SAFE_GETTER(Currency, VT_CY, cyVal)
+AUTOCOM_SAFE_GETTER(IUnknown, VT_UNKNOWN, punkVal)
+AUTOCOM_SAFE_GETTER(IDispatch, VT_DISPATCH, pdispVal)
+AUTOCOM_SAFE_POINTER_GETTER(Decimal, VT_DECIMAL, decVal)
 // VT_VECTOR
 // VT_ARRAY
 #ifdef HAVE_PROPSYS
-    AUTOCOM_SAFE_GETTER(SafeLargeInteger, VT_I8, hVal)
-    AUTOCOM_SAFE_GETTER(SafeULargeInteger, VT_UI8, uhVal)
-    AUTOCOM_SAFE_GETTER(SafeFiletime, VT_FILETIME, filetime)
-    AUTOCOM_SAFE_GETTER(SafeClsid, VT_CLSID, puuid)
-    AUTOCOM_SAFE_GETTER(SafeGuid, VT_CLSID, puuid)
-    AUTOCOM_SAFE_GETTER(SafeClipData, VT_CF, pclipdata)
-    AUTOCOM_SAFE_VALUE_GETTER(SafeIStream, VT_STREAM, pStream)
-    AUTOCOM_SAFE_VALUE_GETTER(SafeIStreamObject, VT_STREAMED_OBJECT, pStream)
-    AUTOCOM_SAFE_VALUE_GETTER(SafeIStorage, VT_STORAGE, pStorage)
-    AUTOCOM_SAFE_VALUE_GETTER(SafeIStorageObject, VT_STORED_OBJECT, pStorage)
-    AUTOCOM_SAFE_VALUE_GETTER(SafeLpVersionedStream, VT_VERSIONED_STREAM, pVersionedStream)
-    AUTOCOM_SAFE_VALUE_GETTER(SafeBlob, VT_BLOB, blob)
-    AUTOCOM_SAFE_VALUE_GETTER(SafeBlobObject, VT_BLOBOBJECT, blob)
-    AUTOCOM_SAFE_VALUE_GETTER(SafeLpstr, VT_LPSTR, pszVal)
-    AUTOCOM_SAFE_VALUE_GETTER(SafeLpwstr, VT_LPWSTR, pwszVal)
+    AUTOCOM_SAFE_GETTER(LargeInteger, VT_I8, hVal)
+    AUTOCOM_SAFE_GETTER(ULargeInteger, VT_UI8, uhVal)
+    AUTOCOM_SAFE_GETTER(Filetime, VT_FILETIME, filetime)
+    AUTOCOM_SAFE_GETTER(Clsid, VT_CLSID, puuid)
+    AUTOCOM_SAFE_GETTER(Guid, VT_CLSID, puuid)
+    AUTOCOM_SAFE_GETTER(ClipData, VT_CF, pclipdata)
+    AUTOCOM_SAFE_VALUE_GETTER(IStream, VT_STREAM, pStream)
+    AUTOCOM_SAFE_VALUE_GETTER(IStreamObject, VT_STREAMED_OBJECT, pStream)
+    AUTOCOM_SAFE_VALUE_GETTER(IStorage, VT_STORAGE, pStorage)
+    AUTOCOM_SAFE_VALUE_GETTER(IStorageObject, VT_STORED_OBJECT, pStorage)
+    AUTOCOM_SAFE_VALUE_GETTER(LpVersionedStream, VT_VERSIONED_STREAM, pVersionedStream)
+    AUTOCOM_SAFE_VALUE_GETTER(Blob, VT_BLOB, blob)
+    AUTOCOM_SAFE_VALUE_GETTER(BlobObject, VT_BLOBOBJECT, blob)
+    AUTOCOM_SAFE_VALUE_GETTER(Lpstr, VT_LPSTR, pszVal)
+    AUTOCOM_SAFE_VALUE_GETTER(Lpwstr, VT_LPWSTR, pwszVal)
 #endif      // HAVE_PROPSYS
 
 // CLEANUP -- GETTERS
@@ -607,7 +608,7 @@ void Variant::set(T &&t)
 template <typename T>
 void Variant::get(T &&t)
 {
-    getVariant(*this, AUTOCOM_FWD(t));
+    //getVariant(*this, AUTOCOM_FWD(t));
 }
 
 
@@ -627,7 +628,7 @@ void Variant::get(T &&t)
     template <typename T>
     void PropVariant::get(T &&t)
     {
-        getVariant(*this, AUTOCOM_FWD(t));
+        //getVariant(*this, AUTOCOM_FWD(t));
     }
 
 #endif          // HAVE_PROPSYS

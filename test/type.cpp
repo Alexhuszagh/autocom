@@ -15,9 +15,9 @@ namespace com = autocom;
 // -----
 
 
-TEST(SafeBool, Conversion)
+TEST(PutBool, Conversion)
 {
-    com::SafeBool value(TRUE);
+    com::PutBool value(TRUE);
     EXPECT_TRUE(VARIANT_BOOL(value));
 
     value = FALSE;
