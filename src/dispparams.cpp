@@ -10,6 +10,14 @@
 
 namespace autocom
 {
+// CONSTANTS
+// ---------
+
+const DispatchFlags GET = DispatchFlags::GET | DispatchFlags::METHOD;
+const DispatchFlags METHOD = DispatchFlags::METHOD;
+const DispatchFlags PUT = DispatchFlags::PUT;
+const DispatchFlags PUTREF = DispatchFlags::PUTREF;
+
 // OBJECTS
 // -------
 
@@ -18,26 +26,25 @@ namespace autocom
  */
 DispParams::DispParams()
 {
-    params.rgvarg = const_cast<VARIANT*>(args.data());
-    params.cArgs = 0;
-    params.rgdispidNamedArgs = nullptr;
-    params.cNamedArgs = 0;
+    dp.cArgs = 0;
+    dp.rgdispidNamedArgs = nullptr;
+    dp.cNamedArgs = 0;
 }
 
 
 /** \brief Copy constructor.
  */
 DispParams::DispParams(const DispParams &other):
-    args(other.args),
+    vargs(other.vargs),
     named(other.named)
 {
-    params.cArgs = args.size();
-    params.rgvarg = const_cast<VARIANT*>(args.data());
-    params.cNamedArgs = other.params.cNamedArgs;
-    if (other.params.rgdispidNamedArgs) {
-        params.rgdispidNamedArgs = &named;
+    dp.cArgs = vargs.size();
+    dp.rgvarg = const_cast<Variant*>(vargs.data());
+    dp.cNamedArgs = other.dp.cNamedArgs;
+    if (other.dp.rgdispidNamedArgs) {
+        dp.rgdispidNamedArgs = &named;
     } else {
-        params.rgdispidNamedArgs = nullptr;
+        dp.rgdispidNamedArgs = nullptr;
     }
 }
 
@@ -50,12 +57,36 @@ DispParams::~DispParams()
 
 /** \brief Set dispatch method, altering the named argument count.
  */
-void DispParams::setDispatch(const Dispatch dispatch)
+void DispParams::setFlags(const DispatchFlags flags)
 {
-    if (!!(dispatch & (Dispatch::PROPERTYPUT | Dispatch::PROPERTYPUTREF))) {
-        params.cNamedArgs = 1;
-        params.rgdispidNamedArgs = &named;
+    if (!!(flags & (PUT | PUTREF))) {
+        dp.cNamedArgs = 1;
+        dp.rgdispidNamedArgs = &named;
     }
+}
+
+
+/** \brief Get access to raw dispparams.
+ */
+DISPPARAMS * DispParams::params()
+{
+    return &dp;
+}
+
+
+/** \brief Get access to raw dispparams.
+ */
+const DISPPARAMS * DispParams::params() const
+{
+    return &dp;
+}
+
+
+/** \brief Get access to raw arg array.
+ */
+const VariantList & DispParams::args() const
+{
+    return vargs;
 }
 
 

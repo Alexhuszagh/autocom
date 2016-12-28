@@ -9,39 +9,62 @@
 
 #include <gtest/gtest.h>
 
-#include <vector>           // TODO: remove
+namespace com = autocom;
 
 
 // TESTS
 // -----
 
 
-//TEST(TODORemove, Constructor)
-//{
-//    std::vector<char> vector = {'c', 'd', 'e'};
-//    autocom::test(vector);
-//}
-
-
-TEST(Dispatch, Flags)
+TEST(DispatchFlags, Flags)
 {
-    auto flags = autocom::Dispatch::METHOD;
-    EXPECT_TRUE(!!(flags & autocom::Dispatch::METHOD));
-    //autocom::DispParams copy(dispparams);
+    auto flags = com::DispatchFlags::METHOD;
+    EXPECT_TRUE(!!(flags & com::DispatchFlags::METHOD));
 }
 
 
 TEST(DispParams, Constructor)
 {
-    autocom::DispParams dispparams;
-    autocom::DispParams copy(dispparams);
+    com::DispParams dispparams;
+    com::DispParams copy(dispparams);
 }
 
 
-TEST(DispParams, SetArgs)
+TEST(DispParams, SetPrimitive)
 {
-    autocom::DispParams dispparams;
-    long version;
+    com::DispParams dp;
+
+    // generic overloads
+    LONG version;
     BSTR value;
-    dispparams.setArgs(&version, value);
+    dp.setArgs(version, value);
+    dp.setArgs(&version, value);
+    dp.setArgs(version, &value);
+    dp.setArgs(&version, &value);
+
+    // safe overloads
+    BOOL boolean;
+    INT integer;
+
+    // this could or could not be safe, depending on the compiler
+    dp.setArgs(com::SafeBool(boolean), com::SafeInt(integer));
+    EXPECT_EQ(dp.params()->rgvarg[0].vt, 22);
+    EXPECT_EQ(dp.params()->rgvarg[1].vt, 11);
+
+    dp.setArgs(com::SafeBool(boolean));
+    EXPECT_EQ(dp.params()->rgvarg[0].vt, 11);
+}
+
+
+TEST(DispParams, SetString)
+{
+    com::DispParams dp;
+    dp.setArgs(L"wide");
+    EXPECT_EQ(dp.params()->rgvarg[0].vt, 8);
+
+    dp.setArgs("narrow");
+    EXPECT_EQ(dp.params()->rgvarg[0].vt, 8);
+
+    //dp.setArgs(com::SafeBstr("narrow"));
+    //EXPECT_EQ(dp.params()->rgvarg[0].vt, 8);
 }

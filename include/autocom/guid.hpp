@@ -23,14 +23,24 @@ namespace autocom
 class Guid
 {
 protected:
-    GUID guid;
+    GUID id;
+
+    friend class Dispatch;
+
+    void open(const std::string &string);
 
 public:
-    Guid();
+    Guid() = default;
+    Guid(const Guid &other) = delete;
+    Guid & operator=(const Guid&) = delete;
+    Guid(Guid&&) = default;
+    Guid & operator=(Guid&&) = default;
+
     Guid(const GUID &guid);
+    Guid(const char *cstring);
+    Guid(const char *array,
+        const size_t length);
     Guid(const std::string &string);
-    Guid(const Guid &other);
-    ~Guid();
 
     // DATA
     static Guid fromProgid(const std::string &string);

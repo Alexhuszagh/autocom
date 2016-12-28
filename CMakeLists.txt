@@ -7,7 +7,7 @@ project(Autocom CXX)
 # FLAGS
 # -----
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 # OPTIONS
 # -------
@@ -30,8 +30,15 @@ endif()
 set(AUTOCOM_SOURCES
     src/encoding/converters.cpp
     src/encoding/unicode.cpp
+    src/util/type.cpp
+    src/bstr.cpp
+    src/com.cpp
     src/dispparams.cpp
+    src/dispatch.cpp
+    src/enum.cpp
+    src/iterator.cpp
     src/guid.cpp
+    src/variant.cpp
 )
 
 set(AUTOCOM_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
@@ -55,14 +62,31 @@ endif()
 # EXAMPLES
 # --------
 
+set(AUTOCOM_EXAMPLE_SOURCES
+    example/regexp.cpp
+)
+
+if (BUILD_EXAMPLES)
+    foreach(source ${AUTOCOM_EXAMPLE_SOURCES})
+        get_filename_component(example ${source} NAME_WE)
+        set(target "Autocom_${example}")
+        add_executable(${target} "${source}")
+        set_target_properties(${target} PROPERTIES OUTPUT_NAME ${example})
+        target_link_libraries(${target} ${AUTOCOM_LIBRARIES})
+    endforeach(source)
+endif()
+
 # TESTS
 # -----
 
 set(AUTOCOM_TEST_SOURCES
     test/encoding/converters.cpp
     test/encoding/unicode.cpp
+    test/bstr.cpp
     test/dispparams.cpp
     test/guid.cpp
+    test/type.cpp
+    test/variant.cpp
     test/main.cpp
 )
 

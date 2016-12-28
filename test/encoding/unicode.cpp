@@ -9,6 +9,8 @@
 
 #include <gtest/gtest.h>
 
+namespace com = autocom;
+
 
 // TESTS
 // -----
@@ -21,14 +23,14 @@ TEST(Unicode, TestUtf)
     std::string utf32 = {92, -43, 0, 0, 109, -83, 0, 0, -76, -59, 0, 0};
 
     // FROM UTF8
-    EXPECT_EQ(utf16, autocom::UTF8_TO_UTF16(utf8));
-    EXPECT_EQ(utf32, autocom::UTF8_TO_UTF32(utf8));
+    EXPECT_EQ(utf16, com::UTF8_TO_UTF16(utf8));
+    EXPECT_EQ(utf32, com::UTF8_TO_UTF32(utf8));
 
     // FROM UTF16
-    EXPECT_EQ(utf8, autocom::UTF16_TO_UTF8(utf16));
-    EXPECT_EQ(utf32, autocom::UTF16_TO_UTF32(utf16));
+    EXPECT_EQ(utf8, com::UTF16_TO_UTF8(utf16));
+    EXPECT_EQ(utf32, com::UTF16_TO_UTF32(utf16));
 
     // FROM UTF32
-    EXPECT_EQ(utf8, autocom::UTF32_TO_UTF8(utf32));
-    EXPECT_EQ(utf16, autocom::UTF32_TO_UTF16(utf32));
+    EXPECT_EQ(utf8, com::UTF32_TO_UTF8(utf32));
+    EXPECT_EQ(utf16, com::UTF32_TO_UTF16(utf32));
 }

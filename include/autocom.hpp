@@ -5,7 +5,12 @@
  *  \brief Public AutoCom header.
  */
 
+#include "autocom/bstr.hpp"
+#include "autocom/com.hpp"
+#include "autocom/dispatch.hpp"
 #include "autocom/dispparams.hpp"
 #include "autocom/encoding.hpp"
+#include "autocom/enum.hpp"
 #include "autocom/guid.hpp"
 #include "autocom/util.hpp"
+#include "autocom/variant.hpp"

@@ -9,6 +9,7 @@
 
 #include <gtest/gtest.h>
 
+namespace com = autocom;
 
 // TESTS
 // -----
@@ -16,5 +17,10 @@
 
 TEST(EncodingConverters, Wide)
 {
-    //EXPECT_EQ(5, subtract(6, 1));
+    std::string utf8 = {-19, -107, -100, -22, -75, -83, -20, -106, -76};
+    auto wide = com::WIDE(utf8);
+    EXPECT_EQ(wide.size(), 3);
+    EXPECT_EQ(wide[0], 54620);
+    EXPECT_EQ(wide[1], 44397);
+    EXPECT_EQ(wide[2], 50612);
 }

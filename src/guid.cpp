@@ -53,43 +53,49 @@ auto TO_LPIID(GUID *guid)
 // -------
 
 
-/** \brief Null constructor.
+/** \brief Open GUID from string identifier.
  */
-Guid::Guid()
-{}
+void Guid::open(const std::string &string)
+{
+    auto wide = WIDE(string);
+    if (!wide.empty() && wide.front() == L'{') {
+        CLSIDFromString(wide.data(), TO_LPCLSID(&id));
+    } else {
+        CLSIDFromProgID(wide.data(), TO_LPCLSID(&id));
+    }
+}
 
 
 /** \brief Initializer list constructor.
  */
 Guid::Guid(const GUID &guid):
-    guid(guid)
+    id(guid)
 {}
 
 
-/** \brief Initializer from identifier.
+/** \brief Initializer from C-string.
  */
-Guid::Guid(const std::string &string)
+Guid::Guid(const char *cstring)
 {
-    auto wide = WIDE(string);
-    if (!wide.empty() && wide.front() == L'{') {
-        CLSIDFromString(wide.data(), TO_LPCLSID(&guid));
-    } else {
-        CLSIDFromProgID(wide.data(), TO_LPCLSID(&guid));
-    }
+    open(std::string(cstring));
 }
 
 
-/** \brief Copy constructor.
+/** \brief Initializer from character array.
  */
-Guid::Guid(const Guid &other):
-    guid(other.guid)
-{}
+Guid::Guid(const char *array,
+    const size_t length)
+{
+    open(std::string(array, length));
+}
 
 
-/** \brief Destructor.
+/** \brief Initializer from string identifier.
  */
-Guid::~Guid()
-{}
+Guid::Guid(const std::string &string)
+{
+    open(string);
+}
 
 
 /** \brief Construct Guid from progid.
@@ -105,7 +111,7 @@ Guid Guid::fromProgid(const std::string &string)
 std::string Guid::toProgid()
 {
     LPOLESTR progid;
-    ProgIDFromCLSID(TO_REFCLSID(guid), &progid);
+    ProgIDFromCLSID(TO_REFCLSID(id), &progid);
     if (!progid) {
         return "";
     }
@@ -130,7 +136,7 @@ Guid Guid::fromClsid(const std::string &string)
 std::string Guid::toClsid()
 {
     LPOLESTR clsid;
-    StringFromCLSID(TO_REFCLSID(guid), &clsid);
+    StringFromCLSID(TO_REFCLSID(id), &clsid);
     if (!clsid) {
         return "";
     }
@@ -148,7 +154,7 @@ Guid Guid::fromIid(const std::string &string)
 {
     Guid guid;
     auto wide = WIDE(string);
-    IIDFromString(wide.data(), TO_LPIID(&guid.guid));
+    IIDFromString(wide.data(), TO_LPIID(&guid.id));
 
     return guid;
 }
@@ -159,7 +165,7 @@ Guid Guid::fromIid(const std::string &string)
 std::string Guid::toIid()
 {
     LPOLESTR iid;
-    StringFromIID(TO_REFIID(guid), &iid);
+    StringFromIID(TO_REFIID(id), &iid);
     if (!iid) {
         return "";
     }
@@ -176,7 +182,7 @@ std::string Guid::toIid()
 bool operator==(const Guid &left,
     const Guid &right)
 {
-    return left.guid == right.guid;
+    return left.id == right.id;
 }
 
 
