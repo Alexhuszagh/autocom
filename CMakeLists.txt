@@ -17,6 +17,7 @@ if(NOT WIN32)
 endif()
 
 option(BUILD_EXAMPLES "Build example files" ON)
+option(BUILD_GENERATOR "Build early-binding generator" ON)
 option(BUILD_STATIC "Build static library" ON)
 option(BUILD_TESTS "Build unittests (requires GTest)" OFF)
 
@@ -57,6 +58,13 @@ if(MSVC)
 elseif(MINGW)
     list(APPEND AUTOCOM_LIBRARIES -lole32 -loleaut32 -luuid)
 endif()
+
+# BIN
+# ----
+
+# TODO
+set(AUTOCOM_GENERATOR
+)
 
 # EXAMPLES
 # --------

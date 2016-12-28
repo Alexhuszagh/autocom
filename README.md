@@ -1,7 +1,7 @@
 AutoCom
 =======
 
-Lattice is a C++11 interface for the Component Object Model (COM), inspired by [ComTypes](https://github.com/enthought/comtypes.
+Lattice is a C++11 interface for the Component Object Model (COM) supporting MinGW and MSVC, inspired by [ComTypes](https://github.com/enthought/comtypes).
 
 **Table of Contents**
 
@@ -14,7 +14,7 @@ Lattice is a C++11 interface for the Component Object Model (COM), inspired by [
 
 ## Motivation
 
-AutoCom is a modern COM interface library for C++11. No more manually dispatching parameters by hand.
+AutoCom is a modern COM interface library for C++11. No more manually dispatching parameters by hand. 
 // TODO: finish motivation, do this later
 
 ## Interface
