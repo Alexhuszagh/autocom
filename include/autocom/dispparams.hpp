@@ -54,7 +54,7 @@ void setArg(VariantList &variants,
     const size_t index,
     T &&t)
 {
-    setVariant(variants[index], std::move(t));
+    variants[index].set(AUTOCOM_FWD(t));
 }
 
 

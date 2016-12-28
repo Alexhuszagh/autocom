@@ -8,6 +8,7 @@
 #include "autocom.hpp"
 
 #include <cassert>
+#include <cwchar>
 
 
 namespace autocom
@@ -22,14 +23,12 @@ Bstr::Bstr(const Bstr &other):
     string(other.copy())
 {}
 
-//SysAllocStringLen
-// SysAllocStringByteLen
-
 
 /** \brief Copy asignment operator.
  */
 Bstr & Bstr::operator=(const Bstr &other)
 {
+    clear();
     string = other.copy();
     return *this;
 }
@@ -37,10 +36,9 @@ Bstr & Bstr::operator=(const Bstr &other)
 
 /** \brief Move constructor.
  */
-Bstr::Bstr(Bstr &&other):
-    string(std::move(other.string))
+Bstr::Bstr(Bstr &&other)
 {
-    other.string = nullptr;
+    std::swap(string, other.string);
 }
 
 
@@ -48,8 +46,7 @@ Bstr::Bstr(Bstr &&other):
  */
 Bstr & Bstr::operator=(Bstr &&other)
 {
-    string = std::move(other.string);
-    other.string = nullptr;
+    std::swap(string, other.string);
     return *this;
 }
 
@@ -59,6 +56,58 @@ Bstr & Bstr::operator=(Bstr &&other)
 Bstr::~Bstr()
 {
     clear();
+}
+
+
+/** \brief Initialize string from narrow string.
+ */
+Bstr::Bstr(const std::string &string)
+{
+    auto wide = WIDE(string);
+    this->string = SysAllocStringLen(wide.data(), wide.size());
+}
+
+
+/** \brief Initialize string from wide string.
+ */
+Bstr::Bstr(const std::wstring &string):
+    string(SysAllocStringLen(string.data(), string.size()))
+{}
+
+
+/** \brief Initialize string from narrow C-string.
+ */
+Bstr::Bstr(const char *cstring)
+{
+    auto wide = WIDE(std::string(cstring));
+    this->string = SysAllocStringLen(wide.data(), wide.size());
+}
+
+
+/** \brief Initialize string from wide C-string.
+ */
+Bstr::Bstr(const wchar_t *cstring)
+{
+    this->string = SysAllocStringLen(cstring, wcslen(cstring));
+}
+
+
+/** \brief Initialize string from narrow character array.
+ */
+Bstr::Bstr(const char *array,
+    const size_t length)
+{
+    auto wide = WIDE(std::string(array, length));
+    this->string = SysAllocStringLen(wide.data(), wide.size());
+}
+
+
+/** \brief Initialize string from wide character array.
+ */
+Bstr::Bstr(const wchar_t *array,
+        const size_t length)
+{
+    this->string = SysAllocStringLen(array, length);
 }
 
 
@@ -77,6 +126,24 @@ auto Bstr::end() noexcept
     -> iterator
 {
     return begin() + size();
+}
+
+
+/** \brief Get iterator at beginning of string.
+ */
+auto Bstr::begin() const noexcept
+    -> const_iterator
+{
+    return cbegin();
+}
+
+
+/** \brief Get iterator past end of string.
+ */
+auto Bstr::end() const noexcept
+    -> const_iterator
+{
+    return cend();
 }
 
 
@@ -113,6 +180,24 @@ auto Bstr::rend() noexcept
     -> reverse_iterator
 {
     return reverse_iterator(begin());
+}
+
+
+/** \brief Get iterator at reverse beginning of string.
+ */
+auto Bstr::rbegin() const noexcept
+    -> const_reverse_iterator
+{
+    return const_reverse_iterator(cend());
+}
+
+
+/** \brief Get iterator past reverse end of string.
+ */
+auto Bstr::rend() const noexcept
+    -> const_reverse_iterator
+{
+    return const_reverse_iterator(cbegin());
 }
 
 
@@ -204,7 +289,7 @@ auto Bstr::at(size_t position)
         throw std::out_of_range("Index is out of range");
     }
 
-    return at(position);
+    return string[position];
 }
 
 
@@ -227,7 +312,7 @@ auto Bstr::front()
     -> reference
 {
     assert(!empty() && "bstr::front(): string is empty");
-    return *begin();
+    return *string;
 }
 
 
@@ -237,7 +322,7 @@ auto Bstr::front() const
     -> const_reference
 {
     assert(!empty() && "bstr::front(): string is empty");
-    return *cbegin();
+    return *string;
 }
 
 
@@ -247,7 +332,7 @@ auto Bstr::back()
     -> reference
 {
     assert(!empty() && "bstr::back(): string is empty");
-    return *(end()-1);
+    return *(string + size() - 1);
 }
 
 
@@ -257,7 +342,7 @@ auto Bstr::back() const
     -> const_reference
 {
     assert(!empty() && "bstr::back(): string is empty");
-    return *(cend()-1);
+    return *(string + size() - 1);
 }
 
 
@@ -273,11 +358,38 @@ BSTR Bstr::copy() const
 }
 
 
+/** \brief Append character to string.
+ */
+void Bstr::push_back(const wchar_t c)
+{
+    std::wstring wide(string, size());
+    wide.push_back(c);
+    clear();
+    string = SysAllocStringLen(wide.data(), wide.size());
+}
+
+
 /** \brief Get BSTR data.
  */
 const BSTR & Bstr::data() const
 {
     return string;
+}
+
+
+/** \brief Check if string is not empty.
+ */
+Bstr::operator bool() const
+{
+    return !empty();
+}
+
+
+/** \brief Convert type explicitly to BSTR.
+ */
+Bstr::operator BSTR() const
+{
+    return copy();
 }
 
 

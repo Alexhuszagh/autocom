@@ -5,7 +5,6 @@
  *  \brief Public AutoCom header.
  */
 
-#include "autocom/bstr.hpp"
 #include "autocom/com.hpp"
 #include "autocom/dispatch.hpp"
 #include "autocom/dispparams.hpp"

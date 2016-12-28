@@ -30,8 +30,7 @@ endif()
 set(AUTOCOM_SOURCES
     src/encoding/converters.cpp
     src/encoding/unicode.cpp
-    src/util/type.cpp
-    src/bstr.cpp
+    src/util/bstr.cpp
     src/com.cpp
     src/dispparams.cpp
     src/dispatch.cpp

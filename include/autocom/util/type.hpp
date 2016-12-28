@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <wtypes.h>
+#include "bstr.hpp"
 
 #include <type_traits>
 #include <utility>
@@ -56,77 +56,26 @@ public:
  *  must outlived the lifetime of the caller.
  */
 template <typename T>
-class RefWrapper
+class PointerWrapper
 {
     typedef T* P;
-    typedef RefWrapper<T> This;
+    typedef PointerWrapper<T> This;
 
     P p = nullptr;
 
 public:
-    RefWrapper() = default;
-    RefWrapper(const This&) = default;
+    PointerWrapper() = default;
+    PointerWrapper(const This&) = default;
     This & operator=(const This&) = default;
-    RefWrapper(This &&) = default;
+    PointerWrapper(This &&) = default;
     This & operator=(This &&) = default;
 
-    RefWrapper(P &p);
-    RefWrapper(T &t);
+    PointerWrapper(P &p);
+    PointerWrapper(T &t);
 
     // DATA
     explicit operator P() const;
 };
-
-
-/** \brief Type-safe wrapper for COM string types.
- */
-class SafeBstr
-{
-protected:
-    std::wstring string;
-
-public:
-    typedef BSTR type;
-
-    SafeBstr() = default;
-    SafeBstr(const SafeBstr&) = default;
-    SafeBstr & operator=(const SafeBstr&) = default;
-    SafeBstr(SafeBstr &&) = default;
-    SafeBstr & operator=(SafeBstr &&) = default;
-
-    SafeBstr(const std::string &string);
-    SafeBstr(const std::wstring &string);
-
-    // DATA
-    explicit operator BSTR() const;
-};
-
-
-/** \brief Type-safe wrapper for COM BStr] references.
- */
-class SafeBstrRef
-{
-protected:
-    typedef BSTR* BstrPtr;
-
-    BstrPtr string = nullptr;
-
-public:
-    typedef BstrPtr type;
-
-    SafeBstrRef() = default;
-    SafeBstrRef(const SafeBstrRef&) = default;
-    SafeBstrRef & operator=(const SafeBstrRef&) = default;
-    SafeBstrRef(SafeBstrRef &&) = default;
-    SafeBstrRef & operator=(SafeBstrRef &&) = default;
-
-    SafeBstrRef(BSTR *&string);
-    SafeBstrRef(BSTR &string);
-
-    // DATA
-    explicit operator BstrPtr() const;
-};
-
 
 // TODO: need a vector and array....
 
@@ -160,11 +109,10 @@ ValueWrapper<T>::operator T() const
 }
 
 
-
 /** \brief Construct from copy of type.
  */
 template <typename T>
-RefWrapper<T>::RefWrapper(P &p):
+PointerWrapper<T>::PointerWrapper(P &p):
     p(p)
 {}
 
@@ -172,7 +120,7 @@ RefWrapper<T>::RefWrapper(P &p):
 /** \brief Construct from moved type.
  */
 template <typename T>
-RefWrapper<T>::RefWrapper(T &t):
+PointerWrapper<T>::PointerWrapper(T &t):
     p(&t)
 {}
 
@@ -180,23 +128,24 @@ RefWrapper<T>::RefWrapper(T &t):
 /** \brief Convert explicitly to the type.
  */
 template <typename T>
-RefWrapper<T>::operator P() const
+PointerWrapper<T>::operator P() const
 {
     return p;
 }
-
 
 // MACROS
 // ------
 
 
-/** \brief Generic type wrapper via macro.
+/** \brief Wraps an object to be passed by value.
  *
  *  Wraps non-array objects via inheritance. Inheritance is prevent
  *  implicit conversion of similar types, using a different class
  *  definition for each type.
+ *
+ *  The value is copied into DispParams.
  */
-#define AUTOCOM_WRAPPER(T, Name)                                        \
+#define AUTOCOM_WRAP_VALUE(T, Name)                                     \
     class Name: public ValueWrapper<T>                                  \
     {                                                                   \
     protected:                                                          \
@@ -205,32 +154,58 @@ RefWrapper<T>::operator P() const
     public:                                                             \
         typedef T type;                                                 \
         using Base::Base;                                               \
-    };                                                                  \
-                                                                        \
-    class Name##Ref: public RefWrapper<T>                               \
+    }
+
+
+/** \brief Wraps an object to be passed by pointer.
+ *
+ *  Wraps non-array objects via inheritance. Inheritance is prevent
+ *  implicit conversion of similar types, using a different class
+ *  definition for each type.
+ *
+ *  The pointer is copied into DispParams.
+ */
+#define AUTOCOM_WRAP_REFERENCE(T, Name)                                 \
+    class Name: public PointerWrapper<T>                                \
     {                                                                   \
     protected:                                                          \
-        typedef RefWrapper<T> Base;                                     \
+        typedef PointerWrapper<T> Base;                                 \
                                                                         \
     public:                                                             \
         typedef T* type;                                                \
         using Base::Base;                                               \
-    };                                                                  \
-                                                                        \
-    class Name##RefRef: public RefWrapper<T*>                           \
-    {                                                                   \
-    protected:                                                          \
-        typedef RefWrapper<T*> Base;                                    \
-                                                                        \
-    public:                                                             \
-        typedef T** type;                                               \
-        using Base::Base;                                               \
-    };
+    }
+
+
+/** \brief Wraps an object to be passed by pointer.
+ */
+#define AUTOCOM_WRAP_POINTER(T, Name)                                   \
+    AUTOCOM_WRAP_REFERENCE(T, Name##Pointer);                           \
+    typedef Name##Pointer Name##Ptr
+
+
+/** \brief Wraps an object to be passed by double pointer.
+ *
+ *  The pointer to the pointer is copied into DispParams.
+ */
+#define AUTOCOM_WRAP_DOUBLE_POINTER(T, Name)                            \
+    AUTOCOM_WRAP_POINTER(T*, Name##Double);                             \
+    typedef Name##DoublePtr Name##DblPtr;                               \
+    typedef Name##DoublePointer Name##DblPointer;
+
+
+/** \brief Generic type wrapper via macro.
+ */
+#define AUTOCOM_WRAPPER(T, Name)                                        \
+    AUTOCOM_WRAP_VALUE(T, Name);                                        \
+    AUTOCOM_WRAP_POINTER(T, Name);                                      \
+    AUTOCOM_WRAP_DOUBLE_POINTER(T, Name)
 
 
 // TYPES
 // -----
 
+AUTOCOM_WRAP_VALUE(std::nullptr_t, SafeNull);
 AUTOCOM_WRAPPER(VARIANT_BOOL, SafeBool);
 AUTOCOM_WRAPPER(CHAR, SafeChar);
 AUTOCOM_WRAPPER(UCHAR, SafeUChar);
@@ -242,11 +217,42 @@ AUTOCOM_WRAPPER(LONG, SafeLong);
 AUTOCOM_WRAPPER(ULONG, SafeULong);
 AUTOCOM_WRAPPER(FLOAT, SafeFloat);
 AUTOCOM_WRAPPER(DOUBLE, SafeDouble);
+AUTOCOM_WRAPPER(BSTR, SafeBstr);
 AUTOCOM_WRAPPER(CURRENCY, SafeCurrency);
+AUTOCOM_WRAPPER(SCODE, SafeError);
+AUTOCOM_WRAPPER(DATE, SafeDate);
+AUTOCOM_WRAPPER(LONGLONG, SafeLongLong);
+AUTOCOM_WRAPPER(ULONGLONG, SafeULongLong);
+AUTOCOM_WRAPPER(DECIMAL, SafeDecimal);
+AUTOCOM_WRAPPER(IUnknown*, SafeIUnknown);
+AUTOCOM_WRAPPER(IDispatch*, SafeIDispatch);
+
+#ifdef HAVE_PROPSYS
+    AUTOCOM_WRAPPER(LARGE_INTEGER, SafeLargeInteger);
+    AUTOCOM_WRAPPER(ULARGE_INTEGER, SafeULargeInteger);
+    AUTOCOM_WRAPPER(FILETIME, SafeFiletime);
+    AUTOCOM_WRAPPER(CLSID, SafeClsid);
+    AUTOCOM_WRAPPER(GUID, SafeGuid);
+    AUTOCOM_WRAPPER(CLIPDATA, SafeClipData);
+    AUTOCOM_WRAPPER(IStream, SafeIStream);
+    AUTOCOM_WRAPPER(IStream, SafeIStreamObject);
+    AUTOCOM_WRAPPER(IStorage, SafeIStorage);
+    AUTOCOM_WRAPPER(IStorage, SafeIStorageObject);
+    AUTOCOM_WRAPPER(LPVERSIONEDSTREAM, SafeLpVersionedStream);
+    AUTOCOM_WRAPPER(Bstr, SafeBlob);
+    AUTOCOM_WRAPPER(Bstr, SafeBlobObject);
+    AUTOCOM_WRAPPER(LPSTR, SafeLpstr);
+    AUTOCOM_WRAPPER(LPWSTR, SafeLpwstr);
+#endif      // HAVE_PROPSYS
+
 
 // CLEANUP
 // -------
 
+#undef AUTOCOM_WRAP_VALUE
+#undef AUTOCOM_WRAP_REFERENCE
+#undef AUTOCOM_WRAP_POINTER
+#undef AUTOCOM_WRAP_DOUBLE_POINTER
 #undef AUTOCOM_WRAPPER
 
 }   /* autocom */
