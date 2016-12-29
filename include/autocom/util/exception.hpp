@@ -138,6 +138,17 @@ class GetDocumentationError: public std::exception
 };
 
 
+/** \brief Unable to get typeinfo from reference.
+ */
+class GetRefTypeInfoError: public std::exception
+{
+    virtual const char *what() const throw()
+    {
+        return "Unable to GetRefTypeInfo from ITypeInfo.\n";
+    }
+};
+
+
 /** \brief Unable to cast variant to desired type.
  */
 class VariantGetValueError: public std::exception

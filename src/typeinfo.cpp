@@ -7,6 +7,8 @@
 
 #include "autocom.hpp"
 
+#include <cassert>
+
 
 namespace autocom
 {
@@ -182,6 +184,27 @@ TypeAttr TypeInfo::attr() const
 Documentation TypeInfo::documentation(const MEMBERID id) const
 {
     return getDocumentation(ppv.get(), id);
+}
+
+
+/** \brief Get variable description at index.
+ */
+VarDesc TypeInfo::vardesc(const UINT index) const
+{
+    return VarDesc(ppv, index);
+}
+
+
+/** \brief Get type info from reference to other type.
+ */
+TypeInfo TypeInfo::info(const HREFTYPE type) const
+{
+    ITypeInfo *info = nullptr;
+    if (FAILED(ppv->GetRefTypeInfo(type, &info))) {
+        throw GetRefTypeInfoError();
+    }
+
+    return TypeInfo(info);
 }
 
 
@@ -401,17 +424,17 @@ WORD TypeAttr::minor() const
 
 /** \brief Get description of alias if kind() is TKIND_ALIAS.
  */
-TYPEDESC TypeAttr::alias() const
+TypeDesc TypeAttr::alias() const
 {
-    return attr->tdescAlias;
+    return TypeDesc(attr->tdescAlias);
 }
 
 
 /** \brief Get IDL attributes of type.
  */
-IDLDESC TypeAttr::idl() const
+IdlDesc TypeAttr::idl() const
 {
-    return attr->idldescType;
+    return IdlDesc(attr->idldescType);
 }
 
 
@@ -497,24 +520,26 @@ WORD TypeLibAttr::flags() const
 
 /** \brief Open VARDESC from ITypeInfo.
  */
-VarDesc::VarDesc(const ITypeInfoPtr &info)
+VarDesc::VarDesc(const ITypeInfoPtr &info,
+    const UINT index)
 {
-    open(info);
+    open(info, index);
 }
 
 /** \brief Construct VARDESC from ITypeInfo.
  */
-void VarDesc::open(const ITypeInfoPtr &info)
+void VarDesc::open(const ITypeInfoPtr &info,
+    const UINT index)
 {
-//    if (info) {
-//        desc.reset(newVarDesc(info.get()), [info](VARDESC *ptr) {
-//            info->ReleaseVarDesc(ptr);
-//        });
-//        ppv = info;
-//    } else {
-//        desc.reset();
-//        ppv.reset();
-//    }
+    if (info) {
+        desc.reset(newVarDesc(info.get(), index), [info](VARDESC *ptr) {
+            info->ReleaseVarDesc(ptr);
+        });
+        ppv = info;
+    } else {
+        desc.reset();
+        ppv.reset();
+    }
 }
 
 
@@ -522,7 +547,265 @@ void VarDesc::open(const ITypeInfoPtr &info)
  */
 VarDesc::operator bool() const
 {
-    return bool(desct);
+    return bool(desc);
+}
+
+
+/** \brief Variable member ID.
+ */
+MEMBERID VarDesc::id() const
+{
+    return desc->memid;
+}
+
+
+/** \brief Description of variable.
+ */
+ElemDesc VarDesc::element() const
+{
+    return ElemDesc(desc->elemdescVar);
+}
+
+
+/** \brief Reference to VARIANT (not null only if kind() is VAR_CONST).
+ */
+const VARIANT & VarDesc::variant() const
+{
+    assert(kind() == VAR_CONST);
+    return *desc->lpvarValue;
+}
+
+
+/** \brief Variable flags.
+ */
+WORD VarDesc::flags() const
+{
+    return desc->wVarFlags;
+}
+
+
+/** \brief Variable kind.
+ */
+VARKIND VarDesc::kind() const
+{
+    return desc->varkind;
+}
+
+
+/** \brief Initialize from copied typedesc.
+ */
+TypeDesc::TypeDesc(const TYPEDESC &desc):
+    desc(desc)
+{}
+
+
+/** \brief Initialize from moved typedesc.
+ */
+TypeDesc::TypeDesc(TYPEDESC &&desc):
+    desc(std::move(desc))
+{}
+
+
+/** \brief Return variable type.
+ */
+VARTYPE TypeDesc::vt() const
+{
+    return desc.vt;
+}
+
+
+/** \brief Get description for pointer type.
+ */
+TypeDesc TypeDesc::pointer() const
+{
+    assert(vt() == VT_PTR || vt() == VT_SAFEARRAY);
+    return TypeDesc(*desc.lptdesc);
+}
+
+
+/** \brief Get reference for type info.
+ */
+HREFTYPE TypeDesc::reference() const
+{
+    assert(vt() == VT_USERDEFINED);
+    return desc.hreftype;
+}
+
+
+/** \brief Get description for array type.
+ */
+ArrayDesc TypeDesc::array() const
+{
+    assert(vt() == VT_CARRAY);
+    return ArrayDesc(*desc.lpadesc);
+}
+
+
+/** \brief Initialize from copied arraydesc.
+ */
+ArrayDesc::ArrayDesc(const ARRAYDESC &desc):
+    desc(desc)
+{}
+
+
+/** \brief Initialize from moved arraydesc.
+ */
+ArrayDesc::ArrayDesc(ARRAYDESC &&desc):
+    desc(std::move(desc))
+{}
+
+
+/** \brief Get type description.
+ */
+TypeDesc ArrayDesc::type() const
+{
+    return TypeDesc(desc.tdescElem);
+}
+
+
+/** \brief Get number of array dimensions.
+ */
+USHORT ArrayDesc::count() const
+{
+    return desc.cDims;
+}
+
+
+/** \brief Get dimension at index.
+ */
+SafeArrayBound ArrayDesc::bound(const USHORT index) const
+{
+    return SafeArrayBound(desc.rgbounds[index]);
+}
+
+
+/** \brief Initialize from copied idlesc.
+ */
+IdlDesc::IdlDesc(const IDLDESC &desc):
+    desc(desc)
+{}
+
+
+/** \brief Initialize from moved idlesc.
+ */
+IdlDesc::IdlDesc(IDLDESC &&desc):
+    desc(std::move(desc))
+{}
+
+
+/** \brief Initialize from copied elemdesc.
+ */
+ElemDesc::ElemDesc(const ELEMDESC &desc):
+    desc(desc)
+{}
+
+
+/** \brief Initialize from moved elemdesc.
+ */
+ElemDesc::ElemDesc(ELEMDESC &&desc):
+    desc(std::move(desc))
+{}
+
+
+/** \brief Get type description.
+ */
+TypeDesc ElemDesc::type() const
+{
+    return TypeDesc(desc.tdesc);
+}
+
+
+/** \brief Get IDL description.
+ */
+IdlDesc ElemDesc::idl() const
+{
+    return IdlDesc(desc.idldesc);
+}
+
+
+/** \brief Get param description.
+ */
+ParamDesc ElemDesc::param() const
+{
+    return ParamDesc(desc.paramdesc);
+}
+
+
+/** \brief Initialize from copied paramdesc.
+ */
+ParamDesc::ParamDesc(const PARAMDESC &desc):
+    desc(desc)
+{}
+
+
+/** \brief Initialize from moved paramdesc.
+ */
+ParamDesc::ParamDesc(PARAMDESC &&desc):
+    desc(std::move(desc))
+{}
+
+
+/** \brief Get size of default parameter.
+ */
+ULONG ParamDesc::size() const
+{
+    assert(flags() & PARAMFLAG_FHASDEFAULT);
+    return desc.pparamdescex->cBytes;
+}
+
+
+/** \brief Get value of default parameter.
+ */
+VARIANTARG ParamDesc::value() const
+{
+    assert(flags() & PARAMFLAG_FHASDEFAULT);
+    return desc.pparamdescex->varDefaultValue;
+}
+
+
+/** \brief Get flags for parameter.
+ */
+USHORT ParamDesc::flags() const
+{
+    return desc.wParamFlags;
+}
+
+
+/** \brief Initialize from copies bounds.
+ */
+SafeArrayBound::SafeArrayBound(const SAFEARRAYBOUND &bound):
+    bound(bound)
+{}
+
+
+/** \brief Initialize from moved bounds.
+ */
+SafeArrayBound::SafeArrayBound(SAFEARRAYBOUND &&bound):
+    bound(bound)
+{}
+
+
+/** \brief Get number of elements in bound.
+ */
+ULONG SafeArrayBound::size() const
+{
+    return upper() - lower();
+}
+
+
+/** \brief Get lower bound of elements.
+ */
+LONG SafeArrayBound::lower() const
+{
+    return bound.lLbound;
+}
+
+
+/** \brief Get upper bound of elements.
+ */
+ULONG SafeArrayBound::upper() const
+{
+    return bound.cElements;
 }
 
 

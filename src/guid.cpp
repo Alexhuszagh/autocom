@@ -177,6 +177,20 @@ std::string Guid::toIid()
 }
 
 
+/** \brief Export GUID to printable representation.
+ */
+std::string Guid::string() const
+{
+    // 36 characters + null character
+    char *buffer = new char[37];
+    const size_t size = sprintf(buffer, "%08lX_%04hX_%04hX_%02hhX%02hhX_%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX", id.Data1, id.Data2, id.Data3, id.Data4[0], id.Data4[1], id.Data4[2], id.Data4[3], id.Data4[4], id.Data4[5], id.Data4[6], id.Data4[7]);
+    std::string output(buffer, size);
+    delete[] buffer;
+
+    return output;
+}
+
+
 /** \brief Equality operator.
  */
 bool operator==(const Guid &left,

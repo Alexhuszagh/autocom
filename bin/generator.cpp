@@ -18,13 +18,16 @@ namespace com = autocom;
 
 
 /** \brief Validate PROGID for COM object.
+ *
+ *  Value can either be a PROGID, or a CLSID as a 36-character hex
+ *  identifier enclosed in brackets.
  */
 static bool ValidateProgId(const char *flagname,
     const std::string &id)
 {
     if (id.empty()) {
     } else if (id.front() == '{' || id.back() == '}') {
-        if (id.front() == '{' && id.back() == '}' && id.size() == 18) {
+        if (id.front() == '{' && id.back() == '}' && id.size() == 38) {
             return true;
         }
     } else {
@@ -55,9 +58,14 @@ int main(int argc, char *argv[])
 
     com::Dispatch dispatch(FLAGS_progid);
     if (dispatch) {
+        // parse descriptions
         com::TypeLibDescription description;
         description.parse(dispatch.info().typelib());
-        // TODO: need to write interface
+
+        // write to file
+        com::Files files;
+        writeHeaders(description, FLAGS_header, files);
+        writeSources(description, FLAGS_source, files);
     }
 
     return 0;

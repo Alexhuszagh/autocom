@@ -49,6 +49,7 @@ public:
     std::string toClsid();
     static Guid fromIid(const std::string &string);
     std::string toIid();
+    std::string string() const;
 
     friend bool operator==(const Guid &left,
         const Guid &right);

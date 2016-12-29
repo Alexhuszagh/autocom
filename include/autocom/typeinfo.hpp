@@ -25,6 +25,12 @@ class TypeLib;
 class TypeLibAttr;
 struct Documentation;
 class VarDesc;
+class TypeDesc;
+class ArrayDesc;
+class IdlDesc;
+class ElemDesc;
+class ParamDesc;
+class SafeArrayBound;
 
 // TYPES
 // -----
@@ -52,7 +58,8 @@ TYPEATTR * newTypeAttr(ITypeInfo *info);
 
 /** \brief Create new handle to VARDESC object from ITypeinfo.
  */
-VARDESC * newVarDesc(ITypeInfo *info);
+VARDESC * newVarDesc(ITypeInfo *info,
+    const UINT index);
 
 /** \brief Create new handle to TLIBATTR object from ITypeLib.
  */
@@ -88,7 +95,8 @@ public:
     TypeLib typelib() const;
     TypeAttr attr() const;
     Documentation documentation(const MEMBERID id) const;
-    VarDesc vardesc() const;
+    VarDesc vardesc(const UINT index) const;
+    TypeInfo info(const HREFTYPE type) const;
 };
 
 
@@ -156,8 +164,8 @@ public:
     WORD flags() const;
     WORD major() const;
     WORD minor() const;
-    TYPEDESC alias() const;
-    IDLDESC idl() const;
+    TypeDesc alias() const;
+    IdlDesc idl() const;
 };
 
 
@@ -227,12 +235,158 @@ public:
     VarDesc(VarDesc&&) = default;
     VarDesc & operator=(VarDesc&&) = default;
 
-    VarDesc(const ITypeInfoPtr &info);
-    void open(const ITypeInfoPtr &info);
+    VarDesc(const ITypeInfoPtr &info,
+        const UINT index);
+    void open(const ITypeInfoPtr &info,
+        const UINT index);
 
     // DATA
     explicit operator bool() const;
-    // TODO...
+    MEMBERID id() const;
+    ElemDesc element() const;
+    const VARIANT & variant() const;
+    WORD flags() const;
+    VARKIND kind() const;
+};
+
+
+/** \brief C++ wrapper around TYPEDESC.
+ */
+class TypeDesc
+{
+protected:
+    TYPEDESC desc;
+
+public:
+    TypeDesc() = default;
+    TypeDesc(const TypeDesc&) = default;
+    TypeDesc & operator=(const TypeDesc&) = default;
+    TypeDesc(TypeDesc&&) = default;
+    TypeDesc & operator=(TypeDesc&&) = default;
+
+    TypeDesc(const TYPEDESC &desc);
+    TypeDesc(TYPEDESC &&desc);
+
+    // DATA
+    VARTYPE vt() const;
+    TypeDesc pointer() const;
+    ArrayDesc array() const;
+    HREFTYPE reference() const;
+};
+
+
+/** \brief C++ wrapper around ARRAYDESC
+ */
+class ArrayDesc
+{
+protected:
+    ARRAYDESC desc;
+
+public:
+    ArrayDesc() = default;
+    ArrayDesc(const ArrayDesc&) = default;
+    ArrayDesc & operator=(const ArrayDesc&) = default;
+    ArrayDesc(ArrayDesc&&) = default;
+    ArrayDesc & operator=(ArrayDesc&&) = default;
+
+    ArrayDesc(const ARRAYDESC &desc);
+    ArrayDesc(ARRAYDESC &&desc);
+
+    // DATA
+    TypeDesc type() const;
+    USHORT count() const;
+    SafeArrayBound bound(const USHORT index) const;
+};
+
+
+/** \brief C++ wrapper around IDLDESC.
+ */
+class IdlDesc
+{
+protected:
+    IDLDESC desc;
+
+public:
+    IdlDesc() = default;
+    IdlDesc(const IdlDesc&) = default;
+    IdlDesc & operator=(const IdlDesc&) = default;
+    IdlDesc(IdlDesc&&) = default;
+    IdlDesc & operator=(IdlDesc&&) = default;
+
+    IdlDesc(const IDLDESC &desc);
+    IdlDesc(IDLDESC &&desc);
+};
+
+
+/** \brief C++ wrapper around ELEMDESC.
+ */
+class ElemDesc
+{
+protected:
+    ELEMDESC desc;
+
+public:
+    ElemDesc() = default;
+    ElemDesc(const ElemDesc&) = default;
+    ElemDesc & operator=(const ElemDesc&) = default;
+    ElemDesc(ElemDesc&&) = default;
+    ElemDesc & operator=(ElemDesc&&) = default;
+
+    ElemDesc(const ELEMDESC &desc);
+    ElemDesc(ELEMDESC &&desc);
+
+    // DATA
+    TypeDesc type() const;
+    IdlDesc idl() const;
+    ParamDesc param() const;
+};
+
+
+/** \brief C++ wrapper around PARAMDESC.
+ */
+class ParamDesc
+{
+protected:
+    PARAMDESC desc;
+
+public:
+    ParamDesc() = default;
+    ParamDesc(const ParamDesc&) = default;
+    ParamDesc & operator=(const ParamDesc&) = default;
+    ParamDesc(ParamDesc&&) = default;
+    ParamDesc & operator=(ParamDesc&&) = default;
+
+    ParamDesc(const PARAMDESC &desc);
+    ParamDesc(PARAMDESC &&desc);
+
+    // DATA
+    ULONG size() const;
+    VARIANTARG value() const;
+    USHORT flags() const;
+};
+
+
+/** \brief C++ wrapper around SAFEARRAYBOUND.
+ */
+class SafeArrayBound
+{
+protected:
+    SAFEARRAYBOUND bound;
+
+public:
+    SafeArrayBound() = default;
+    SafeArrayBound(const SafeArrayBound&) = default;
+    SafeArrayBound & operator=(const SafeArrayBound&) = default;
+    SafeArrayBound(SafeArrayBound&&) = default;
+    SafeArrayBound & operator=(SafeArrayBound&&) = default;
+
+    SafeArrayBound(const SAFEARRAYBOUND &bound);
+    SafeArrayBound(SAFEARRAYBOUND &&bound);
+
+    // DATA
+    ULONG size() const;
+    LONG lower() const;
+    ULONG upper() const;
 };
 
 

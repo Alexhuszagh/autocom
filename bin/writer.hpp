@@ -5,10 +5,43 @@
  *  \brief Write class attributes into C++ interface.
  */
 
-#include <autocom.hpp>
+#pragma once
 
-#include <sstream>
+#include "parser.hpp"
+
+#include <string>
+#include <vector>
 
 
+namespace autocom
+{
+// OBJECTS
+// -------
 
-// TODO
+
+/** \brief Documents written to file.
+ */
+struct Files
+{
+    std::vector<std::string> headers;
+    std::vector<std::string> sources;
+};
+
+// FUNCTIONS
+// ---------
+
+
+/** \brief Write C++ header file from file description.
+ */
+void writeHeaders(TypeLibDescription &tlib,
+    std::string &directory,
+    Files &files);
+
+/** \brief Write C++ source file from file description.
+ */
+void writeSources(TypeLibDescription &tlib,
+    std::string &directory,
+    Files &files);
+
+
+}   /* autocom */

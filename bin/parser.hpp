@@ -5,6 +5,8 @@
  *  \brief Parse ITypeInfo data attributes.
  */
 
+#pragma once
+
 #include <autocom.hpp>
 
 #include <string>
@@ -46,7 +48,8 @@ typedef std::vector<Union> UnionList;
 typedef std::vector<External> ExternalList;
 
 // ATTRIBUTES
-typedef std::tuple<std::string, long> EnumValue;
+typedef std::tuple<std::string, LONGLONG> EnumValue;
+typedef std::tuple<std::string, std::string> StructField;
 
 // OBJECTS
 // -------
@@ -56,6 +59,9 @@ typedef std::tuple<std::string, long> EnumValue;
  */
 struct Enum
 {
+    std::string name;
+    std::vector<EnumValue> values;
+
     Enum() = default;
     Enum(const Enum&) = default;
     Enum & operator=(const Enum&) = default;
@@ -65,8 +71,7 @@ struct Enum
     Enum(const TypeInfo &info,
         const TypeAttr &attr);
 
-    std::string name;
-    std::vector<EnumValue> values;
+    std::string header() const;
 };
 
 
@@ -74,6 +79,10 @@ struct Enum
  */
 struct Record
 {
+    Documentation documentation;
+    ULONG size;
+    std::vector<StructField> fields;
+
     Record() = default;
     Record(const Record&) = default;
     Record & operator=(const Record&) = default;
@@ -82,6 +91,9 @@ struct Record
 
     Record(const TypeInfo &info,
         const TypeAttr &attr);
+
+    std::string forward() const;
+    std::string header() const;
 };
 
 
@@ -97,6 +109,8 @@ struct Module
 
     Module(const TypeInfo &info,
         const TypeAttr &attr);
+
+    std::string header() const;
 };
 
 
@@ -112,6 +126,8 @@ struct Interface
 
     Interface(const TypeInfo &info,
         const TypeAttr &attr);
+
+    std::string header() const;
 };
 
 
@@ -127,6 +143,8 @@ struct Dispatch
 
     Dispatch(const TypeInfo &info,
         const TypeAttr &attr);
+
+    std::string header() const;
 };
 
 
@@ -142,6 +160,8 @@ struct CoClass
 
     CoClass(const TypeInfo &info,
         const TypeAttr &attr);
+
+    std::string header() const;
 };
 
 
@@ -157,6 +177,8 @@ struct Alias
 
     Alias(const TypeInfo &info,
         const TypeAttr &attr);
+
+    std::string header() const;
 };
 
 
@@ -172,6 +194,8 @@ struct Union
 
     Union(const TypeInfo &info,
         const TypeAttr &attr);
+
+    std::string header() const;
 };
 
 
@@ -179,7 +203,7 @@ struct Union
  */
 struct External
 {
-    void parse();
+    std::string header() const;
 };
 
 
