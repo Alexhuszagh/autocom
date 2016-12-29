@@ -5,4 +5,10 @@
  *  \brief Write class attributes into C++ interface.
  */
 
-#include "writer.hpp"
+#include <autocom.hpp>
+
+#include <sstream>
+
+
+
+// TODO

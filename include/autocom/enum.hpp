@@ -16,6 +16,13 @@
 
 namespace autocom
 {
+// FUNCTIONS
+// ---------
+
+/** \brief Create new handle to IEnumVARIANT object from IDispatch.
+ */
+IEnumVARIANT * newEnumVariant(IDispatch *dispatch);
+
 // OBJECTS
 // -------
 
@@ -41,9 +48,8 @@ public:
     EnumVariant(EnumVariant&&) = default;
     EnumVariant & operator=(EnumVariant&&) = default;
 
-    EnumVariant(IDispatch *dispatch);
-
-    void open(IDispatch *dispatch);
+    EnumVariant(IEnumVARIANT *enumvariant);
+    void open(IEnumVARIANT *enumvariant);
 
     iterator begin();
     iterator end();

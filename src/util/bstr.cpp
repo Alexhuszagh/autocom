@@ -393,6 +393,22 @@ Bstr::operator BSTR() const
 }
 
 
+/** \brief Convert type explicitly to narrow string.
+ */
+Bstr::operator std::string() const
+{
+    return NARROW(std::wstring(string, size()));
+}
+
+
+/** \brief Convert type explicitly to wide string.
+ */
+Bstr::operator std::wstring() const
+{
+    return std::wstring(string, size());
+}
+
+
 /** \brief Equality operator.
  */
 bool operator==(const Bstr &left,

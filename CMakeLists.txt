@@ -38,6 +38,7 @@ set(AUTOCOM_SOURCES
     src/enum.cpp
     src/iterator.cpp
     src/guid.cpp
+    src/typeinfo.cpp
     src/variant.cpp
 )
 
@@ -62,9 +63,21 @@ endif()
 # BIN
 # ----
 
-# TODO
-set(AUTOCOM_GENERATOR
+set(AUTOCOM_GENERATOR_SOURCES
+    bin/generator.cpp
+    bin/parser.cpp
+    bin/writer.cpp
 )
+
+# MSXML2.XMLHTTP implements GetTypeInfo
+
+if(BUILD_GENERATOR)
+    add_subdirectory(gflags)
+    include_directories("${CMAKE_CURRENT_BINARY_DIR}/gflags/include")
+    add_executable(AutocomGenerator ${AUTOCOM_GENERATOR_SOURCES})
+    set_target_properties(AutocomGenerator PROPERTIES OUTPUT_NAME autocom_generator)
+    target_link_libraries(AutocomGenerator ${AUTOCOM_LIBRARIES} gflags)
+endif()
 
 # EXAMPLES
 # --------

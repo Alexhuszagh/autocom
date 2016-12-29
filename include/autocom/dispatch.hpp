@@ -10,6 +10,7 @@
 #include "dispparams.hpp"
 #include "enum.hpp"
 #include "guid.hpp"
+#include "typeinfo.hpp"
 #include "util.hpp"
 
 
@@ -51,6 +52,7 @@ public:
 
     template <typename... Ts>
     EnumVariant iter(Ts&&... ts);
+    TypeInfo info() const;
 };
 
 
@@ -73,7 +75,7 @@ EnumVariant Dispatch::iter(Ts&&... ts)
         dispatch = result.pdispVal;
     }
 
-    return EnumVariant(dispatch);
+    return EnumVariant(newEnumVariant(dispatch));
 }
 
 

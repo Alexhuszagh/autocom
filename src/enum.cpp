@@ -10,6 +10,39 @@
 
 namespace autocom
 {
+// FUNCTIONS
+// ---------
+
+
+/** \brief Create new handle to IEnumVARIANT object from IDispatch.
+ */
+IEnumVARIANT * newEnumVariant(IDispatch *dispatch)
+{
+    DISPPARAMS dp = {nullptr, nullptr, 0, 0};
+    Variant result;
+
+    HRESULT hr = dispatch->Invoke(DISPID_NEWENUM, IID_NULL, LOCALE_USER_DEFAULT, FROM_ENUM(GET), &dp, &result, nullptr, nullptr);
+    if (FAILED(hr)) {
+        throw IEnumVariantInvokeError();
+    }
+
+    IEnumVARIANT *ppv = nullptr;
+    if (result.vt == VT_DISPATCH) {
+        hr = result.pdispVal->QueryInterface(IID_IEnumVARIANT, (void**) &ppv);
+    } else if (result.vt == VT_UNKNOWN) {
+        hr  = result.punkVal->QueryInterface(IID_IEnumVARIANT, (void**) &ppv);
+    } else {
+        hr = E_NOINTERFACE;
+    }
+
+    if (FAILED(hr)) {
+        throw IEnumVariantQueryError();
+    }
+
+    return ppv;
+}
+
+
 // OBJECTS
 // -------
 
@@ -34,9 +67,9 @@ bool operator!=(const EnumVariant &left,
 
 /** \brief Initialize class from IDispatch.
  */
-EnumVariant::EnumVariant(IDispatch *dispatch)
+EnumVariant::EnumVariant(IEnumVARIANT *enumvariant)
 {
-    open(dispatch);
+    open(enumvariant);
 }
 
 
@@ -45,29 +78,13 @@ EnumVariant::EnumVariant(IDispatch *dispatch)
  *  Variant's destructor, which calls VariantClear, automatically cleans
  *  up the dispatcher.
  */
-void EnumVariant::open(IDispatch *dispatch)
+void EnumVariant::open(IEnumVARIANT *enumvariant)
 {
-    DISPPARAMS dp = {nullptr, nullptr, 0, 0};
-    Variant result;
-
-    HRESULT hr = dispatch->Invoke(DISPID_NEWENUM, IID_NULL, LOCALE_USER_DEFAULT, FROM_ENUM(GET), &dp, &result, nullptr, nullptr);
-    if (FAILED(hr)) {
-        throw IEnumVariantInvokeError();
-    }
-
-    IEnumVARIANT *ev;
-    if (result.vt == VT_DISPATCH) {
-        hr = result.pdispVal->QueryInterface(IID_IEnumVARIANT, (void**) &ev);
-    } else if (result.vt == VT_UNKNOWN) {
-        hr  = result.punkVal->QueryInterface(IID_IEnumVARIANT, (void**) &ev);
+    if (enumvariant) {
+        ppv.reset(enumvariant, destroy<IEnumVARIANT>);
     } else {
-        hr = E_NOINTERFACE;
+        ppv.reset();
     }
-
-    if (FAILED(hr)) {
-        throw IEnumVariantQueryError();
-    }
-    ppv.reset(ev, destroy<IEnumVARIANT>);
 }
 
 

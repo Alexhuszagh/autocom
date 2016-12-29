@@ -72,6 +72,72 @@ class IEnumVariantQueryError: public std::exception
 };
 
 
+/** \brief Unable to get type info from dispatcher.
+ */
+class GetTypeInfoError: public std::exception
+{
+    virtual const char *what() const throw()
+    {
+        return "Unable to GetTypeInfo from IDispatch.\n";
+    }
+};
+
+
+/** \brief Unable to get type library from info.
+ */
+class GetContainingTypeLibError: public std::exception
+{
+    virtual const char *what() const throw()
+    {
+        return "Unable to GetContainingTypeLib from ITypeInfo.\n";
+    }
+};
+
+
+/** \brief Unable to get typeattr from info.
+ */
+class GetTypeAttrError: public std::exception
+{
+    virtual const char *what() const throw()
+    {
+        return "Unable to GetTypeAttr from ITypeInfo.\n";
+    }
+};
+
+
+/** \brief Unable to get variable description from info.
+ */
+class GetVarDescError: public std::exception
+{
+    virtual const char *what() const throw()
+    {
+        return "Unable to GetVarDesc from ITypeInfo.\n";
+    }
+};
+
+
+/** \brief Unable to get TLIBATTR from type library.
+ */
+class GetLibAttrError: public std::exception
+{
+    virtual const char *what() const throw()
+    {
+        return "Unable to GetLibAttr from ITypeLib.\n";
+    }
+};
+
+
+/** \brief Unable to get documentation.
+ */
+class GetDocumentationError: public std::exception
+{
+    virtual const char *what() const throw()
+    {
+        return "Unable to GetDocumentation from ITypeLib/ITypeInfo.\n";
+    }
+};
+
+
 /** \brief Unable to cast variant to desired type.
  */
 class VariantGetValueError: public std::exception

@@ -105,6 +105,8 @@ struct Bstr
     const BSTR & data() const;
     explicit operator bool() const;
     explicit operator BSTR() const;
+    explicit operator std::string() const;
+    explicit operator std::wstring() const;
 
     // FRIENDS
     friend bool operator==(const Bstr &left,
@@ -125,7 +127,7 @@ struct Bstr
 template <typename... Ts>
 Bstr & Bstr::operator+=(Ts&&... ts)
 {
-    std::wstring wide(string, size());
+    std::wstring wide(*this);
     wide.append(AUTOCOM_FWD(ts)...);
     clear();
     string = SysAllocStringLen(wide.data(), wide.size());

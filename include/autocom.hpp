@@ -11,5 +11,6 @@
 #include "autocom/encoding.hpp"
 #include "autocom/enum.hpp"
 #include "autocom/guid.hpp"
+#include "autocom/typeinfo.hpp"
 #include "autocom/util.hpp"
 #include "autocom/variant.hpp"

@@ -89,5 +89,12 @@ void Dispatch::open(const Guid &guid,
 }
 
 
+/** \brief Construct ITypeInfo from IDispatch.
+ */
+TypeInfo Dispatch::info() const
+{
+    return TypeInfo(newTypeInfo(DispatchBase::ppv.get()));
+}
+
 
 }   /* autocom */
