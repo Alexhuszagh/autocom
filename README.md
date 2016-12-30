@@ -1,7 +1,7 @@
 AutoCom
 =======
 
-Lattice is a C++11 interface for the Component Object Model (COM) supporting MinGW and MSVC, inspired by [ComTypes](https://github.com/enthought/comtypes).
+AutoCom is a C++11 interface for the Component Object Model (COM) supporting MinGW and MSVC, inspired by [ComTypes](https://github.com/enthought/comtypes).
 
 **Table of Contents**
 
@@ -9,12 +9,13 @@ Lattice is a C++11 interface for the Component Object Model (COM) supporting Min
 - [Interface](#interface)
 - [Reference](#reference)
 - [Building](#building)
+- [Issues](#issues)
 - [Contributors](#contributors)
 - [License](#license)
 
 ## Motivation
 
-AutoCom is a modern COM interface library for C++11. No more manually dispatching parameters by hand. 
+AutoCom is a modern COM interface library for C++11. No more manually dispatching parameters by hand.
 // TODO: finish motivation, do this later
 
 ## Interface
@@ -70,6 +71,12 @@ cd autocom/build
 cmake ..                        # `-DBUILD_EXAMPLES=ON`, `-DBUILD_TESTS=ON`
 make -j 5                       # "msbuild autocom.sln" for MSVC
 ```
+
+## Issues
+
+Due to the automated memory management and argument forwarding of AutoCom, unexpected behavior can arise (with buggy code).
+
+-- Using uninitialized pointers, especially BSTRS, with `Dispatch::method` or `Dispatch::put` methods (use `autocom::Bstr` instead).
 
 ## Contributors
 

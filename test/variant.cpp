@@ -181,26 +181,26 @@ TEST(Variant, GetVariant)
 
     // DECIMAL
     DECIMAL dec, *pdec;
-    //variant.set(&dec);
-    //variant.get(pdec);
+    variant.set(&dec);
+    variant.get(pdec);
 
-//    TEST_GET(CHAR)(variant);
-//    TEST_GET(UCHAR)(variant);
-//    TEST_GET(SHORT)(variant);
-//    TEST_GET(USHORT)(variant);
-//    TEST_GET(INT)(variant);
-//    TEST_GET(UINT)(variant);
-//    TEST_GET(LONG)(variant);
-//    TEST_GET(ULONG)(variant);
-//    TEST_GET(FLOAT)(variant);
-//    TEST_GET(DOUBLE)(variant);
-//    TEST_GET(LONGLONG)(variant);
-//    TEST_GET(ULONGLONG)(variant);
-//    TEST_GET(CURRENCY)(variant);
-//    TEST_GET(BSTR)(variant, nullptr);
-//    TEST_GET(com::Bstr)(variant);
-//    TEST_GET(IUnknown*)(variant);
-//    TEST_GET(IDispatch*)(variant);
+    TEST_GET(CHAR)(variant);
+    TEST_GET(UCHAR)(variant);
+    TEST_GET(SHORT)(variant);
+    TEST_GET(USHORT)(variant);
+    TEST_GET(INT)(variant);
+    TEST_GET(UINT)(variant);
+    TEST_GET(LONG)(variant);
+    TEST_GET(ULONG)(variant);
+    TEST_GET(FLOAT)(variant);
+    TEST_GET(DOUBLE)(variant);
+    TEST_GET(LONGLONG)(variant);
+    TEST_GET(ULONGLONG)(variant);
+    TEST_GET(CURRENCY)(variant);
+    TEST_GET(BSTR)(variant, nullptr);
+    TEST_GET(com::Bstr)(variant);
+    TEST_GET(IUnknown*)(variant);
+    TEST_GET(IDispatch*)(variant);
 }
 
 
@@ -209,11 +209,11 @@ TEST(Variant, GetWrapperVariant)
     com::Variant variant;
 
     // DECIMAL
-//    DECIMAL dec, *pdec;
-//    variant.set(com::PutDecimalPtr(&dec));
+    DECIMAL dec, *pdec;
+    variant.set(com::PutDecimalPtr(&dec));
 //    variant.get(com::GetDecimalPtr(pdec));
-//
-//    // WRAPPERS
+
+    // WRAPPERS
 //    TEST_GET_WRAPPER(Bool)(variant);
 //    TEST_GET_WRAPPER(Char)(variant);
 //    TEST_GET_WRAPPER(UChar)(variant);

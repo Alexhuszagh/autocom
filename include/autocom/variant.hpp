@@ -14,6 +14,7 @@
 #include <windows.h>
 #include <wtypes.h>
 
+#include <typeinfo>
 #include <initializer_list>
 #include <vector>
 
@@ -29,6 +30,17 @@ namespace autocom
  */
 bool changeVariantType(VARIANT &variant,
     const VARTYPE vt);
+
+
+/** \brief Static cast type to VARTYPE.
+ *
+ *  Required for MinGW, and other compilers to prevent integer promotion.
+ */
+template <typename T>
+VARTYPE TO_VARTYPE(const T t)
+{
+    return static_cast<VARTYPE>(t);
+}
 
 // MACROS -- SETTERS
 // -----------------
@@ -310,7 +322,7 @@ AUTOCOM_SAFE_POINTER_SETTER(Decimal, VT_DECIMAL, decVal)
 /** \brief Cast value to expected vartype in variant.
  */
 #define AUTOCOM_CONVERT_TYPE(variant, vartype)                          \
-    if (variant.vt != vartype)   {                                      \
+    if (TO_VARTYPE(variant.vt) != TO_VARTYPE(vartype)) {                \
         if (!changeVariantType(variant, vartype)) {                     \
             throw ComFunctionError("VariantChangeType");                \
         }                                                               \
@@ -326,7 +338,7 @@ AUTOCOM_SAFE_POINTER_SETTER(Decimal, VT_DECIMAL, decVal)
         type &value)                                                    \
     {                                                                   \
         AUTOCOM_CONVERT_TYPE(variant, vartype)                          \
-        value = variant.field;                                         \
+        value = variant.field;                                          \
     }
 
 
