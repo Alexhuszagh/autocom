@@ -90,10 +90,24 @@ endif()
 
 set(AUTOCOM_EXAMPLE_SOURCES
     example/regexp.cpp
+    example/thermo.cpp
     example/vtable.cpp
 )
 
 if (BUILD_EXAMPLES)
+    set(OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+    if(MSVC)
+        if(CMAKE_BUILD_TYPE MATCHES Release)
+            set(OUTPUT_DIRECTORY "${OUTPUT_DIRECTORY}/Release")
+        else()
+            set(OUTPUT_DIRECTORY "${OUTPUT_DIRECTORY}/Debug")
+        endif()
+    endif()
+
+    file(COPY example/Thermo.raw
+        DESTINATION ${OUTPUT_DIRECTORY}
+    )
+
     foreach(source ${AUTOCOM_EXAMPLE_SOURCES})
         get_filename_component(example ${source} NAME_WE)
         set(target "Autocom_${example}")
