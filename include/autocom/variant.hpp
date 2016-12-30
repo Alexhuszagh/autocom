@@ -524,7 +524,7 @@ void Variant::set(T &&t)
 template <typename T>
 void Variant::get(T &&t)
 {
-    //getVariant(*this, AUTOCOM_FWD(t));
+    getVariant(*this, AUTOCOM_FWD(t));
 }
 
 // TYPES

@@ -102,15 +102,14 @@ int main(int argc, char *argv[])
     if (FAILED(xraw->QueryInterface(IID_IXRaw4, (void**)&ixraw4))) {
         assert(false);
     } else {
-        // BSTR szPathName = SysAllocString(L"Thermo.raw");
-        // std::cout << "Open() -> " << ixraw4->Open(szPathName) << std::endl;
-        LONG version;
-        std::cout << "GetVersionNumber() -> " << ixraw4->GetVersionNumber(&version) << std::endl;
+        BSTR szPathName = SysAllocString(L"Thermo.raw");
+        std::cout << "Open() -> " << ixraw4->Open(szPathName) << std::endl;
+//        LONG version;
+//        std::cout << "GetVersionNumber() -> " << ixraw4->GetVersionNumber(&version) << std::endl;
 
 
     }
     ixraw4->Release();
-
 
     //CLSIDFromProgID(L"MSXML2.XMLHTTP", reinterpret_cast<LPCLSID>(&guid));
     //CoCreateInstance(guid, nullptr, CLSCTX_INPROC_SERVER, IID_IDispatch, (void **) &dispatch);
