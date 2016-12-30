@@ -22,7 +22,7 @@ ITypeInfo * newTypeInfo(IDispatch *dispatch)
 {
     ITypeInfo *ppv = nullptr;
     if (FAILED(dispatch->GetTypeInfo(0, LOCALE_USER_DEFAULT, &ppv))) {
-        throw GetTypeInfoError();
+        throw ComMethodError("IDispatch", "GetTypeInfo(0, LOCALE_USER_DEFAULT, ...)");
     }
     return ppv;
 }
@@ -35,7 +35,7 @@ ITypeInfo * newTypeInfo(ITypeLib *tlib,
 {
     ITypeInfo *ppv = nullptr;
     if (FAILED(tlib->GetTypeInfo(index, &ppv))) {
-        throw GetTypeInfoError();
+        throw ComMethodError("ITypeLib", "GetTypeInfo(0, LOCALE_USER_DEFAULT, ...)");
     }
     return ppv;
 }
@@ -48,7 +48,7 @@ ITypeLib * newTypeLib(ITypeInfo *info)
     ITypeLib *ppv = nullptr;
     UINT index;
     if (FAILED(info->GetContainingTypeLib(&ppv, &index))) {
-        throw GetContainingTypeLibError();
+        throw ComMethodError("ITypeInfo", "GetContainingTypeLib(...)");
     }
 
     return ppv;
@@ -61,7 +61,7 @@ TYPEATTR * newTypeAttr(ITypeInfo *info)
 {
     TYPEATTR *attr;
     if (FAILED(info->GetTypeAttr(&attr))) {
-        throw GetTypeAttrError();
+        throw ComMethodError("ITypeInfo", "GetTypeAttr(...)");
     }
 
     return attr;
@@ -75,7 +75,21 @@ VARDESC * newVarDesc(ITypeInfo *info,
 {
     VARDESC *desc;
     if (FAILED(info->GetVarDesc(index, &desc))) {
-        throw GetVarDescError();
+        throw ComMethodError("ITypeInfo", "GetVarDesc(...)");
+    }
+
+    return desc;
+}
+
+
+/** \brief Create new handle to FUNCDESC object from ITypeinfo.
+ */
+FUNCDESC * newFuncDesc(ITypeInfo *info,
+    const UINT index)
+{
+    FUNCDESC *desc;
+    if (FAILED(info->GetFuncDesc(index, &desc))) {
+        throw ComMethodError("ITypeInfo", "GetFuncDesc(...)");
     }
 
     return desc;
@@ -88,7 +102,7 @@ TLIBATTR * newTypeLibAttr(ITypeLib *tlib)
 {
     TLIBATTR *attr;
     if (FAILED(tlib->GetLibAttr(&attr))) {
-        throw GetLibAttrError();
+        throw ComMethodError("ITypeLib", "GetLibAttr(...)");
     }
 
     return attr;
@@ -109,7 +123,7 @@ Documentation getDocumentation(Type *ppv,
     DWORD help;
 
     if (FAILED(ppv->GetDocumentation(id, &name.string, &doc.string, &help, &file.string))) {
-        throw GetDocumentationError();
+        throw ComMethodError("ITypeLib/ITypeInfo", "GetDocumentation(...)");
     }
 
     documentation.name = std::string(name);
@@ -195,16 +209,53 @@ VarDesc TypeInfo::vardesc(const UINT index) const
 }
 
 
+/** \brief Get function description at index.
+ */
+FuncDesc TypeInfo::funcdesc(const UINT index) const
+{
+    return FuncDesc(ppv, index);
+}
+
+
 /** \brief Get type info from reference to other type.
  */
 TypeInfo TypeInfo::info(const HREFTYPE type) const
 {
     ITypeInfo *info = nullptr;
     if (FAILED(ppv->GetRefTypeInfo(type, &info))) {
-        throw GetRefTypeInfoError();
+        throw ComMethodError("ITypeInfo", "GetRefTypeInfo()");
     }
 
     return TypeInfo(info);
+}
+
+
+/** \brief Get reference for any inherited intefaces.
+ */
+HREFTYPE TypeInfo::reference(const UINT index) const
+{
+    HREFTYPE ref;
+    if (FAILED(ppv->GetRefTypeOfImplType(index, &ref))) {
+        throw ComMethodError("ITypeInfo", "GetRefTypeOfImplType()");
+    }
+
+    return ref;
+}
+
+
+/** \brief Get function entry point.
+ */
+DllEntry TypeInfo::entry(const MEMBERID id,
+    const INVOKEKIND invocation) const
+{
+    DllEntry entry;
+    Bstr dll, name;
+    WORD ordinal;
+    if (FAILED(ppv->GetDllEntry(id, invocation, &dll.string, &name.string, &ordinal))) {
+        throw ComMethodError("ITypeInfo", "GetDllEntry()");
+    }
+
+    return entry;
 }
 
 
@@ -589,6 +640,127 @@ WORD VarDesc::flags() const
 VARKIND VarDesc::kind() const
 {
     return desc->varkind;
+}
+
+
+/** \brief Open FUNCDESC from ITypeInfo.
+ */
+FuncDesc::FuncDesc(const ITypeInfoPtr &info,
+    const UINT index)
+{
+    open(info, index);
+}
+
+/** \brief Construct FUNCDESC from ITypeInfo.
+ */
+void FuncDesc::open(const ITypeInfoPtr &info,
+    const UINT index)
+{
+    if (info) {
+        desc.reset(newFuncDesc(info.get(), index), [info](FUNCDESC *ptr) {
+            info->ReleaseFuncDesc(ptr);
+        });
+        ppv = info;
+    } else {
+        desc.reset();
+        ppv.reset();
+    }
+}
+
+
+/** \brief Check if FuncDesc is valid.
+ */
+FuncDesc::operator bool() const
+{
+    return bool(desc);
+}
+
+
+/** \brief Function member ID.
+ */
+MEMBERID FuncDesc::id() const
+{
+    return desc->memid;
+}
+
+
+/** \brief Function kind (static, virtual, dispatch-only).
+ */
+FUNCKIND FuncDesc::kind() const
+{
+    return desc->funckind;
+}
+
+
+/** \brief Invocation type (propertyget, propertyput, function).
+ */
+INVOKEKIND FuncDesc::invocation() const
+{
+    return desc->invkind;
+}
+
+
+/** \brief Function decoration (__fastcall, etc.).
+ */
+CALLCONV FuncDesc::decoration() const
+{
+    return desc->callconv;
+}
+
+
+/** \brief Element description for function argument at index.
+ */
+ElemDesc FuncDesc::arg(const SHORT index) const
+{
+    return ElemDesc(desc->lprgelemdescParam[index]);
+}
+
+
+/** \brief Get argument count.
+ */
+SHORT FuncDesc::args() const
+{
+    return desc->cParams;
+}
+
+
+/** \brief Get optional argument count.
+ */
+SHORT FuncDesc::optional() const
+{
+    return desc->cParamsOpt;
+}
+
+
+/** \brief Get offset for virtual function in vtable.
+ */
+SHORT FuncDesc::offset() const
+{
+    return desc->oVft;
+}
+
+
+/** \brief Eelment description of return type.
+ */
+ElemDesc FuncDesc::returnType() const
+{
+    return ElemDesc(desc->elemdescFunc);
+}
+
+
+/** \brief Number of possible return values.
+ */
+SHORT FuncDesc::returnCount() const
+{
+    return desc->cScodes;
+}
+
+
+/** \brief Function flags.
+ */
+WORD FuncDesc::flags() const
+{
+    return desc->wFuncFlags;
 }
 
 

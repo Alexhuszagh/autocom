@@ -31,5 +31,19 @@ int main(int argc, char *argv[])
         printf("Match found from %d-%d and is '%S'\n", index, index+length, text.string);
     }
 
+    // TODO:
+    // auto tlib = dispatch.info().typelib();
+    // for (UINT index = 0; index < tlib.count(); ++index) {
+    //     auto info = tlib.info(index);
+    //     auto attr = info.attr();
+    //     if (attr.kind() == TKIND_INTERFACE) {
+    //         for (WORD index = 0; index < attr.functions(); ++index) {
+    //             auto fd = info.funcdesc(index);
+    //             std::cout << info.documentation(fd.id()).name << "\n";
+    //             // fd.offset() + ;
+    //         }
+    //     }
+    // }
+
     return 0;
 }

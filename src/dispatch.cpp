@@ -83,7 +83,7 @@ void Dispatch::open(const Guid &guid,
 {
     IDispatch *dispatch;
     if (FAILED(CoCreateInstance(guid.id, outter, context, IID_IDispatch, (void **) &dispatch))) {
-        throw CoCreateInstanceError();
+        throw ComFunctionError("CoCreateInstance()");
     }
     DispatchBase::ppv.reset(dispatch, destroy<IDispatch>);
 }

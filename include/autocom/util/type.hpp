@@ -227,25 +227,6 @@ AUTOCOM_WRAPPER(DECIMAL, Decimal);
 AUTOCOM_WRAPPER(IUnknown*, IUnknown);
 AUTOCOM_WRAPPER(IDispatch*, IDispatch);
 
-#ifdef HAVE_PROPSYS
-    AUTOCOM_WRAPPER(LARGE_INTEGER, LargeInteger);
-    AUTOCOM_WRAPPER(ULARGE_INTEGER, ULargeInteger);
-    AUTOCOM_WRAPPER(FILETIME, Filetime);
-    AUTOCOM_WRAPPER(CLSID, Clsid);
-    AUTOCOM_WRAPPER(GUID, Guid);
-    AUTOCOM_WRAPPER(CLIPDATA, ClipData);
-    AUTOCOM_WRAPPER(IStream, IStream);
-    AUTOCOM_WRAPPER(IStream, IStreamObject);
-    AUTOCOM_WRAPPER(IStorage, IStorage);
-    AUTOCOM_WRAPPER(IStorage, IStorageObject);
-    AUTOCOM_WRAPPER(LPVERSIONEDSTREAM, LpVersionedStream);
-    AUTOCOM_WRAPPER(Bstr, Blob);
-    AUTOCOM_WRAPPER(Bstr, BlobObject);
-    AUTOCOM_WRAPPER(LPSTR, Lpstr);
-    AUTOCOM_WRAPPER(LPWSTR, Lpwstr);
-#endif      // HAVE_PROPSYS
-
-
 // CLEANUP
 // -------
 

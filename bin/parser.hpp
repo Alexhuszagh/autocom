@@ -36,6 +36,10 @@ struct External;
 // TYPES
 // -----
 
+typedef std::string Type;
+typedef std::string Name;
+typedef std::string Value;
+
 // DESCRIPTIONS
 typedef std::vector<Enum> EnumList;
 typedef std::vector<Record> RecordList;
@@ -47,17 +51,121 @@ typedef std::vector<Alias> AliasList;
 typedef std::vector<Union> UnionList;
 typedef std::vector<External> ExternalList;
 
-// ATTRIBUTES
-typedef std::tuple<std::string, LONGLONG> EnumValue;
-typedef std::tuple<std::string, std::string> StructField;
-
 // OBJECTS
 // -------
 
 
+/** \brief Base class for C++ code element.
+ */
+struct CppCode
+{
+    virtual std::string forward() const;
+    virtual std::string header() const;
+    virtual std::string source() const;
+};
+
+
+/** \brief Description for an enumerated type value.
+ */
+struct EnumValue: CppCode
+{
+    std::string name;
+    std::string value;
+
+    EnumValue() = default;
+    EnumValue(const EnumValue&) = default;
+    EnumValue & operator=(const EnumValue&) = default;
+    EnumValue(EnumValue&&) = default;
+    EnumValue & operator=(EnumValue&&) = default;
+
+    EnumValue(const TypeInfo &info,
+        const WORD index);
+
+    virtual std::string header() const;
+};
+
+
+/** \brief Description for a variable without value.
+ */
+struct Parameter: CppCode
+{
+    std::string type;
+    std::string name;
+
+    Parameter() = default;
+    Parameter(const Parameter&) = default;
+    Parameter & operator=(const Parameter&) = default;
+    Parameter(Parameter&&) = default;
+    Parameter & operator=(Parameter&&) = default;
+
+    Parameter(const TypeInfo &info,
+        const WORD index);
+
+    virtual std::string header() const;
+};
+
+
+/** \brief Description for a variable with value.
+ */
+struct Variable: CppCode
+{
+    std::string type;
+    std::string name;
+    std::string value;
+
+    Variable() = default;
+    Variable(const Variable&) = default;
+    Variable & operator=(const Variable&) = default;
+    Variable(Variable&&) = default;
+    Variable & operator=(Variable&&) = default;
+
+    Variable(const TypeInfo &info,
+        const WORD index);
+
+    virtual std::string header() const;
+    virtual std::string source() const;
+};
+
+
+/** \brief Description for a function definition.
+ */
+struct Function: CppCode
+{
+    std::string decorator;
+    std::string returns;
+    std::string name;
+    std::string doc;
+    MEMBERID id;
+    std::vector<Parameter> args;
+
+    Function() = default;
+    Function(const Function&) = default;
+    Function & operator=(const Function&) = default;
+    Function(Function&&) = default;
+    Function & operator=(Function&&) = default;
+
+    Function(const TypeInfo &info,
+        const WORD index);
+
+    std::string definition() const;
+    std::string body() const;
+    virtual std::string header() const;
+    virtual std::string source() const;
+};
+
+
+///** \brief TODO:
+// */
+//template <typename T>
+//class List
+//{
+//    std::string header;
+//};
+
+
 /** \brief Description for an enum type.
  */
-struct Enum
+struct Enum: CppCode
 {
     std::string name;
     std::vector<EnumValue> values;
@@ -71,17 +179,17 @@ struct Enum
     Enum(const TypeInfo &info,
         const TypeAttr &attr);
 
-    std::string header() const;
+    virtual std::string header() const;
 };
 
 
 /** \brief Description for a struct without any methods.
  */
-struct Record
+struct Record: CppCode
 {
     Documentation documentation;
     ULONG size;
-    std::vector<StructField> fields;
+    std::vector<Parameter> fields;
 
     Record() = default;
     Record(const Record&) = default;
@@ -92,15 +200,18 @@ struct Record
     Record(const TypeInfo &info,
         const TypeAttr &attr);
 
-    std::string forward() const;
-    std::string header() const;
+    virtual std::string forward() const;
+    virtual std::string header() const;
 };
 
 
 /** \brief Description for a module with only static functions and data.
  */
-struct Module
+struct Module: CppCode
 {
+    std::vector<Function> functions;
+    std::vector<Variable> constants;
+
     Module() = default;
     Module(const Module&) = default;
     Module & operator=(const Module&) = default;
@@ -110,14 +221,21 @@ struct Module
     Module(const TypeInfo &info,
         const TypeAttr &attr);
 
-    std::string header() const;
+    virtual std::string header() const;
+    virtual std::string source() const;
 };
 
 
 /** \brief Description for a type with pure and virtual functions.
  */
-struct Interface
+struct Interface: CppCode
 {
+    Documentation documentation;
+    Guid iid;
+    WORD flags;
+    std::string base;
+    std::vector<Function> functions;
+
     Interface() = default;
     Interface(const Interface&) = default;
     Interface & operator=(const Interface&) = default;
@@ -127,13 +245,14 @@ struct Interface
     Interface(const TypeInfo &info,
         const TypeAttr &attr);
 
-    std::string header() const;
+    virtual std::string header() const;
+    virtual std::string source() const;
 };
 
 
 /** \brief Description for a COM object implementing IDispatch methods.
  */
-struct Dispatch
+struct Dispatch: Interface
 {
     Dispatch() = default;
     Dispatch(const Dispatch&) = default;
@@ -144,13 +263,13 @@ struct Dispatch
     Dispatch(const TypeInfo &info,
         const TypeAttr &attr);
 
-    std::string header() const;
+    virtual std::string header() const;
 };
 
 
 /** \brief Description for a COM object implementing CoClass methods.
  */
-struct CoClass
+struct CoClass: Dispatch
 {
     CoClass() = default;
     CoClass(const CoClass&) = default;
@@ -161,13 +280,13 @@ struct CoClass
     CoClass(const TypeInfo &info,
         const TypeAttr &attr);
 
-    std::string header() const;
+    virtual std::string header() const;
 };
 
 
 /** \brief Description for an alias for another type.
  */
-struct Alias
+struct Alias: CppCode
 {
     Alias() = default;
     Alias(const Alias&) = default;
@@ -178,13 +297,13 @@ struct Alias
     Alias(const TypeInfo &info,
         const TypeAttr &attr);
 
-    std::string header() const;
+    virtual std::string header() const;
 };
 
 
 /** \brief Description for a union.
  */
-struct Union
+struct Union: CppCode
 {
     Union() = default;
     Union(const Union&) = default;
@@ -195,15 +314,15 @@ struct Union
     Union(const TypeInfo &info,
         const TypeAttr &attr);
 
-    std::string header() const;
+    virtual std::string header() const;
 };
 
 
 /** \brief Description for a resource from another typelib.
  */
-struct External
+struct External: CppCode
 {
-    std::string header() const;
+    virtual std::string header() const;
 };
 
 

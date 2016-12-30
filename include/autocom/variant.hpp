@@ -30,17 +30,6 @@ namespace autocom
 bool changeVariantType(VARIANT &variant,
     const VARTYPE vt);
 
-#ifdef HAVE_PROPSYS
-
-    /** \brief Convert PROPVARIANT data to new type.
-     *
-     *  \return             Type coercion was successful
-     */
-    bool changeVariantType(PROPVARIANT &variant,
-        const VARTYPE vt);
-
-#endif          // HAVE_PROPSYS
-
 // MACROS -- SETTERS
 // -----------------
 
@@ -273,14 +262,6 @@ AUTOCOM_CLASS_SETTER(IUnknown*, VT_UNKNOWN, punkVal)
 AUTOCOM_CLASS_SETTER(IDispatch*, VT_DISPATCH, pdispVal)
 // VT_VECTOR
 // VT_ARRAY
-#ifdef HAVE_PROPSYS
-    AUTOCOM_CLASS_SETTER(FILETIME, VT_FILETIME, filetime)
-    AUTOCOM_CLASS_SETTER(CLSID, VT_CLSID, puuid)
-    AUTOCOM_CLASS_SETTER(CLIPDATA, VT_CF, pclipdata)
-    AUTOCOM_CLASS_VALUE_SETTER(IStream, VT_STREAM, pStream)
-    AUTOCOM_CLASS_VALUE_SETTER(IStorage, VT_STORAGE, pStorage)
-    AUTOCOM_CLASS_VALUE_SETTER(LPVERSIONEDSTREAM, VT_VERSIONED_STREAM, pVersionedStream)
-#endif      // HAVE_PROPSYS
 
 // SAFE
 AUTOCOM_SAFE_SETTER(Bool, VT_BOOL, boolVal)
@@ -305,23 +286,6 @@ AUTOCOM_SAFE_SETTER(IDispatch, VT_DISPATCH, pdispVal)
 AUTOCOM_SAFE_POINTER_SETTER(Decimal, VT_DECIMAL, decVal)
 // VT_VECTOR
 // VT_ARRAY
-#ifdef HAVE_PROPSYS
-    AUTOCOM_SAFE_SETTER(LargeInteger, VT_I8, hVal)
-    AUTOCOM_SAFE_SETTER(ULargeInteger, VT_UI8, uhVal)
-    AUTOCOM_SAFE_SETTER(Filetime, VT_FILETIME, filetime)
-    AUTOCOM_SAFE_SETTER(Clsid, VT_CLSID, puuid)
-    AUTOCOM_SAFE_SETTER(Guid, VT_CLSID, puuid)
-    AUTOCOM_SAFE_SETTER(ClipData, VT_CF, pclipdata)
-    AUTOCOM_SAFE_VALUE_SETTER(IStream, VT_STREAM, pStream)
-    AUTOCOM_SAFE_VALUE_SETTER(IStreamObject, VT_STREAMED_OBJECT, pStream)
-    AUTOCOM_SAFE_VALUE_SETTER(IStorage, VT_STORAGE, pStorage)
-    AUTOCOM_SAFE_VALUE_SETTER(IStorageObject, VT_STORED_OBJECT, pStorage)
-    AUTOCOM_SAFE_VALUE_SETTER(LpVersionedStream, VT_VERSIONED_STREAM, pVersionedStream)
-    AUTOCOM_SAFE_VALUE_SETTER(Blob, VT_BLOB, blob)
-    AUTOCOM_SAFE_VALUE_SETTER(BlobObject, VT_BLOBOBJECT, blob)
-    AUTOCOM_SAFE_VALUE_SETTER(Lpstr, VT_LPSTR, pszVal)
-    AUTOCOM_SAFE_VALUE_SETTER(Lpwstr, VT_LPWSTR, pwszVal)
-#endif      // HAVE_PROPSYS
 
 // CLEANUP -- SETTERS
 // ------------------
@@ -348,7 +312,7 @@ AUTOCOM_SAFE_POINTER_SETTER(Decimal, VT_DECIMAL, decVal)
 #define AUTOCOM_CONVERT_TYPE(variant, vartype)                          \
     if (variant.vt != vartype)   {                                      \
         if (!changeVariantType(variant, vartype)) {                     \
-            throw VariantGetValueError();                               \
+            throw ComFunctionError("VariantChangeType");                \
         }                                                               \
     }                                                                   \
 
@@ -483,14 +447,6 @@ AUTOCOM_GETTER(IDispatch*, VT_DISPATCH, pdispVal)
 AUTOCOM_POINTER_GETTER(DECIMAL, VT_DECIMAL, decVal)
 // VT_VECTOR
 // VT_ARRAY
-#ifdef HAVE_PROPSYS
-    AUTOCOM_GETTER(FILETIME, VT_FILETIME, filetime)
-    AUTOCOM_GETTER(CLSID, VT_CLSID, puuid)
-    AUTOCOM_GETTER(CLIPDATA, VT_CF, pclipdata)
-    AUTOCOM_VALUE_GETTER(IStream, VT_STREAM, pStream)
-    AUTOCOM_VALUE_GETTER(IStorage, VT_STORAGE, pStorage)
-    AUTOCOM_VALUE_GETTER(LPVERSIONEDSTREAM, VT_VERSIONED_STREAM, pVersionedStream)
-#endif      // HAVE_PROPSYS
 
 // SAFE
 AUTOCOM_SAFE_GETTER(Bool, VT_BOOL, boolVal)
@@ -513,23 +469,6 @@ AUTOCOM_SAFE_GETTER(IDispatch, VT_DISPATCH, pdispVal)
 AUTOCOM_SAFE_POINTER_GETTER(Decimal, VT_DECIMAL, decVal)
 // VT_VECTOR
 // VT_ARRAY
-#ifdef HAVE_PROPSYS
-    AUTOCOM_SAFE_GETTER(LargeInteger, VT_I8, hVal)
-    AUTOCOM_SAFE_GETTER(ULargeInteger, VT_UI8, uhVal)
-    AUTOCOM_SAFE_GETTER(Filetime, VT_FILETIME, filetime)
-    AUTOCOM_SAFE_GETTER(Clsid, VT_CLSID, puuid)
-    AUTOCOM_SAFE_GETTER(Guid, VT_CLSID, puuid)
-    AUTOCOM_SAFE_GETTER(ClipData, VT_CF, pclipdata)
-    AUTOCOM_SAFE_VALUE_GETTER(IStream, VT_STREAM, pStream)
-    AUTOCOM_SAFE_VALUE_GETTER(IStreamObject, VT_STREAMED_OBJECT, pStream)
-    AUTOCOM_SAFE_VALUE_GETTER(IStorage, VT_STORAGE, pStorage)
-    AUTOCOM_SAFE_VALUE_GETTER(IStorageObject, VT_STORED_OBJECT, pStorage)
-    AUTOCOM_SAFE_VALUE_GETTER(LpVersionedStream, VT_VERSIONED_STREAM, pVersionedStream)
-    AUTOCOM_SAFE_VALUE_GETTER(Blob, VT_BLOB, blob)
-    AUTOCOM_SAFE_VALUE_GETTER(BlobObject, VT_BLOBOBJECT, blob)
-    AUTOCOM_SAFE_VALUE_GETTER(Lpstr, VT_LPSTR, pszVal)
-    AUTOCOM_SAFE_VALUE_GETTER(Lpwstr, VT_LPWSTR, pwszVal)
-#endif      // HAVE_PROPSYS
 
 // CLEANUP -- GETTERS
 // ------------------
@@ -567,29 +506,6 @@ struct Variant: public VARIANT
 };
 
 
-#ifdef HAVE_PROPSYS
-
-    /** \brief C++ wrapper for PROPVARIANT, a property VARIANT.
-     */
-    struct PropVariant: public PROPVARIANT
-    {
-        PropVariant();
-        ~PropVariant();
-
-        void init();
-        void clear();
-        bool changeType(const VARTYPE vt);
-
-        template <typename T>
-        void set(T &&t);
-
-        template <typename T>
-        void get(T &&t);
-    };
-
-#endif          // HAVE_PROPSYS
-
-
 // IMPLEMENTATION
 // --------------
 
@@ -610,29 +526,6 @@ void Variant::get(T &&t)
 {
     //getVariant(*this, AUTOCOM_FWD(t));
 }
-
-
-#ifdef HAVE_PROPSYS
-
-    /** \brief Set value in property variant.
-     */
-    template <typename T>
-    void PropVariant::set(T &&t)
-    {
-        setVariant(*this, AUTOCOM_FWD(t));
-    }
-
-
-    /** \brief Get value from property variant.
-     */
-    template <typename T>
-    void PropVariant::get(T &&t)
-    {
-        //getVariant(*this, AUTOCOM_FWD(t));
-    }
-
-#endif          // HAVE_PROPSYS
-
 
 // TYPES
 // -----

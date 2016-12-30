@@ -64,7 +64,7 @@ Function DispatchBase::getFunction(const Name &name)
     auto wide = WIDE(name);
     LPOLESTR string = const_cast<wchar_t*>(wide.data());
     if (FAILED(ppv->GetIDsOfNames(IID_NULL, &string, flags, locale, &id))) {
-        throw GetIDsOfNamesError();
+        throw ComMethodError("IDispatch", "GetIDsOfNames(IID_NULL, ...)");
     }
 
     return id;

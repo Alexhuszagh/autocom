@@ -24,7 +24,9 @@ class TypeAttr;
 class TypeLib;
 class TypeLibAttr;
 struct Documentation;
+struct DllEntry;
 class VarDesc;
+class FuncDesc;
 class TypeDesc;
 class ArrayDesc;
 class IdlDesc;
@@ -40,6 +42,7 @@ typedef std::shared_ptr<ITypeLib> ITypeLibPtr;
 typedef std::shared_ptr<TYPEATTR> TYPEATTRPtr;
 typedef std::shared_ptr<TLIBATTR> TLIBATTRPtr;
 typedef std::shared_ptr<VARDESC> VARDESCPtr;
+typedef std::shared_ptr<FUNCDESC> FUNCDESCPtr;
 
 // FUNCTIONS
 // ---------
@@ -96,7 +99,11 @@ public:
     TypeAttr attr() const;
     Documentation documentation(const MEMBERID id) const;
     VarDesc vardesc(const UINT index) const;
+    FuncDesc funcdesc(const UINT index) const;
     TypeInfo info(const HREFTYPE type) const;
+    HREFTYPE reference(const UINT index) const;
+    DllEntry entry(const MEMBERID id,
+        const INVOKEKIND invocation) const;
 };
 
 
@@ -220,6 +227,26 @@ struct Documentation
 };
 
 
+/** \brief Documentation for DLL entry point.
+ *
+ *  \param dll          Name of DLL.
+ *  \param function     Name of function.
+ *  \param ordinal      Numeric identifier for function.
+ */
+struct DllEntry
+{
+    std::string dll;
+    std::string function;
+    WORD ordinal = 0;
+
+    DllEntry() = default;
+    DllEntry(const DllEntry&) = default;
+    DllEntry & operator=(const DllEntry&) = default;
+    DllEntry(DllEntry&&) = default;
+    DllEntry & operator=(DllEntry&&) = default;
+};
+
+
 /** \brief C++ wrapper for a VARDESC structure.
  */
 class VarDesc
@@ -247,6 +274,42 @@ public:
     const VARIANT & variant() const;
     WORD flags() const;
     VARKIND kind() const;
+};
+
+
+/** \brief C++ wrapper for a FUNCDESC structure.
+ */
+class FuncDesc
+{
+protected:
+    ITypeInfoPtr ppv;
+    FUNCDESCPtr desc;
+
+public:
+    FuncDesc() = default;
+    FuncDesc(const FuncDesc&) = default;
+    FuncDesc & operator=(const FuncDesc&) = default;
+    FuncDesc(FuncDesc&&) = default;
+    FuncDesc & operator=(FuncDesc&&) = default;
+
+    FuncDesc(const ITypeInfoPtr &info,
+        const UINT index);
+    void open(const ITypeInfoPtr &info,
+        const UINT index);
+
+    // DATA
+    explicit operator bool() const;
+    MEMBERID id() const;
+    FUNCKIND kind() const;
+    INVOKEKIND invocation() const;
+    CALLCONV decoration() const;
+    ElemDesc arg(const SHORT index) const;
+    SHORT args() const;
+    SHORT optional() const;
+    SHORT offset() const;
+    ElemDesc returnType() const;
+    SHORT returnCount() const;
+    WORD flags() const;
 };
 
 

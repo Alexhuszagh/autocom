@@ -23,7 +23,7 @@ IEnumVARIANT * newEnumVariant(IDispatch *dispatch)
 
     HRESULT hr = dispatch->Invoke(DISPID_NEWENUM, IID_NULL, LOCALE_USER_DEFAULT, FROM_ENUM(GET), &dp, &result, nullptr, nullptr);
     if (FAILED(hr)) {
-        throw IEnumVariantInvokeError();
+        throw ComMethodError("IDispatch", "Invoke(DISPID_NEWENUM, ...)");
     }
 
     IEnumVARIANT *ppv = nullptr;
@@ -36,7 +36,7 @@ IEnumVARIANT * newEnumVariant(IDispatch *dispatch)
     }
 
     if (FAILED(hr)) {
-        throw IEnumVariantQueryError();
+        throw ComMethodError("IDispatch", "QueryInterface(IID_IEnumVARIANT, ...)");
     }
 
     return ppv;

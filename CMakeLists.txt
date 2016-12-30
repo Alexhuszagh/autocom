@@ -32,6 +32,7 @@ set(AUTOCOM_SOURCES
     src/encoding/converters.cpp
     src/encoding/unicode.cpp
     src/util/bstr.cpp
+    src/util/exception.cpp
     src/com.cpp
     src/dispparams.cpp
     src/dispatch.cpp
@@ -84,6 +85,7 @@ endif()
 
 set(AUTOCOM_EXAMPLE_SOURCES
     example/regexp.cpp
+    example/vtable.cpp
 )
 
 if (BUILD_EXAMPLES)

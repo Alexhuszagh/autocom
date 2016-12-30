@@ -90,8 +90,10 @@ std::string writeClsidHeader(TypeLibDescription &tlib,
     std::string path = directory + "\\" + name;
     std::ofstream stream(path, std::ios::binary);
 
-     // write data
+    // write data
     writeDocString(stream);
+    stream << "#include <autocom.hpp>\r\n\r\n";
+
     writeSection(stream, tlib.description.enums, "ENUMS", [](const detail::Enum &item) {
         return item.header();
     });
@@ -99,6 +101,9 @@ std::string writeClsidHeader(TypeLibDescription &tlib,
         return item.forward();
     });
     writeSection(stream, tlib.description.records, "STRUCTS", [](const detail::Record &item) {
+        return item.header();
+    });
+    writeSection(stream, tlib.description.interfaces, "INTERFACES", [](const detail::Interface &item) {
         return item.header();
     });
 
@@ -122,7 +127,18 @@ void writeSources(TypeLibDescription &tlib,
     std::string &directory,
     Files &files)
 {
-    // TODO: need to import autocom...
+    auto name = tlib.guid.string() + ".cpp";
+    std::string path = directory + "\\" + name;
+    std::ofstream stream(path, std::ios::binary);
+    files.sources.emplace_back(path);
+
+    // write data
+    writeDocString(stream);
+    stream << "#include \"" << tlib.guid.string() << ".hpp\"\r\n\r\n";
+
+    writeSection(stream, tlib.description.interfaces, "INTERFACES", [](const detail::Interface &item) {
+        return item.source();
+    });
 }
 
 
