@@ -21,8 +21,13 @@ option(BUILD_GENERATOR "Build early-binding generator" ON)
 option(BUILD_STATIC "Build static library" ON)
 option(BUILD_TESTS "Build unittests (requires GTest)" OFF)
 
-if(MINGW AND ${BUILD_STATIC})
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
+if(BUILD_STATIC)
+    if (MINGW)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
+    elseif(MSVC)
+        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_RELEASE} /MTd /O0")
+        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT /Ox")
+    endif()
 endif()
 
 # LIBRARY

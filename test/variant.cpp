@@ -17,9 +17,9 @@ namespace com = autocom;
 
 template <typename T>
 void testSet(com::Variant &variant,
-    DWORD vartype)
+    DWORD vartype,
+    T t = T())
 {
-    T t;
     variant.set(t);
     EXPECT_EQ(variant.vt, vartype);
     variant.set(&t);
@@ -43,9 +43,9 @@ void testSetWrapper(com::Variant &variant)
 
 
 template <typename T>
-void testGet(com::Variant &variant)
+void testGet(com::Variant &variant,
+    T t = T())
 {
-    T t;
     T *p = &t;
     variant.set(t);
     variant.get(t);
@@ -132,7 +132,7 @@ TEST(Variant, SetVariant)
     TEST_SET(LONGLONG)(variant, VT_I8);
     TEST_SET(ULONGLONG)(variant, VT_UI8);
     TEST_SET(CURRENCY)(variant, VT_CY);
-    TEST_SET(BSTR)(variant, VT_BSTR);
+    TEST_SET(BSTR)(variant, VT_BSTR, nullptr);
     TEST_SET(com::Bstr)(variant, VT_BSTR);
     TEST_SET(IUnknown*)(variant, VT_UNKNOWN);
     TEST_SET(IDispatch*)(variant, VT_DISPATCH);
@@ -197,7 +197,7 @@ TEST(Variant, GetVariant)
     TEST_GET(LONGLONG)(variant);
     TEST_GET(ULONGLONG)(variant);
     TEST_GET(CURRENCY)(variant);
-    TEST_GET(BSTR)(variant);
+    TEST_GET(BSTR)(variant, nullptr);
     TEST_GET(com::Bstr)(variant);
     TEST_GET(IUnknown*)(variant);
     TEST_GET(IDispatch*)(variant);
