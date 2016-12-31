@@ -16,7 +16,7 @@ AutoCOM is a C++11 interface for the Component Object Model (COM) supporting Min
 
 ## Motivation
 
-AutoCOM is a modern COM interface library for C++11. AutoCOM supports both compile-time interface binding, or use a dispatcher model at run-time, with either MSVC or MinGW.
+AutoCOM is a modern COM interface library for C++11. AutoCOM supports both compile-time interface binding, or use of a dispatcher interface at run-time, with either MSVC or MinGW.
 
 **Compile-Time**
 
