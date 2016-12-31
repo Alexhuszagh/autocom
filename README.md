@@ -9,6 +9,7 @@ Lattice is a C++11 interface for the Component Object Model (COM) supporting Min
 - [Interface](#interface)
 - [Reference](#reference)
 - [Building](#building)
+- [Issues](#issues)
 - [Contributors](#contributors)
 - [License](#license)
 
@@ -70,6 +71,10 @@ cd autocom/build
 cmake ..                        # `-DBUILD_EXAMPLES=ON`, `-DBUILD_TESTS=ON`
 make -j 5                       # "msbuild autocom.sln" for MSVC
 ```
+
+## Issues
+
+
 
 ## Contributors
 

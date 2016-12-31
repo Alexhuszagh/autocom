@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <cstddef>
+#include <functional>
 #include <type_traits>
 
 
@@ -81,6 +83,31 @@ auto FROM_ENUM(const Enum value)
     {                                                                   \
         return !bool(FROM_ENUM(value));                                 \
     }
+
+
+// OBJECTS
+// -------
+
+
+/** \brief Hash algorithm for enumerated types.
+ */
+struct EnumHash
+{
+    template <typename T>
+    typename std::enable_if<std::is_enum<T>::value, size_t>::type
+    operator()(T t) const
+    {
+        typedef typename std::underlying_type<T>::type U;
+        return std::hash<U>()(static_cast<U>(t));
+    }
+
+    template <typename T>
+    typename std::enable_if<!(std::is_enum<T>::value), size_t>::type
+    operator()(T t) const
+    {
+        return std::hash<T>()(t);
+    }
+};
 
 
 }   /* autocom */

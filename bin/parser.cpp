@@ -48,7 +48,11 @@ std::unordered_map<VARTYPE, std::string> TYPE_NAMES = {
     { VT_VARIANT,   "VARIANT"       },
 };
 
-std::unordered_map<CALLCONV, std::string> DECORATIONS = {
+/*  CALLCONV can either be an enum class, or an enum, so a
+ *  strongly-typed and weakly-typed hash function are determined at
+ *  compile time via EnumHash.
+ */
+std::unordered_map<CALLCONV, std::string, EnumHash> DECORATIONS = {
     { CC_FASTCALL,   "__fastcall" },
     { CC_CDECL,      "__cdecl"    },
     { CC_MSCPASCAL,  ""           },
