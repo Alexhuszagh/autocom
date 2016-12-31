@@ -1,7 +1,7 @@
 //  :copyright: (c) 2015-2016 The Regents of the University of California.
 //  :license: MIT, see licenses/mit.md for more details.
 /*
- *  \addtogroup AutoCom
+ *  \addtogroup AutoCOM
  *  \brief Parse ITypeInfo data attributes.
  */
 
@@ -438,7 +438,7 @@ std::string Record::header() const
     stream << "};\r\n";
     stream << "static_assert(sizeof(" << documentation.name
            << ") == " << size
-           << ", \"AutoCom: Invalid struct size.\");\r\n";
+           << ", \"AutoCOM: Invalid struct size.\");\r\n";
 
     return stream.str();
 }

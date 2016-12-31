@@ -2,7 +2,7 @@
 #  :license: BSD, see LICENSE.md for more details.
 
 cmake_minimum_required(VERSION 2.8)
-project(Autocom CXX)
+project(AutoCOM CXX)
 
 # FLAGS
 # -----
@@ -53,13 +53,13 @@ set(AUTOCOM_INCLUDE_DIRS ${AUTOCOM_INCLUDE_DIR})
 include_directories(${AUTOCOM_INCLUDE_DIRS})
 
 if(BUILD_STATIC)
-    add_library(Autocom STATIC ${AUTOCOM_SOURCES})
+    add_library(AutoCOM STATIC ${AUTOCOM_SOURCES})
 else()
-    add_library(Autocom SHARED ${AUTOCOM_SOURCES})
+    add_library(AutoCOM SHARED ${AUTOCOM_SOURCES})
 endif()
 
-set_target_properties(Autocom PROPERTIES OUTPUT_NAME autocom)
-set(AUTOCOM_LIBRARIES Autocom)
+set_target_properties(AutoCOM PROPERTIES OUTPUT_NAME autocom)
+set(AUTOCOM_LIBRARIES AutoCOM)
 if(MSVC)
     list(APPEND AUTOCOM_LIBRARIES ole32.lib oleaut32.lib uuid.lib)
 elseif(MINGW)
@@ -80,9 +80,9 @@ set(AUTOCOM_GENERATOR_SOURCES
 if(BUILD_GENERATOR)
     add_subdirectory(gflags)
     include_directories("${CMAKE_CURRENT_BINARY_DIR}/gflags/include")
-    add_executable(AutocomGenerator ${AUTOCOM_GENERATOR_SOURCES})
-    set_target_properties(AutocomGenerator PROPERTIES OUTPUT_NAME autocom_generator)
-    target_link_libraries(AutocomGenerator ${AUTOCOM_LIBRARIES} gflags)
+    add_executable(AutoCOMGenerator ${AUTOCOM_GENERATOR_SOURCES})
+    set_target_properties(AutoCOMGenerator PROPERTIES OUTPUT_NAME autocom_generator)
+    target_link_libraries(AutoCOMGenerator ${AUTOCOM_LIBRARIES} gflags)
 endif()
 
 # EXAMPLES
@@ -110,7 +110,7 @@ if (BUILD_EXAMPLES)
 
     foreach(source ${AUTOCOM_EXAMPLE_SOURCES})
         get_filename_component(example ${source} NAME_WE)
-        set(target "Autocom_${example}")
+        set(target "AutoCOM_${example}")
         add_executable(${target} "${source}")
         set_target_properties(${target} PROPERTIES OUTPUT_NAME ${example})
         target_link_libraries(${target} ${AUTOCOM_LIBRARIES})
@@ -133,16 +133,16 @@ set(AUTOCOM_TEST_SOURCES
 
 if (BUILD_TESTS)
      add_subdirectory(googletest)
-     add_executable(AutoComTests ${AUTOCOM_TEST_SOURCES})
-     target_link_libraries(AutoComTests
+     add_executable(AutoCOMTests ${AUTOCOM_TEST_SOURCES})
+     target_link_libraries(AutoCOMTests
         gtest
         gtest_main
         ${AUTOCOM_LIBRARIES}
     )
 
      add_custom_target(check
-        COMMAND $<TARGET_FILE:AutoComTests>
-        DEPENDS AutoComTests
+        COMMAND $<TARGET_FILE:AutoCOMTests>
+        DEPENDS AutoCOMTests
     )
 
 endif()

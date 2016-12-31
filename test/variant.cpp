@@ -179,6 +179,12 @@ TEST(Variant, GetVariant)
 {
     com::Variant variant;
 
+    // TEST VALUE
+    LONG value = 20, other;
+    variant.set(value);
+    variant.get(other);
+    EXPECT_EQ(value, other);
+
     // DECIMAL
     DECIMAL dec, *pdec;
     variant.set(&dec);
@@ -208,29 +214,35 @@ TEST(Variant, GetWrapperVariant)
 {
     com::Variant variant;
 
+    // TEST VALUE
+    LONG value = 20, other;
+    variant.set(com::PutLong(value));
+    variant.get(com::GetLong(other));
+    EXPECT_EQ(value, other);
+
     // DECIMAL
     DECIMAL dec, *pdec;
     variant.set(com::PutDecimalPtr(&dec));
-//    variant.get(com::GetDecimalPtr(pdec));
+    variant.get(com::GetDecimalPtr(pdec));
 
     // WRAPPERS
-//    TEST_GET_WRAPPER(Bool)(variant);
-//    TEST_GET_WRAPPER(Char)(variant);
-//    TEST_GET_WRAPPER(UChar)(variant);
-//    TEST_GET_WRAPPER(Short)(variant);
-//    TEST_GET_WRAPPER(UShort)(variant);
-//    TEST_GET_WRAPPER(Int)(variant);
-//    TEST_GET_WRAPPER(UInt)(variant);
-//    TEST_GET_WRAPPER(Long)(variant);
-//    TEST_GET_WRAPPER(ULong)(variant);
-//    TEST_GET_WRAPPER(Float)(variant);
-//    TEST_GET_WRAPPER(Double)(variant);
-//    TEST_GET_WRAPPER(LongLong)(variant);
-//    TEST_GET_WRAPPER(ULongLong)(variant);
-//    TEST_GET_WRAPPER(Bstr)(variant);
-//    TEST_GET_WRAPPER(Currency)(variant);
-//    TEST_GET_WRAPPER(Error)(variant);
-//    TEST_GET_WRAPPER(Date)(variant);
-//    TEST_GET_WRAPPER(IUnknown)(variant);
-//    TEST_GET_WRAPPER(IDispatch)(variant);
+    TEST_GET_WRAPPER(Bool)(variant);
+    TEST_GET_WRAPPER(Char)(variant);
+    TEST_GET_WRAPPER(UChar)(variant);
+    TEST_GET_WRAPPER(Short)(variant);
+    TEST_GET_WRAPPER(UShort)(variant);
+    TEST_GET_WRAPPER(Int)(variant);
+    TEST_GET_WRAPPER(UInt)(variant);
+    TEST_GET_WRAPPER(Long)(variant);
+    TEST_GET_WRAPPER(ULong)(variant);
+    TEST_GET_WRAPPER(Float)(variant);
+    TEST_GET_WRAPPER(Double)(variant);
+    TEST_GET_WRAPPER(LongLong)(variant);
+    TEST_GET_WRAPPER(ULongLong)(variant);
+    TEST_GET_WRAPPER(Bstr)(variant);
+    TEST_GET_WRAPPER(Currency)(variant);
+    TEST_GET_WRAPPER(Error)(variant);
+    TEST_GET_WRAPPER(Date)(variant);
+    TEST_GET_WRAPPER(IUnknown)(variant);
+    TEST_GET_WRAPPER(IDispatch)(variant);
 }

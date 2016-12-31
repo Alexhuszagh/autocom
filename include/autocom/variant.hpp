@@ -1,7 +1,7 @@
 //  :copyright: (c) 2015-2016 The Regents of the University of California.
 //  :license: MIT, see licenses/mit.md for more details.
 /*
- *  \addtogroup AutoCom
+ *  \addtogroup AutoCOM
  *  \brief Variant object and collection definitions.
  */
 
@@ -348,7 +348,7 @@ AUTOCOM_SAFE_POINTER_SETTER(Decimal, VT_DECIMAL, decVal)
                                                                         \
     template <typename VariantType>                                     \
     void getVariant(VariantType &variant,                               \
-        safe &value)                                                    \
+        safe value)                                                     \
     {                                                                   \
         auto &ref = typename safe::type(value);                         \
         AUTOCOM_CONVERT_TYPE(variant, vartype)                          \
@@ -476,6 +476,8 @@ AUTOCOM_SAFE_GETTER(ULongLong, VT_UI8, ullVal)
 AUTOCOM_SAFE_GETTER(Double, VT_R8, dblVal)
 AUTOCOM_SAFE_GETTER(Bstr, VT_BSTR, bstrVal)
 AUTOCOM_SAFE_GETTER(Currency, VT_CY, cyVal)
+AUTOCOM_SAFE_GETTER(Error, VT_ERROR, scode)
+AUTOCOM_SAFE_GETTER(Date, VT_DATE, date)
 AUTOCOM_SAFE_GETTER(IUnknown, VT_UNKNOWN, punkVal)
 AUTOCOM_SAFE_GETTER(IDispatch, VT_DISPATCH, pdispVal)
 AUTOCOM_SAFE_POINTER_GETTER(Decimal, VT_DECIMAL, decVal)

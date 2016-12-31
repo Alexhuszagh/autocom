@@ -1,7 +1,7 @@
 //  :copyright: (c) 2015-2016 The Regents of the University of California.
 //  :license: MIT, see licenses/mit.md for more details.
 /*
- *  \addtogroup AutoCom
+ *  \addtogroup AutoCOM
  *  \brief Example to use test virtual table offset methods.
  */
 
@@ -22,8 +22,6 @@ namespace com = autocom;
 //    u'IXRawfile Interface'
 //    _iid_ = GUID('{11B488A0-69B1-41FC-A660-FE8DF2A31F5B}')
 //    _idlflags_ = ['dual', 'oleautomation']
-
-
 
 
 struct IXVirUV: IDispatch

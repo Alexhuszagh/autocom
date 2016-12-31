@@ -1,7 +1,7 @@
 //  :copyright: (c) 2015-2016 The Regents of the University of California.
 //  :license: MIT, see licenses/mit.md for more details.
 /*
- *  \addtogroup AutoCom
+ *  \addtogroup AutoCOM
  *  \brief Example to use Thermo Finnigan's MSFileReader API.
  *
  *  This requires the 2.2.61.0 x86 or x86_64 version of Thermo's
@@ -26,6 +26,8 @@ int main(int argc, char *argv[])
     LONG version;
     dispatch.method("GetVersionNumber", &version);
     printf("Version is %d\n", version);
+
+    dispatch.method("Close");
 
     return 0;
 }

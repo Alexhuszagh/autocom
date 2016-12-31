@@ -2,7 +2,7 @@
 //  :copyright: (c) 2016 The Regents of the University of California.
 //  :license: Unicode, see LICENSE.md for more details.
 /**
- *  \addtogroup AutoCom
+ *  \addtogroup AutoCOM
  *  \brief Convert Unicode code points between encodings.
  *
  *  Converts from any Unicode encoding (UTF8, UTF16, UTF32) in the native
