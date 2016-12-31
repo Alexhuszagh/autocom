@@ -1,8 +1,8 @@
 //  :copyright: (c) 2016 The Regents of the University of California.
 //  :license: MIT, see LICENSE.md for more details.
 /**
- *  \addtogroup AutoCom
- *  \brief Public AutoCom header.
+ *  \addtogroup AutoCOM
+ *  \brief Public AutoCOM header.
  */
 
 #include "autocom/com.hpp"

@@ -34,19 +34,22 @@ TEST(DispParams, SetPrimitive)
 {
     com::DispParams dp;
 
-    // generic overloads
+    // generic overloads -- BSTR must be null initialized
     LONG version;
-    BSTR value;
+    BSTR value = nullptr;
     dp.setArgs(version, value);
     dp.setArgs(&version, value);
     dp.setArgs(version, &value);
     dp.setArgs(&version, &value);
+    EXPECT_EQ(dp.args().size(), 2);
+
+    dp.setArgs();
+    EXPECT_EQ(dp.args().size(), 0);
 
     // safe overloads
     BOOL boolean;
     INT integer;
 
-    // this could or could not be safe, depending on the compiler
     dp.setArgs(com::PutBool(boolean), com::PutInt(integer));
     EXPECT_EQ(dp.params()->rgvarg[0].vt, 22);
     EXPECT_EQ(dp.params()->rgvarg[1].vt, 11);

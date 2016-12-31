@@ -1,7 +1,7 @@
 //  :copyright: (c) 2015-2016 The Regents of the University of California.
 //  :license: MIT, see licenses/mit.md for more details.
 /*
- *  \addtogroup AutoCom
+ *  \addtogroup AutoCOM
  *  \brief Parse ITypeInfo data attributes.
  */
 
@@ -48,10 +48,6 @@ std::unordered_map<VARTYPE, std::string> TYPE_NAMES = {
     { VT_VARIANT,   "VARIANT"       },
 };
 
-/*  CALLCONV can either be an enum class, or an enum, so a
- *  strongly-typed and weakly-typed hash function are determined at
- *  compile time via EnumHash.
- */
 std::unordered_map<CALLCONV, std::string, EnumHash> DECORATIONS = {
     { CC_FASTCALL,   "__fastcall" },
     { CC_CDECL,      "__cdecl"    },
@@ -442,7 +438,7 @@ std::string Record::header() const
     stream << "};\r\n";
     stream << "static_assert(sizeof(" << documentation.name
            << ") == " << size
-           << ", \"AutoCom: Invalid struct size.\");\r\n";
+           << ", \"AutoCOM: Invalid struct size.\");\r\n";
 
     return stream.str();
 }

@@ -1,7 +1,7 @@
 //  :copyright: (c) 2015-2016 The Regents of the University of California.
 //  :license: MIT, see licenses/mit.md for more details.
 /*
- *  \addtogroup AutoCom
+ *  \addtogroup AutoCOM
  *  \brief Example to use test virtual table offset methods.
  */
 
@@ -22,8 +22,6 @@ namespace com = autocom;
 //    u'IXRawfile Interface'
 //    _iid_ = GUID('{11B488A0-69B1-41FC-A660-FE8DF2A31F5B}')
 //    _idlflags_ = ['dual', 'oleautomation']
-
-
 
 
 struct IXVirUV: IDispatch
@@ -102,15 +100,14 @@ int main(int argc, char *argv[])
     if (FAILED(xraw->QueryInterface(IID_IXRaw4, (void**)&ixraw4))) {
         assert(false);
     } else {
-        // BSTR szPathName = SysAllocString(L"Thermo.raw");
-        // std::cout << "Open() -> " << ixraw4->Open(szPathName) << std::endl;
-        LONG version;
-        std::cout << "GetVersionNumber() -> " << ixraw4->GetVersionNumber(&version) << std::endl;
+        BSTR szPathName = SysAllocString(L"Thermo.raw");
+        std::cout << "Open() -> " << ixraw4->Open(szPathName) << std::endl;
+//        LONG version;
+//        std::cout << "GetVersionNumber() -> " << ixraw4->GetVersionNumber(&version) << std::endl;
 
 
     }
     ixraw4->Release();
-
 
     //CLSIDFromProgID(L"MSXML2.XMLHTTP", reinterpret_cast<LPCLSID>(&guid));
     //CoCreateInstance(guid, nullptr, CLSCTX_INPROC_SERVER, IID_IDispatch, (void **) &dispatch);

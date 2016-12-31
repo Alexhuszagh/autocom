@@ -1,7 +1,7 @@
 //  :copyright: (c) 2015-2016 The Regents of the University of California.
 //  :license: MIT, see licenses/mit.md for more details.
 /*
- *  \addtogroup AutoCom
+ *  \addtogroup AutoCOM
  *  \brief Variant object and collection definitions.
  */
 
@@ -14,6 +14,7 @@
 #include <windows.h>
 #include <wtypes.h>
 
+#include <typeinfo>
 #include <initializer_list>
 #include <vector>
 
@@ -29,6 +30,17 @@ namespace autocom
  */
 bool changeVariantType(VARIANT &variant,
     const VARTYPE vt);
+
+
+/** \brief Static cast type to VARTYPE.
+ *
+ *  Required for MinGW, and other compilers to prevent integer promotion.
+ */
+template <typename T>
+VARTYPE TO_VARTYPE(const T t)
+{
+    return static_cast<VARTYPE>(t);
+}
 
 // MACROS -- SETTERS
 // -----------------
@@ -310,7 +322,7 @@ AUTOCOM_SAFE_POINTER_SETTER(Decimal, VT_DECIMAL, decVal)
 /** \brief Cast value to expected vartype in variant.
  */
 #define AUTOCOM_CONVERT_TYPE(variant, vartype)                          \
-    if (variant.vt != vartype)   {                                      \
+    if (TO_VARTYPE(variant.vt) != TO_VARTYPE(vartype)) {                \
         if (!changeVariantType(variant, vartype)) {                     \
             throw ComFunctionError("VariantChangeType");                \
         }                                                               \
@@ -326,7 +338,7 @@ AUTOCOM_SAFE_POINTER_SETTER(Decimal, VT_DECIMAL, decVal)
         type &value)                                                    \
     {                                                                   \
         AUTOCOM_CONVERT_TYPE(variant, vartype)                          \
-        value = variant.field;                                         \
+        value = variant.field;                                          \
     }
 
 
@@ -336,7 +348,7 @@ AUTOCOM_SAFE_POINTER_SETTER(Decimal, VT_DECIMAL, decVal)
                                                                         \
     template <typename VariantType>                                     \
     void getVariant(VariantType &variant,                               \
-        safe &value)                                                    \
+        safe value)                                                     \
     {                                                                   \
         auto &ref = typename safe::type(value);                         \
         AUTOCOM_CONVERT_TYPE(variant, vartype)                          \
@@ -464,6 +476,8 @@ AUTOCOM_SAFE_GETTER(ULongLong, VT_UI8, ullVal)
 AUTOCOM_SAFE_GETTER(Double, VT_R8, dblVal)
 AUTOCOM_SAFE_GETTER(Bstr, VT_BSTR, bstrVal)
 AUTOCOM_SAFE_GETTER(Currency, VT_CY, cyVal)
+AUTOCOM_SAFE_GETTER(Error, VT_ERROR, scode)
+AUTOCOM_SAFE_GETTER(Date, VT_DATE, date)
 AUTOCOM_SAFE_GETTER(IUnknown, VT_UNKNOWN, punkVal)
 AUTOCOM_SAFE_GETTER(IDispatch, VT_DISPATCH, pdispVal)
 AUTOCOM_SAFE_POINTER_GETTER(Decimal, VT_DECIMAL, decVal)
@@ -524,7 +538,7 @@ void Variant::set(T &&t)
 template <typename T>
 void Variant::get(T &&t)
 {
-    //getVariant(*this, AUTOCOM_FWD(t));
+    getVariant(*this, AUTOCOM_FWD(t));
 }
 
 // TYPES
