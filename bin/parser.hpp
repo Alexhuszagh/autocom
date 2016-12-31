@@ -32,6 +32,7 @@ struct CoClass;
 struct Alias;
 struct Union;
 struct External;
+struct Description;
 
 // TYPES
 // -----
@@ -51,6 +52,11 @@ typedef std::vector<Alias> AliasList;
 typedef std::vector<Union> UnionList;
 typedef std::vector<External> ExternalList;
 
+// MEMOIZERS
+typedef std::unordered_set<Type> IgnoredMethods;
+typedef std::unordered_map<Name, Type> Memo;
+typedef std::unordered_map<Type, Type> BaseClasses;
+
 // OBJECTS
 // -------
 
@@ -61,7 +67,6 @@ struct CppCode
 {
     virtual std::string forward() const;
     virtual std::string header() const;
-    virtual std::string source() const;
 };
 
 
@@ -69,8 +74,8 @@ struct CppCode
  */
 struct EnumValue: CppCode
 {
-    std::string name;
-    std::string value;
+    Name name;
+    Value value;
 
     EnumValue() = default;
     EnumValue(const EnumValue&) = default;
@@ -89,8 +94,8 @@ struct EnumValue: CppCode
  */
 struct Parameter: CppCode
 {
-    std::string type;
-    std::string name;
+    Type type;
+    Name name;
 
     Parameter() = default;
     Parameter(const Parameter&) = default;
@@ -109,9 +114,9 @@ struct Parameter: CppCode
  */
 struct Variable: CppCode
 {
-    std::string type;
-    std::string name;
-    std::string value;
+    Type type;
+    Name name;
+    Value value;
 
     Variable() = default;
     Variable(const Variable&) = default;
@@ -123,7 +128,24 @@ struct Variable: CppCode
         const WORD index);
 
     virtual std::string header() const;
-    virtual std::string source() const;
+};
+
+
+
+/** \brief COM Dispatch property.
+ */
+struct Property: CppCode
+{
+    Property() = default;
+    Property(const Property&) = default;
+    Property & operator=(const Property&) = default;
+    Property(Property&&) = default;
+    Property & operator=(Property&&) = default;
+
+    Property(const TypeInfo &info,
+        const WORD index);
+
+    virtual std::string header() const;
 };
 
 
@@ -133,9 +155,10 @@ struct Function: CppCode
 {
     std::string decorator;
     std::string returns;
-    std::string name;
+    Name name;
     std::string doc;
     MEMBERID id;
+    SHORT offset;
     std::vector<Parameter> args;
 
     Function() = default;
@@ -148,26 +171,15 @@ struct Function: CppCode
         const WORD index);
 
     std::string definition() const;
-    std::string body() const;
     virtual std::string header() const;
-    virtual std::string source() const;
 };
-
-
-///** \brief TODO:
-// */
-//template <typename T>
-//class List
-//{
-//    std::string header;
-//};
 
 
 /** \brief Description for an enum type.
  */
 struct Enum: CppCode
 {
-    std::string name;
+    Name name;
     std::vector<EnumValue> values;
 
     Enum() = default;
@@ -177,7 +189,7 @@ struct Enum: CppCode
     Enum & operator=(Enum&&) = default;
 
     Enum(const TypeInfo &info,
-        const TypeAttr &attr);
+        Description & /*description*/);
 
     virtual std::string header() const;
 };
@@ -187,7 +199,7 @@ struct Enum: CppCode
  */
 struct Record: CppCode
 {
-    Documentation documentation;
+    Name name;
     ULONG size;
     std::vector<Parameter> fields;
 
@@ -198,7 +210,7 @@ struct Record: CppCode
     Record & operator=(Record&&) = default;
 
     Record(const TypeInfo &info,
-        const TypeAttr &attr);
+        Description & /*description*/);
 
     virtual std::string forward() const;
     virtual std::string header() const;
@@ -219,21 +231,28 @@ struct Module: CppCode
     Module & operator=(Module&&) = default;
 
     Module(const TypeInfo &info,
-        const TypeAttr &attr);
+        Description & /*description*/);
 
     virtual std::string header() const;
-    virtual std::string source() const;
 };
 
 
 /** \brief Description for a type with pure and virtual functions.
+ *
+ *  \param name                 Class name
+ *  \param iid                  Class interface ID.
+ *  \param flags                IDL flags for class.
+ *  \param base                 Class interface inherits from
+ *  \param object               Best Windows interface found
  */
 struct Interface: CppCode
 {
-    Documentation documentation;
+    Name name;
     Guid iid;
     WORD flags;
-    std::string base;
+    Type base;
+    Type object;
+    std::vector<Property> properties;
     std::vector<Function> functions;
 
     Interface() = default;
@@ -243,10 +262,11 @@ struct Interface: CppCode
     Interface & operator=(Interface&&) = default;
 
     Interface(const TypeInfo &info,
-        const TypeAttr &attr);
+        Description &description);
 
+    IgnoredMethods & ignored() const;
+    virtual std::string forward() const;
     virtual std::string header() const;
-    virtual std::string source() const;
 };
 
 
@@ -261,16 +281,19 @@ struct Dispatch: Interface
     Dispatch & operator=(Dispatch&&) = default;
 
     Dispatch(const TypeInfo &info,
-        const TypeAttr &attr);
-
-    virtual std::string header() const;
+        Description &description);
 };
 
 
 /** \brief Description for a COM object implementing CoClass methods.
  */
-struct CoClass: Dispatch
+struct CoClass: CppCode
 {
+    Name name;
+    Guid clsid;
+    WORD flags;
+    std::vector<Type> interfaces;
+
     CoClass() = default;
     CoClass(const CoClass&) = default;
     CoClass & operator=(const CoClass&) = default;
@@ -278,8 +301,9 @@ struct CoClass: Dispatch
     CoClass & operator=(CoClass&&) = default;
 
     CoClass(const TypeInfo &info,
-        const TypeAttr &attr);
+        Description &description);
 
+    virtual std::string forward() const;
     virtual std::string header() const;
 };
 
@@ -288,6 +312,9 @@ struct CoClass: Dispatch
  */
 struct Alias: CppCode
 {
+    Name name;
+    Type type;
+
     Alias() = default;
     Alias(const Alias&) = default;
     Alias & operator=(const Alias&) = default;
@@ -295,7 +322,7 @@ struct Alias: CppCode
     Alias & operator=(Alias&&) = default;
 
     Alias(const TypeInfo &info,
-        const TypeAttr &attr);
+        Description & /*description*/);
 
     virtual std::string header() const;
 };
@@ -305,6 +332,9 @@ struct Alias: CppCode
  */
 struct Union: CppCode
 {
+    Name name;
+    std::vector<Parameter> fields;
+
     Union() = default;
     Union(const Union&) = default;
     Union & operator=(const Union&) = default;
@@ -312,7 +342,7 @@ struct Union: CppCode
     Union & operator=(Union&&) = default;
 
     Union(const TypeInfo &info,
-        const TypeAttr &attr);
+        Description & /*description*/);
 
     virtual std::string header() const;
 };
@@ -330,6 +360,7 @@ struct External: CppCode
  */
 struct Description
 {
+    // fields
     EnumList enums;
     RecordList records;
     ModuleList modules;
@@ -339,6 +370,9 @@ struct Description
     AliasList aliases;
     UnionList unions;
     ExternalList externals;
+
+    // redundancy checks
+    BaseClasses bases;
 };
 
 }   /* detail */
@@ -358,12 +392,7 @@ struct TypeLibDescription
     Documentation documentation;
     detail::Description description;
 
-    // TODO: need maps for records, etc...
-    // TODO: methods...
-    // TODO: NEED TO know....
-
     void parse(const TypeLib &tlib);
-    //void parse
 };
 
 

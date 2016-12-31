@@ -121,18 +121,24 @@ endif()
 # -----
 
 set(AUTOCOM_TEST_SOURCES
-    test/encoding/converters.cpp
-    test/encoding/unicode.cpp
-    test/bstr.cpp
-    test/dispparams.cpp
-    test/guid.cpp
-    test/type.cpp
-    test/variant.cpp
-    test/main.cpp
+    test/bin/parser.cpp
+    test/src/encoding/converters.cpp
+    test/src/encoding/unicode.cpp
+    test/src/bstr.cpp
+    test/src/dispparams.cpp
+    test/src/guid.cpp
+    test/src/type.cpp
+    test/src/variant.cpp
+    test/src/main.cpp
+
+    # GENERATOR
+    bin/parser.cpp
+    bin/writer.cpp
 )
 
 if (BUILD_TESTS)
      add_subdirectory(googletest)
+     include_directories("${CMAKE_CURRENT_SOURCE_DIR}/bin")
      add_executable(AutoCOMTests ${AUTOCOM_TEST_SOURCES})
      target_link_libraries(AutoCOMTests
         gtest

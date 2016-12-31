@@ -9,7 +9,6 @@
 
 #include <fstream>
 #include <ostream>
-#include <sstream>              // TODO: remove
 #include <iostream>             // TODO: REMOVE
 
 
@@ -43,21 +42,46 @@ void writeImportStatement(std::ostream &stream,
 
 /** \brief Write section for C++
  */
-template <
-    typename Container,
-    typename Stringify
->
+template <typename Container>
 void writeSection(std::ostream &stream,
     const Container &container,
-    const std::string &comment,
-    Stringify stringify)
+    const std::string &comment)
 {
     stream << "// " << comment << "\r\n"
            << "// " << std::string(comment.size(), '-') << "\r\n"
            << "\r\n";
 
     for (const auto &item : container) {
-        stream << stringify(item) << "\r\n";
+        stream << item.header() << "\r\n";
+    }
+    stream << "\r\n";
+}
+
+
+
+/** \brief Write forward declarations.
+ */
+void writeForwardDeclarations(std::ostream &stream,
+    TypeLibDescription &tlib)
+{
+    stream << "// FORWARD\r\n"
+           << "// -------\r\n"
+           << "\r\n";
+
+    for (const auto &item: tlib.description.records) {
+        stream << item.forward() << "\r\n";
+    }
+    for (const auto &item: tlib.description.interfaces) {
+        stream << item.forward() << "\r\n";
+    }
+    for (const auto &item: tlib.description.dispatchers) {
+        stream << item.forward() << "\r\n";
+    }
+    for (const auto &item: tlib.description.coclasses) {
+        stream << item.forward() << "\r\n";
+    }
+    for (const auto &item: tlib.description.aliases) {
+        stream << item.header() << "\r\n";
     }
     stream << "\r\n";
 }
@@ -94,18 +118,18 @@ std::string writeClsidHeader(TypeLibDescription &tlib,
     writeDocString(stream);
     stream << "#include <autocom.hpp>\r\n\r\n";
 
-    writeSection(stream, tlib.description.enums, "ENUMS", [](const detail::Enum &item) {
-        return item.header();
-    });
-    writeSection(stream, tlib.description.records, "FORWARD", [](const detail::Record &item) {
-        return item.forward();
-    });
-    writeSection(stream, tlib.description.records, "STRUCTS", [](const detail::Record &item) {
-        return item.header();
-    });
-    writeSection(stream, tlib.description.interfaces, "INTERFACES", [](const detail::Interface &item) {
-        return item.header();
-    });
+    // SIMPLE
+    writeSection(stream, tlib.description.enums, "ENUMS");
+    writeSection(stream, tlib.description.unions, "UNIONS");
+
+    // TYPES
+    writeForwardDeclarations(stream, tlib);
+
+    // CLASSES
+    writeSection(stream, tlib.description.records, "STRUCTS");
+    writeSection(stream, tlib.description.interfaces, "INTERFACES");
+    writeSection(stream, tlib.description.dispatchers, "DISPATCHERS");
+    writeSection(stream, tlib.description.coclasses, "COCLASSES");
 
     return path;
 }
@@ -119,26 +143,6 @@ void writeHeaders(TypeLibDescription &tlib,
 {
     files.headers.emplace_back(writeImportHeader(tlib, directory));
     files.headers.emplace_back(writeClsidHeader(tlib, directory));
-}
-
-/** \brief Write C++ source file from TypeLib description.
- */
-void writeSources(TypeLibDescription &tlib,
-    std::string &directory,
-    Files &files)
-{
-    auto name = tlib.guid.string() + ".cpp";
-    std::string path = directory + "\\" + name;
-    std::ofstream stream(path, std::ios::binary);
-    files.sources.emplace_back(path);
-
-    // write data
-    writeDocString(stream);
-    stream << "#include \"" << tlib.guid.string() << ".hpp\"\r\n\r\n";
-
-    writeSection(stream, tlib.description.interfaces, "INTERFACES", [](const detail::Interface &item) {
-        return item.source();
-    });
 }
 
 

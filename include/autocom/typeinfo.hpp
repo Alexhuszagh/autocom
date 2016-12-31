@@ -102,6 +102,7 @@ public:
     FuncDesc funcdesc(const UINT index) const;
     TypeInfo info(const HREFTYPE type) const;
     HREFTYPE reference(const UINT index) const;
+    INT flags(const UINT index) const;
     DllEntry entry(const MEMBERID id,
         const INVOKEKIND invocation) const;
 };

@@ -243,6 +243,19 @@ HREFTYPE TypeInfo::reference(const UINT index) const
 }
 
 
+/** \brief Get reference for implied type.
+ */
+INT TypeInfo::flags(const UINT index) const
+{
+    INT flag;
+    if (FAILED(ppv->GetImplTypeFlags(index, &flag))) {
+        throw ComMethodError("ITypeInfo", "GetImplTypeFlags()");
+    }
+
+    return flag;
+}
+
+
 /** \brief Get function entry point.
  */
 DllEntry TypeInfo::entry(const MEMBERID id,

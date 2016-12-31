@@ -24,7 +24,6 @@ namespace autocom
 struct Files
 {
     std::vector<std::string> headers;
-    std::vector<std::string> sources;
 };
 
 // FUNCTIONS
@@ -36,12 +35,5 @@ struct Files
 void writeHeaders(TypeLibDescription &tlib,
     std::string &directory,
     Files &files);
-
-/** \brief Write C++ source file from file description.
- */
-void writeSources(TypeLibDescription &tlib,
-    std::string &directory,
-    Files &files);
-
 
 }   /* autocom */

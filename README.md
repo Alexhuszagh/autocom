@@ -18,13 +18,15 @@ AutoCOM is a C++11 interface for the Component Object Model (COM) supporting Min
 
 AutoCOM is a modern COM interface library for C++11. AutoCOM supports both compile-time interface binding, or use of a dispatcher interface at run-time, with either MSVC or MinGW.
 
+AutoCOM believes that resource initialization is acqusition. The COM interface is initialized on a per-thread basis during object construction, and uninitialized when the last object destructor is called. 
+
 **Compile-Time**
 
 AutoCOM uses COM's TypeLib interface to generate native C++ headers during compilation, to replace MSVC-only `#import` directives with native C++ headers, compatible for use with COM's QueryInterface.
 
 **Run-Time**
 
-AutoCOM uses thread-local reference-counting, C++ variadic templates, and perfect-forwarding to simplify COM's dynamic dispatch model through `IDispatch::Invoke`. The COM interface is initialized per-thread prior to COM object creation, and uninitialized when the last object is deleted. Variant types are deduced and forwarded to automatically generate dispatch parameters.
+AutoCOM uses thread-local reference-counting, C++ variadic templates, and perfect-forwarding to simplify COM's dynamic dispatch model through `IDispatch::Invoke`. Variant types are deduced and forwarded to automatically generate dispatch parameters.
 
 Dynamic-dispatchers never looked so friendly:
 

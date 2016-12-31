@@ -7,11 +7,11 @@
 
 #include "parser.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <iostream>             // TODO: REMOVE
 #include <sstream>
 #include <stdexcept>
-#include <unordered_map>
 
 
 namespace autocom
@@ -46,6 +46,7 @@ std::unordered_map<VARTYPE, std::string> TYPE_NAMES = {
     { VT_DISPATCH,  "IDispatch *"   },
     { VT_UNKNOWN,   "IUnknown *"    },
     { VT_VARIANT,   "VARIANT"       },
+    { VT_VOID,      "void"          },
 };
 
 std::unordered_map<CALLCONV, std::string, EnumHash> DECORATIONS = {
@@ -60,6 +61,49 @@ std::unordered_map<CALLCONV, std::string, EnumHash> DECORATIONS = {
     { CC_MPWCDECL,   ""           },
     { CC_MPWPASCAL,  ""           },
 };
+
+/** \brief Ingored methods redundantly listed in typelib.
+ *
+ *  This could be overly-excluding functions, since IUnknown
+ *  interfaces are free to any method besides the first three.
+ */
+std::unordered_map<Type, IgnoredMethods> IGNORED = {
+    { "IUnknown", {
+        "QueryInterface",
+        "AddRef",
+        "Release",
+    }},
+    { "IDispatch", {
+        "QueryInterface",
+        "AddRef",
+        "Release",
+        "GetTypeInfoCount",
+        "GetTypeInfo",
+        "GetIDsOfNames",
+        "Invoke"
+    }},
+    { "IClassFactory", {
+        "QueryInterface",
+        "AddRef",
+        "Release",
+        "CreateInstance",
+        "LockServer",
+    }},
+};
+
+
+// SORTING
+// -------
+
+
+/** \brief Sort functions by vtable offset.
+ */
+bool functionKey(const Function &left,
+    const Function &right)
+{
+    return left.offset < right.offset;
+}
+
 
 // FUNCTIONS
 // ---------
@@ -85,31 +129,30 @@ template <typename Description>
 void parseItem(Description &description,
     const TypeInfo &info)
 {
-    auto attr = info.attr();
-    switch (attr.kind()) {
+    switch (info.attr().kind()) {
         case TKIND_ENUM:
-            description.enums.emplace_back(Enum(info, attr));
+            description.enums.emplace_back(Enum(info, description));
             break;
         case TKIND_RECORD:
-            description.records.emplace_back(Record(info, attr));
+            description.records.emplace_back(Record(info, description));
             break;
         case TKIND_MODULE:
-            description.modules.emplace_back(Module(info, attr));
+            description.modules.emplace_back(Module(info, description));
             break;
         case TKIND_INTERFACE:
-            description.interfaces.emplace_back(Interface(info, attr));
+            description.interfaces.emplace_back(Interface(info, description));
             break;
         case TKIND_DISPATCH:
-            description.dispatchers.emplace_back(Dispatch(info, attr));
+            description.dispatchers.emplace_back(Dispatch(info, description));
             break;
         case TKIND_COCLASS:
-            description.coclasses.emplace_back(CoClass(info, attr));
+            description.coclasses.emplace_back(CoClass(info, description));
             break;
         case TKIND_ALIAS:
-            description.aliases.emplace_back(Alias(info, attr));
+            description.aliases.emplace_back(Alias(info, description));
             break;
         case TKIND_UNION:
-            description.unions.emplace_back(Union(info, attr));
+            description.unions.emplace_back(Union(info, description));
             break;
     }
 }
@@ -137,12 +180,10 @@ std::string getTypeName(const TypeInfo &info,
     } else if (desc.vt() == VT_USERDEFINED) {
         return info.info(desc.reference()).documentation(-1).name;
     } else if (desc.vt() == VT_SAFEARRAY) {
-        // get safearray
-        auto name = getTypeName(info, desc.pointer());
-        printf("ERROR: getTypeName(VT_SAFEARRAY)\n");
-        assert(false);
+        return "SAFEARRAY";
     }
 
+    // VT_VOID
     throw std::invalid_argument("Invalid type: " + std::to_string(desc.vt()));
 }
 
@@ -222,15 +263,6 @@ std::string CppCode::header() const
 }
 
 
-/** \brief Get source definition.
- */
-std::string CppCode::source() const
-{
-    assert(false);
-    return "";
-}
-
-
 /** \brief Extract enum value data.
  */
 EnumValue::EnumValue(const TypeInfo &info,
@@ -298,11 +330,18 @@ std::string Variable::header() const
 }
 
 
-/** \brief Get representation in source.
+/** \brief Parse dispatch property definition.
  */
-std::string Variable::source() const
+Property::Property(const TypeInfo &info,
+    const WORD index)
+{}
+
+
+/** \brief Get representation in header.
+ */
+std::string Property::header() const
 {
-    return type + " " + name + " = " + value;
+    assert(false);
 }
 
 
@@ -314,13 +353,13 @@ Function::Function(const TypeInfo &info,
     // get descriptors
     auto fd = info.funcdesc(index);
     auto documentation = info.documentation(fd.id());
-    assert(fd.kind() == FUNC_PUREVIRTUAL);
 
     decorator = DECORATIONS[fd.decoration()];
     returns = getTypeName(info, fd.returnType().type());
     name = documentation.name;
     doc = documentation.doc;
     id = fd.id();
+    offset = fd.offset();
     args.resize(fd.args());
     for (SHORT index = 0; index < fd.args(); ++index) {
         args[index].type = getTypeName(info, fd.arg(index).type());
@@ -347,15 +386,6 @@ std::string Function::definition() const
 }
 
 
-/** \brief Get body of function definition.
- */
-std::string Function::body() const
-{
-    return "";
-    // TODO:
-}
-
-
 /** \brief Get representation in header.
  */
 std::string Function::header() const
@@ -367,22 +397,13 @@ std::string Function::header() const
 }
 
 
-/** \brief Get representation in source.
- */
-std::string Function::source() const
-{
-    return "";
-    // TODO:
-}
-
-
 /** \brief Initialize Enum method description from TypeInfo.
  */
 Enum::Enum(const TypeInfo &info,
-    const TypeAttr &attr)
+    Description & /*description*/)
 {
     name = info.documentation(-1).name;
-    for (WORD index = 0; index < attr.variables(); ++index) {
+    for (WORD index = 0; index < info.attr().variables(); ++index) {
         values.emplace_back(EnumValue(info, index));
     }
 }
@@ -407,9 +428,10 @@ std::string Enum::header() const
 /** \brief Initialize Record method description from TypeInfo.
  */
 Record::Record(const TypeInfo &info,
-    const TypeAttr &attr)
+    Description & /*description*/)
 {
-    documentation = info.documentation(-1);
+    auto attr = info.attr();
+    name = info.documentation(-1).name;
     size = attr.size();
     for (WORD index = 0; index < attr.variables(); ++index) {
         fields.emplace_back(Parameter(info, index));
@@ -421,7 +443,7 @@ Record::Record(const TypeInfo &info,
  */
 std::string Record::forward() const
 {
-    return "struct " + documentation.name + ";";
+    return "struct " + name + ";";
 };
 
 
@@ -430,13 +452,13 @@ std::string Record::forward() const
 std::string Record::header() const
 {
     std::ostringstream stream;
-    stream << "struct " << documentation.name << "\r\n"
+    stream << "struct " << name << "\r\n"
            << "{\r\n";
     for (const auto &field: fields) {
         stream << "    " << field.header() << ";\r\n";
     }
     stream << "};\r\n";
-    stream << "static_assert(sizeof(" << documentation.name
+    stream << "static_assert(sizeof(" << name
            << ") == " << size
            << ", \"AutoCOM: Invalid struct size.\");\r\n";
 
@@ -450,12 +472,15 @@ std::string Record::header() const
  *  DLLs installed on Wine use TKIND_MODULE.
  */
 Module::Module(const TypeInfo &info,
-    const TypeAttr &attr)
+    Description & /*description*/)
 {
+    auto attr = info.attr();
+
     // functions
     for (WORD index = 0; index < attr.functions(); ++index) {
         functions.emplace_back(Function(info, index));
     }
+    std::sort(functions.begin(), functions.end(), functionKey);
 
     // variables
     for (WORD index = 0; index < attr.variables(); ++index) {
@@ -480,40 +505,54 @@ std::string Module::header() const
 }
 
 
-/** \brief Write module to string for source.
- */
-std::string Module::source() const
-{
-    std::ostringstream stream;
-    for (const auto &item: functions) {
-        stream << item.source() << "\r\n";
-    }
-    for (const auto &item: constants) {
-        stream << "const " << item.source() << ";\r\n";
-    }
-
-    return stream.str();
-}
-
-
 /** \brief Initialize Interface method description from TypeInfo.
  */
 Interface::Interface(const TypeInfo &info,
-    const TypeAttr &attr)
+    Description &description)
 {
-    documentation = info.documentation(-1);
+    auto attr = info.attr();
+    auto &bases = description.bases;
+
+    // parse interface attributes
+    name = info.documentation(-1).name;
     iid = attr.guid();
     flags = attr.flags();
 
+    // parse base classes
     if (attr.interfaces()) {
         base = info.info(info.reference(0)).documentation(-1).name;
+        object = base;
+        while (IGNORED.find(object) == IGNORED.end()) {
+            std::cout << object << std::endl;
+            object = bases.at(object);
+        }
+        bases[name] = object;
     }
 
-    assert(attr.variables() == 0);
     for (WORD index = 0; index < attr.functions(); ++index) {
-        functions.emplace_back(Function(info, index));
+        Function function(info, index);
+        if (ignored().find(function.name) == ignored().end())  {
+            functions.emplace_back(std::move(function));
+        }
     }
+    std::sort(functions.begin(), functions.end(), functionKey);
 }
+
+
+/** \brief Get methods ignored by interface.
+ */
+IgnoredMethods & Interface::ignored() const
+{
+    return IGNORED[object];
+}
+
+
+/** \brief Forward declaration for interface.
+ */
+std::string Interface::forward() const
+{
+    return "struct " + name + ";";
+};
 
 
 /** \brief Write interface to string for header.
@@ -522,47 +561,28 @@ std::string Interface::header() const
 {
     std::ostringstream stream;
 
+    // TODO: I need to fix how these are compiled in....
+    stream << "constexpr char IID_" << name << "[]"
+           << " = \"" << iid.string() << "\";\r\n\r\n";
     // class definition and base class
-    stream << "struct " << documentation.name;
+    stream << "struct " << name;
     if (!base.empty()) {
         stream << ": " << base;
     }
     // initialize with static, constexpr values which do not add to struct
     stream << "\r\n"
           << "{\r\n"
-           << "    static constexpr char iid[] = \""
-           << iid.string() << "\";\r\n"
            << "    static constexpr WORD flags = " << flags << ";\r\n";
+    // properties
+    for (const auto &item: properties) {
+        stream << "    " << item.header() << "\r\n";
+    }
     // functions
-    // TODO: need to check inheritance...
-//    if (base == "IUnknown") {
-//        // comment out methods without Invoke
-//        for (const auto &item: functions) {
-//            stream << "    // " << item.header() << "\r\n";
-//        }
-//    } else {
-//        for (const auto &item: functions) {
-//            stream << "    " << item.header() << "\r\n";
-//        }
-//    }
+    for (const auto &item: functions) {
+        stream << "    " << item.header() << "\r\n";
+    }
 
     stream << "};\r\n";
-
-    return stream.str();
-}
-
-
-/** \brief Write interface to string for header.
- */
-std::string Interface::source() const
-{
-    std::ostringstream stream;
-//    if (base != "IUnknown") {
-//        for (const auto &item: functions) {
-//            stream << item.returns << " " << documentation.name
-//                    << "::" << item.body() << "\r\n\r\n";
-//        }
-//    }
 
     return stream.str();
 }
@@ -571,46 +591,74 @@ std::string Interface::source() const
 /** \brief Initialize Dispatch method description from TypeInfo.
  */
 Dispatch::Dispatch(const TypeInfo &info,
-    const TypeAttr &attr)
+        Description &description):
+    Interface(info, description)
 {
-    std::cout << "------------------" << std::endl;
-    std::cout << "Parsing Dispatch" << std::endl;
-}
-
-
-/** \brief Write dispatcher to string for header.
- */
-std::string Dispatch::header() const
-{
-    return "";
+    auto attr = info.attr();
+    for (WORD index = 0; index < attr.variables(); ++index) {
+        // TODO: these are dispatch properties, assert(false) and check
+        std::cout << "Dispatch property: " << index << std::endl;
+        assert(false);
+        //properties.emplace_back(Property(info, index));
+    }
 }
 
 
 /** \brief Initialize CoClass method description from TypeInfo.
  */
 CoClass::CoClass(const TypeInfo &info,
-    const TypeAttr &attr)
+    Description &description)
 {
-    std::cout << "------------------" << std::endl;
-    std::cout << "Parsing CoClass" << std::endl;
+    // parse interface attributes
+    auto attr = info.attr();
+    name = info.documentation(-1).name;
+    clsid = attr.guid();
+    flags = attr.flags();
+
+    // basic assumption
+    assert(attr.functions() == 0);
+    assert(attr.variables() == 0);
+
+    for (WORD index = 0; index < attr.interfaces(); ++index) {
+        auto tinfo = info.info(info.reference(0));
+        interfaces.emplace_back(tinfo.documentation(-1).name);
+    }
 }
+
+
+/** \brief Forward declaration for interface.
+ */
+std::string CoClass::forward() const
+{
+    return "struct " + name + ";";
+};
 
 
 /** \brief Write coclass to string for header.
  */
 std::string CoClass::header() const
 {
-    return "";
+    assert(interfaces.size());
+
+    std::ostringstream stream;
+    stream << "struct " << name << ": ";
+    for (auto it = interfaces.begin(); it < interfaces.end() - 1; ++it) {
+        stream << *it << ", ";
+    }
+    stream << interfaces.back() << "\r\n";
+    stream << "{};\r\n";
+
+    return stream.str();
 }
 
 
 /** \brief Initialize Alias method description from TypeInfo.
  */
 Alias::Alias(const TypeInfo &info,
-    const TypeAttr &attr)
+    Description &description)
 {
-    std::cout << "------------------" << std::endl;
-    std::cout << "Parsing Alias" << std::endl;
+    name = info.documentation(-1).name;
+    type = getTypeName(info, info.attr().alias());
 }
 
 
@@ -618,17 +666,22 @@ Alias::Alias(const TypeInfo &info,
  */
 std::string Alias::header() const
 {
-    return "";
+    return "typedef " + name + " " + type + ";";
 }
 
 
 /** \brief Initialize Union method description from TypeInfo.
  */
 Union::Union(const TypeInfo &info,
-    const TypeAttr &attr)
+    Description & /*description*/)
 {
-    std::cout << "------------------" << std::endl;
-    std::cout << "Parsing Union" << std::endl;
+    name = info.documentation(-1).name;
+
+    // parse interface attributes
+    auto attr = info.attr();
+    for (WORD index = 0; index < attr.variables(); ++index) {
+        fields.emplace_back(Parameter(info, index));
+    }
 }
 
 
@@ -636,7 +689,15 @@ Union::Union(const TypeInfo &info,
  */
 std::string Union::header() const
 {
-    return "";
+    std::ostringstream stream;
+    stream << "union " << name << "\r\n"
+           << "{\r\n";
+    for (const auto &field: fields) {
+        stream << "    " << field.header() << ";\r\n";
+    }
+    stream << "};\r\n";
+
+    return stream.str();
 }
 
 
@@ -644,7 +705,7 @@ std::string Union::header() const
  */
 std::string External::header() const
 {
-    return "";
+    assert(false);
 }
 
 
@@ -659,43 +720,21 @@ std::string External::header() const
  */
 void TypeLibDescription::parse(const TypeLib &tlib)
 {
-    // TODO: need a memo to check for redundant items
-
     // get library definitions
     detail::parseDescription(*this, tlib);
     for (UINT index = 0; index < tlib.count(); ++index) {
         auto info = tlib.info(index);
         auto name = info.documentation(-1).name;
-        // TODO: redundancy check...
-        // COMTYPES, C++
-        // modname = self._typelib_module()
-        // auto modname = std::string(tlib.attr());
-//        std::cout << "--------------------------------" << std::endl;
-//        std::cout << "Index is " << index << std::endl;
-//        std::cout << "Name is " << name << std::endl;
-//        std::cout << "--------------------------------" << std::endl;
 
-        // get child libraries..
+        // get items
         auto lib = info.typelib();
         if (lib != tlib) {
-            //description.emplace_back(External());
-//            std::cout << "--------------------------------" << std::endl;
-//            std::cout << "Have external depndency" << std::endl;
-//            std::cout << "--------------------------------" << std::endl;
+            // never seen an external symbol before
+            assert(false);
         } else {
             detail::parseItem(description, info);
         }
     }
-
-//    std::cout << "--------------------------------" << std::endl;
-//    std::cout << guid.toClsid() << std::endl;
-//    std::cout << major << std::endl;
-//    std::cout << minor << std::endl;
-//    std::cout << documentation.name << std::endl;
-//    std::cout << documentation.doc << std::endl;
-//    std::cout << documentation.help << std::endl;
-//    std::cout << documentation.file << std::endl;
-//    std::cout << "--------------------------------" << std::endl;
 }
 
 

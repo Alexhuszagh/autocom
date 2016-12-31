@@ -65,7 +65,6 @@ int main(int argc, char *argv[])
         // write to file
         com::Files files;
         writeHeaders(description, FLAGS_header, files);
-        writeSources(description, FLAGS_source, files);
     }
 
     return 0;
