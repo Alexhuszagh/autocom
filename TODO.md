@@ -9,6 +9,9 @@
     - Change getVariant to get -- DONE
     - Change setVariant to set -- DONE
 
+    -- Need to test VariantType
+    -- Need to test get and set for Variant, Get/PutVariant and SafeArray
+
     - Overload PutSafeArray and GetSafeArray for get/setVariant
     - Overload SafeArray for get/setVariant
 

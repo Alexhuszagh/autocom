@@ -1,11 +1,8 @@
 //  :copyright: (c) 2015-2016 The Regents of the University of California.
 //  :license: MIT, see licenses/mit.md for more details.
-/*Bstr
+/*
  *  \addtogroup AutoCOM
  *  \brief Strong type wrappers for WinAPI data types.
- *
- *  Type wrappers that are not implicitly convertible, even among
- *  aliases, for use with dispparams.
  */
 
 #pragma once
@@ -201,7 +198,7 @@ AUTOCOM_WRAPPER(VARIANT*, Variant);
     struct VariantType<type, false>                                     \
     {                                                                   \
         static constexpr VARTYPE vt = vartype;                          \
-    }
+    };
 
 /** \brief Specialize type by value for VariantType.
  */
@@ -314,7 +311,7 @@ AUTOCOM_SAFE_SPECIALIZER(Error, VT_ERROR);
 AUTOCOM_SAFE_SPECIALIZER(Date, VT_DATE);
 AUTOCOM_SAFE_SPECIALIZER(IUnknown, VT_UNKNOWN);
 AUTOCOM_SAFE_SPECIALIZER(IDispatch, VT_DISPATCH);
-AUTOCOM_SAFE_SPECIALIZER(Variant, VT_VARIANT);
+AUTOCOM_SAFE_VALUE_SPECIALIZER(Variant, VT_VARIANT | VT_BYREF);
 AUTOCOM_SAFE_POINTER_SPECIALIZER(Decimal, VT_DECIMAL);
 // SAFEARRAY
 // PutSafeArray/GetSafeArray
@@ -366,6 +363,28 @@ LValueWrapper<T>::operator R() const
     return r;
 }
 
+
+/** \brief Write implemnetation for constexpr.
+ */
+template <
+    typename T,
+    bool IsArray
+>
+constexpr VARTYPE VariantType<T, IsArray>::vt;
+
+
+/** \brief Write implemnetation for constexpr.
+ */
+template <typename T>
+constexpr VARTYPE VariantType<T, true>::vt;
+
+
+/** \brief Write implemnetation for constexpr.
+ */
+template <typename T>
+constexpr VARTYPE VariantType<SafeArray<T>, true>::vt;
+
+
 // CLEANUP
 // -------
 
@@ -380,5 +399,8 @@ LValueWrapper<T>::operator R() const
 #undef AUTOCOM_VALUE_SPECIALIZER
 #undef AUTOCOM_POINTER_SPECIALIZER
 #undef AUTOCOM_SPECIALIZER
+#undef AUTOCOM_SAFE_VALUE_SPECIALIZER
+#undef AUTOCOM_SAFE_POINTER_SPECIALIZER
+#undef AUTOCOM_SAFE_SPECIALIZER
 
 }   /* autocom */

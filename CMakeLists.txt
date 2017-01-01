@@ -37,6 +37,7 @@ set(AUTOCOM_SOURCES
     src/encoding/converters.cpp
     src/encoding/unicode.cpp
     src/util/exception.cpp
+    src/util/type.cpp
     src/bstr.cpp
     src/com.cpp
     src/dispparams.cpp
@@ -125,11 +126,11 @@ set(AUTOCOM_TEST_SOURCES
     test/bin/parser.cpp
     test/src/encoding/converters.cpp
     test/src/encoding/unicode.cpp
+    test/src/util/type.cpp
     test/src/bstr.cpp
     test/src/dispparams.cpp
     test/src/guid.cpp
     test/src/safearray.cpp
-    test/src/type.cpp
     test/src/variant.cpp
     test/src/main.cpp
 

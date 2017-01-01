@@ -23,6 +23,27 @@ bool changeVariantType(VARIANT &variant,
 }
 
 
+/** \brief IUnknown type-safe wrapper for SafeArrayGetVartype.
+ *
+ *  SafeArrayGetVartype fails for IUnknown, because MSDN cannot properly
+ *  define flags, or do bitwise operations, so must check explicitly.
+ *  https://msdn.microsoft.com/en-us/library/windows/desktop/ms221446(v=vs.85).aspx
+ */
+VARTYPE getSafeArrayType(SAFEARRAY *value)
+{
+    VARTYPE vt;
+    if (value->fFeatures & FADF_UNKNOWN) {
+        vt = VT_UNKNOWN;
+    } else {
+        if (FAILED(SafeArrayGetVartype(value, &vt))) {
+            throw ComFunctionError("SafeArrayGetVartype");
+        }
+    }
+
+    return vt;
+}
+
+
 // MACROS
 // ------
 
@@ -215,20 +236,11 @@ void set(VARIANT &variant,
 
 
 /** \brief Set a pointer to a SAFEARRAY pointer.
- *
- *  SafeArrayGetVartype fails for IUnknown, must check it explicitly
- *  https://msdn.microsoft.com/en-us/library/windows/desktop/ms221446(v=vs.85).aspx
  */
 void set(VARIANT &variant,
     SAFEARRAY *value)
 {
-    VARTYPE vt;
-    if (value->fFeatures & FADF_UNKNOWN) {
-        vt = VT_UNKNOWN;
-    } else {
-        SafeArrayGetVartype(value, &vt);
-    }
-    variant.vt = vt;
+    variant.vt = getSafeArrayType(value) | VT_ARRAY;
     variant.parray = value;
 }
 
@@ -238,14 +250,7 @@ void set(VARIANT &variant,
 void set(VARIANT &variant,
     SAFEARRAY **value)
 {
-    VARTYPE vt;
-    SAFEARRAY *ptr = *value;
-    if (ptr->fFeatures & FADF_UNKNOWN) {
-        vt = VT_UNKNOWN;
-    } else {
-        SafeArrayGetVartype(ptr, &vt);
-    }
-    variant.vt = vt;
+    variant.vt = getSafeArrayType(*value) | VT_ARRAY | VT_BYREF;
     variant.pparray = value;
 }
 
