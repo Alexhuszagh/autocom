@@ -192,7 +192,7 @@ bool DispatchBase::get(Ts&&... ts)
 
     VARIANT result;
     if (invoke(GET, &result, packGet<0>(AUTOCOM_FWD(ts)...))) {
-        getVariant(result, packGet<1>(AUTOCOM_FWD(ts)...));
+        autocom::get(result, packGet<1>(AUTOCOM_FWD(ts)...));
         return true;
     }
 

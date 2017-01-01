@@ -8,6 +8,7 @@
 #pragma once
 
 #include "guid.hpp"
+#include "safearray.hpp"
 
 #include <oaidl.h>
 
@@ -32,7 +33,6 @@ class ArrayDesc;
 class IdlDesc;
 class ElemDesc;
 class ParamDesc;
-class SafeArrayBound;
 
 // TYPES
 // -----
@@ -427,30 +427,6 @@ public:
     ULONG size() const;
     VARIANTARG value() const;
     USHORT flags() const;
-};
-
-
-/** \brief C++ wrapper around SAFEARRAYBOUND.
- */
-class SafeArrayBound
-{
-protected:
-    SAFEARRAYBOUND bound;
-
-public:
-    SafeArrayBound() = default;
-    SafeArrayBound(const SafeArrayBound&) = default;
-    SafeArrayBound & operator=(const SafeArrayBound&) = default;
-    SafeArrayBound(SafeArrayBound&&) = default;
-    SafeArrayBound & operator=(SafeArrayBound&&) = default;
-
-    SafeArrayBound(const SAFEARRAYBOUND &bound);
-    SafeArrayBound(SAFEARRAYBOUND &&bound);
-
-    // DATA
-    ULONG size() const;
-    LONG lower() const;
-    ULONG upper() const;
 };
 
 

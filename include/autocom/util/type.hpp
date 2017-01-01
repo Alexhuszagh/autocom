@@ -1,6 +1,6 @@
 //  :copyright: (c) 2015-2016 The Regents of the University of California.
 //  :license: MIT, see licenses/mit.md for more details.
-/*
+/*Bstr
  *  \addtogroup AutoCOM
  *  \brief Strong type wrappers for WinAPI data types.
  *
@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "bstr.hpp"
+#include <wtypes.h>
 
 #include <type_traits>
 #include <utility>
@@ -18,6 +18,15 @@
 
 namespace autocom
 {
+// FORWARD
+// -------
+
+struct Bstr;
+struct Variant;
+
+template <typename T>
+struct SafeArray;
+
 // OBJECTS
 // -------
 
@@ -77,54 +86,6 @@ public:
     explicit operator R() const;
 };
 
-// TODO: need a vector and array....
-
-
-// IMPLEMENTATION
-// --------------
-
-
-/** \brief Construct from copy of type.
- */
-template <typename T>
-RValueWrapper<T>::RValueWrapper(const T &t):
-    t(t)
-{}
-
-
-/** \brief Construct from moved type.
- */
-template <typename T>
-RValueWrapper<T>::RValueWrapper(T &&t):
-    t(std::move(t))
-{}
-
-
-/** \brief Convert explicitly to the type.
- */
-template <typename T>
-RValueWrapper<T>::operator T() const
-{
-    return t;
-}
-
-
-/** \brief Construct from copy of type.
- */
-template <typename T>
-LValueWrapper<T>::LValueWrapper(R r):
-    r(r)
-{}
-
-
-
-/** \brief Convert explicitly to the type.
- */
-template <typename T>
-LValueWrapper<T>::operator R() const
-{
-    return r;
-}
 
 // MACROS
 // ------
@@ -226,6 +187,184 @@ AUTOCOM_WRAPPER(ULONGLONG, ULongLong);
 AUTOCOM_WRAPPER(DECIMAL, Decimal);
 AUTOCOM_WRAPPER(IUnknown*, IUnknown);
 AUTOCOM_WRAPPER(IDispatch*, IDispatch);
+AUTOCOM_WRAPPER(SAFEARRAY*, SafeArray);
+AUTOCOM_WRAPPER(VARIANT*, Variant);
+
+// SPECIALIZATION
+// --------------
+
+
+/** \brief Specialize type for VariantType.
+ */
+#define AUTOCOM_SPECIALIZE(type, vartype)                               \
+    template<>                                                          \
+    struct VariantType<type, false>                                     \
+    {                                                                   \
+        static constexpr VARTYPE vt = vartype;                          \
+    }
+
+/** \brief Specialize type by value for VariantType.
+ */
+#define AUTOCOM_VALUE_SPECIALIZER(type, vartype)                        \
+    AUTOCOM_SPECIALIZE(type, vartype)
+
+/** \brief Specialize type by pointer for VariantType.
+ */
+#define AUTOCOM_POINTER_SPECIALIZER(type, vartype)                      \
+    AUTOCOM_SPECIALIZE(type*, vartype | VT_BYREF)
+
+/** \brief Specialize type for VariantType.
+ */
+#define AUTOCOM_SPECIALIZER(type, vartype)                              \
+    AUTOCOM_SPECIALIZE(type, vartype);                                  \
+    AUTOCOM_POINTER_SPECIALIZER(type, vartype)
+
+/** \brief Specialize type-safe wrapper by value for VariantType.
+ */
+#define AUTOCOM_SAFE_VALUE_SPECIALIZER(type, vartype)                   \
+    AUTOCOM_SPECIALIZE(Put##type, vartype);                             \
+    AUTOCOM_SPECIALIZE(Get##type, vartype)
+
+/** \brief Specialize type-safe wrapper by pointer for VariantType.
+ */
+#define AUTOCOM_SAFE_POINTER_SPECIALIZER(type, vartype)                 \
+    AUTOCOM_SAFE_VALUE_SPECIALIZER(type##Ptr, vartype | VT_BYREF)
+
+/** \brief Specialize type-safe wrapper for VariantType.
+ */
+#define AUTOCOM_SAFE_SPECIALIZER(type, vartype)                         \
+    AUTOCOM_SAFE_VALUE_SPECIALIZER(type, vartype);                      \
+    AUTOCOM_SAFE_POINTER_SPECIALIZER(type, vartype)
+
+
+/** \brief Default variant type is user-defined.
+ */
+template <
+    typename T,
+    bool IsArray = false
+>
+struct VariantType
+{
+    static constexpr VARTYPE vt = VT_USERDEFINED;
+};
+
+
+/** \brief Default variant type is user-defined.
+ */
+template <typename T>
+struct VariantType<T, true>
+{
+    static constexpr VARTYPE vt = VT_RECORD;
+};
+
+
+/** \brief Specialize SafeArray wrapper.
+ */
+template <typename T>
+struct VariantType<SafeArray<T>, true>
+{
+    static constexpr VARTYPE vt = VT_ARRAY | VariantType<T, true>::vt;
+};
+
+
+// GENERIC
+/** CANNOT specialize the generic SAFEARRAY class, since SafeArrayGetVartype
+ *  is the best way to determine the vartype.
+ */
+AUTOCOM_VALUE_SPECIALIZER(std::nullptr_t, VT_NULL);
+AUTOCOM_SPECIALIZER(void, VT_VOID);
+AUTOCOM_SPECIALIZER(CHAR, VT_I1);
+AUTOCOM_SPECIALIZER(UCHAR, VT_UI1);
+AUTOCOM_SPECIALIZER(SHORT, VT_I2);
+AUTOCOM_SPECIALIZER(USHORT, VT_UI2);
+AUTOCOM_SPECIALIZER(INT, VT_INT);
+AUTOCOM_SPECIALIZER(UINT, VT_UINT);
+AUTOCOM_SPECIALIZER(LONG, VT_I4);
+AUTOCOM_SPECIALIZER(ULONG, VT_UI4);
+AUTOCOM_SPECIALIZER(LONGLONG, VT_I8);
+AUTOCOM_SPECIALIZER(ULONGLONG, VT_UI8);
+AUTOCOM_SPECIALIZER(FLOAT, VT_R4);
+AUTOCOM_SPECIALIZER(DOUBLE, VT_R8);
+AUTOCOM_SPECIALIZER(CURRENCY, VT_CY);
+AUTOCOM_SPECIALIZER(BSTR, VT_BSTR);
+AUTOCOM_SPECIALIZER(DECIMAL, VT_DECIMAL);
+AUTOCOM_SPECIALIZER(IUnknown*, VT_UNKNOWN);
+AUTOCOM_SPECIALIZER(IDispatch*, VT_DISPATCH);
+AUTOCOM_POINTER_SPECIALIZER(VARIANT, VT_VARIANT);
+
+// WRAPPERS
+AUTOCOM_SPECIALIZER(Bstr, VT_BSTR);
+AUTOCOM_POINTER_SPECIALIZER(Variant, VT_VARIANT);
+AUTOCOM_SAFE_SPECIALIZER(Bool, VT_BOOL);
+AUTOCOM_SAFE_SPECIALIZER(Char, VT_I1);
+AUTOCOM_SAFE_SPECIALIZER(UChar, VT_UI1);
+AUTOCOM_SAFE_SPECIALIZER(Short, VT_I2);
+AUTOCOM_SAFE_SPECIALIZER(UShort, VT_UI2);
+AUTOCOM_SAFE_SPECIALIZER(Int, VT_INT);
+AUTOCOM_SAFE_SPECIALIZER(UInt, VT_UINT);
+AUTOCOM_SAFE_SPECIALIZER(Long, VT_I4);
+AUTOCOM_SAFE_SPECIALIZER(ULong, VT_UI4);
+AUTOCOM_SAFE_SPECIALIZER(Float, VT_R4);
+AUTOCOM_SAFE_SPECIALIZER(LongLong, VT_I8);
+AUTOCOM_SAFE_SPECIALIZER(ULongLong, VT_UI8);
+AUTOCOM_SAFE_SPECIALIZER(Double, VT_R8);
+AUTOCOM_SAFE_SPECIALIZER(Bstr, VT_BSTR);
+AUTOCOM_SAFE_SPECIALIZER(Currency, VT_CY);
+AUTOCOM_SAFE_SPECIALIZER(Error, VT_ERROR);
+AUTOCOM_SAFE_SPECIALIZER(Date, VT_DATE);
+AUTOCOM_SAFE_SPECIALIZER(IUnknown, VT_UNKNOWN);
+AUTOCOM_SAFE_SPECIALIZER(IDispatch, VT_DISPATCH);
+AUTOCOM_SAFE_SPECIALIZER(Variant, VT_VARIANT);
+AUTOCOM_SAFE_POINTER_SPECIALIZER(Decimal, VT_DECIMAL);
+// SAFEARRAY
+// PutSafeArray/GetSafeArray
+
+
+// IMPLEMENTATION
+// --------------
+
+
+/** \brief Construct from copy of type.
+ */
+template <typename T>
+RValueWrapper<T>::RValueWrapper(const T &t):
+    t(t)
+{}
+
+
+/** \brief Construct from moved type.
+ */
+template <typename T>
+RValueWrapper<T>::RValueWrapper(T &&t):
+    t(std::move(t))
+{}
+
+
+/** \brief Convert explicitly to the type.
+ */
+template <typename T>
+RValueWrapper<T>::operator T() const
+{
+    return t;
+}
+
+
+/** \brief Construct from copy of type.
+ */
+template <typename T>
+LValueWrapper<T>::LValueWrapper(R r):
+    r(r)
+{}
+
+
+
+/** \brief Convert explicitly to the type.
+ */
+template <typename T>
+LValueWrapper<T>::operator R() const
+{
+    return r;
+}
 
 // CLEANUP
 // -------
@@ -237,5 +376,9 @@ AUTOCOM_WRAPPER(IDispatch*, IDispatch);
 #undef AUTOCOM_WRAP_VALUE
 #undef AUTOCOM_WRAP_POINTER
 #undef AUTOCOM_WRAPPER
+#undef AUTOCOM_SPECIALIZE
+#undef AUTOCOM_VALUE_SPECIALIZER
+#undef AUTOCOM_POINTER_SPECIALIZER
+#undef AUTOCOM_SPECIALIZER
 
 }   /* autocom */

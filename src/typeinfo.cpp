@@ -955,43 +955,4 @@ USHORT ParamDesc::flags() const
     return desc.wParamFlags;
 }
 
-
-/** \brief Initialize from copies bounds.
- */
-SafeArrayBound::SafeArrayBound(const SAFEARRAYBOUND &bound):
-    bound(bound)
-{}
-
-
-/** \brief Initialize from moved bounds.
- */
-SafeArrayBound::SafeArrayBound(SAFEARRAYBOUND &&bound):
-    bound(bound)
-{}
-
-
-/** \brief Get number of elements in bound.
- */
-ULONG SafeArrayBound::size() const
-{
-    return upper() - lower();
-}
-
-
-/** \brief Get lower bound of elements.
- */
-LONG SafeArrayBound::lower() const
-{
-    return bound.lLbound;
-}
-
-
-/** \brief Get upper bound of elements.
- */
-ULONG SafeArrayBound::upper() const
-{
-    return bound.cElements;
-}
-
-
 }   /* autocom */

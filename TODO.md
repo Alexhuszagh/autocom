@@ -3,9 +3,17 @@
 -- Need to create compile-time wrappers around methods that use COM automation with an IDispatch interface
     -- Similar to ComTypes, only create the actual interface **at** compilation.
 
-- Create a TLB parser
-    - This can be a basic C++ method, needs to export a C++ class
-        - Need basic structs, as well as virtual dispatchers.
+## TODO: 
+    - Overload setVariant and getVariant to use SAFEARRAY -- DONE
+    - Overload PutVariant and GetVariant for get/setVariant -- DONE
+    - Change getVariant to get -- DONE
+    - Change setVariant to set -- DONE
+
+    - Overload PutSafeArray and GetSafeArray for get/setVariant
+    - Overload SafeArray for get/setVariant
+
+    - TODO: need to change everything to have native WinAPI properties as *backups*
+
 
 
 ## TODO
@@ -27,6 +35,9 @@
         -- Need a safearray wrapper and this needs to be tested...
             http://stackoverflow.com/a/12484259/4131059
         -- Need to test unions... -- DONE
+
+
+    -- TODO: need to include SafeArray in Variant.hpp....
 
 ## OLD
 -- First need to test my methods.... Shit.

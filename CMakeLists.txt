@@ -36,14 +36,15 @@ endif()
 set(AUTOCOM_SOURCES
     src/encoding/converters.cpp
     src/encoding/unicode.cpp
-    src/util/bstr.cpp
     src/util/exception.cpp
+    src/bstr.cpp
     src/com.cpp
     src/dispparams.cpp
     src/dispatch.cpp
     src/enum.cpp
     src/iterator.cpp
     src/guid.cpp
+    src/safearray.cpp
     src/typeinfo.cpp
     src/variant.cpp
 )
@@ -127,6 +128,7 @@ set(AUTOCOM_TEST_SOURCES
     test/src/bstr.cpp
     test/src/dispparams.cpp
     test/src/guid.cpp
+    test/src/safearray.cpp
     test/src/type.cpp
     test/src/variant.cpp
     test/src/main.cpp

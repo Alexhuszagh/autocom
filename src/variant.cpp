@@ -23,6 +23,486 @@ bool changeVariantType(VARIANT &variant,
 }
 
 
+// MACROS
+// ------
+
+// PRIMITIVE
+
+/** \brief Define a setter for a C primitive type.
+ */
+#define AUTOCOM_SET_PRIMITIVE(type, field)                              \
+                                                                        \
+    void set(VARIANT &variant,                                          \
+        type const value)                                               \
+    {                                                                   \
+        variant.vt = VariantType<type>::vt;                             \
+        variant.field = value;                                          \
+    }
+
+/** \brief Generalized dispparams setter overloaded for a primitive type.
+ *
+ *  AUTOCOM_PRIMITIVE_SETTER(CHAR, VT_I1, cVal)
+ */
+#define AUTOCOM_PRIMITIVE_SETTER(type, field)                           \
+    AUTOCOM_SET_PRIMITIVE(type, field)                                  \
+    AUTOCOM_SET_PRIMITIVE(type*, p##field)
+
+// CLASS
+
+/** \brief Define a setter for a custom type using move semantics.
+ */
+#define AUTOCOM_SET_MOVE(type, field)                                   \
+                                                                        \
+    void set(VARIANT &variant,                                          \
+        type &&value)                                                   \
+    {                                                                   \
+        variant.vt = VariantType<type>::vt;                             \
+        variant.field = std::move(value);                               \
+    }
+
+
+/** \brief Define a setter for a custom type using copy semantics.
+ */
+#define AUTOCOM_SET_COPY(type, field)                                   \
+                                                                        \
+    void set(VARIANT &variant,                                          \
+        type const &value)                                              \
+    {                                                                   \
+        variant.vt = VariantType<type>::vt;                             \
+        variant.field = value;                                          \
+    }
+
+/** \brief Generalized dispparams setter overloaded for a class values.
+ *
+ *  AUTOCOM_CLASS_VALUE_SETTER(CURRENCY, VT_CY, cyVal)
+ */
+#define AUTOCOM_CLASS_VALUE_SETTER(type, field)                         \
+    AUTOCOM_SET_MOVE(type, field)                                       \
+    AUTOCOM_SET_COPY(type, field)
+
+/** \brief Generalized dispparams setter overloaded for a class values.
+ *
+ *  AUTOCOM_CLASS_POINTER_SETTER(CURRENCY, VT_CY, cyVal)
+ */
+#define AUTOCOM_CLASS_POINTER_SETTER(type, field)                       \
+    AUTOCOM_SET_MOVE(type*, p##field)                                   \
+    AUTOCOM_SET_COPY(type*, p##field)
+
+/** \brief Generalized dispparams setter overloaded for a class types.
+ *
+ *  AUTOCOM_CLASS_SETTER(CURRENCY, VT_CY, cyVal)
+ */
+#define AUTOCOM_CLASS_SETTER(type, field)                               \
+    AUTOCOM_CLASS_VALUE_SETTER(type, field)                             \
+    AUTOCOM_CLASS_POINTER_SETTER(type, field)
+
+// SAFE
+
+/** \brief Type-safe class wrapper with move semantics.
+ */
+#define AUTOCOM_SAFE_MOVE(safe, field)                                  \
+                                                                        \
+    void set(VARIANT &variant,                                          \
+        safe &&value)                                                   \
+    {                                                                   \
+        variant.vt = VariantType<safe>::vt;                             \
+        variant.field = typename safe::type(std::move(value));          \
+    }
+
+/** \brief Type-safe class wrapper with copy semantics.
+ */
+#define AUTOCOM_SAFE_COPY(safe, field)                                  \
+                                                                        \
+    void set(VARIANT &variant,                                          \
+        safe const &value)                                              \
+    {                                                                   \
+        variant.vt = VariantType<safe>::vt;                             \
+        variant.field = typename safe::type(value);                     \
+    }
+
+/** \brief Type-safe wrapper for value setters.
+ */
+#define AUTOCOM_SAFE_VALUE_SETTER(type, field)                          \
+    AUTOCOM_SAFE_MOVE(Put##type, field)                                 \
+    AUTOCOM_SAFE_COPY(Put##type, field)
+
+/** \brief Type-safe wrapper for pointer setters.
+ */
+#define AUTOCOM_SAFE_POINTER_SETTER(type, field)                        \
+    AUTOCOM_SAFE_VALUE_SETTER(type##Ptr, p##field)
+
+/** \brief Generalized type-safe wrappers for a given type.
+ *
+ *  Since the type is specialized for TypeWrapper, which provides
+ *  a conversion-safe wrapper, any automation type can be passed.
+ *
+ *  AUTOCOM_SAFE_SETTER(Bool, boolVal, boolVal)
+ */
+#define AUTOCOM_SAFE_SETTER(type, field)                                \
+    AUTOCOM_SAFE_VALUE_SETTER(type, field)                              \
+    AUTOCOM_SAFE_POINTER_SETTER(type, field)
+
+
+// FUNCTIONS -- SETTERS
+// --------------------
+
+/** \brief Set a null parameter.
+ */
+void set(VARIANT &variant,
+    std::nullptr_t value)
+{
+    variant.vt = VariantType<std::nullptr_t>::vt;
+}
+
+
+/** \brief Set a null parameter.
+ */
+void set(VARIANT &variant,
+    PutNull value)
+{
+    variant.vt = VT_NULL;
+}
+
+
+/** \brief Set a BSTR value from copy.
+ */
+void set(VARIANT &variant,
+    const BSTR &value)
+{
+    variant.vt = VariantType<BSTR>::vt;
+    variant.bstrVal = SysAllocStringLen(value, SysStringLen(value));
+}
+
+
+/** \brief Set a BSTR value from move.
+ */
+void set(VARIANT &variant,
+    BSTR &&value)
+{
+    variant.vt = VariantType<BSTR>::vt;
+    variant.bstrVal = std::move(value);
+}
+
+
+/** \brief Set a BSTR value from wrapper.
+ */
+void set(VARIANT &variant,
+    const Bstr &value)
+{
+    variant.vt = VariantType<Bstr>::vt;
+    variant.bstrVal = value.copy();
+}
+
+
+/** \brief Set a pointer to a BSTR.
+ */
+void set(VARIANT &variant,
+    BSTR *value)
+{
+    variant.vt = VariantType<BSTR*>::vt;
+    variant.pbstrVal = value;
+}
+
+
+/** \brief Set a pointer to BSTR from wrapper.
+ */
+void set(VARIANT &variant,
+    Bstr *value)
+{
+    variant.vt = VariantType<Bstr*>::vt;
+    variant.pbstrVal = &value->string;
+}
+
+
+/** \brief Set a pointer to a SAFEARRAY pointer.
+ *
+ *  SafeArrayGetVartype fails for IUnknown, must check it explicitly
+ *  https://msdn.microsoft.com/en-us/library/windows/desktop/ms221446(v=vs.85).aspx
+ */
+void set(VARIANT &variant,
+    SAFEARRAY *value)
+{
+    VARTYPE vt;
+    if (value->fFeatures & FADF_UNKNOWN) {
+        vt = VT_UNKNOWN;
+    } else {
+        SafeArrayGetVartype(value, &vt);
+    }
+    variant.vt = vt;
+    variant.parray = value;
+}
+
+
+/** \brief Set a pointer to a SAFEARRAY double pointer.
+ */
+void set(VARIANT &variant,
+    SAFEARRAY **value)
+{
+    VARTYPE vt;
+    SAFEARRAY *ptr = *value;
+    if (ptr->fFeatures & FADF_UNKNOWN) {
+        vt = VT_UNKNOWN;
+    } else {
+        SafeArrayGetVartype(ptr, &vt);
+    }
+    variant.vt = vt;
+    variant.pparray = value;
+}
+
+
+// GENERIC
+AUTOCOM_PRIMITIVE_SETTER(CHAR, cVal)
+AUTOCOM_PRIMITIVE_SETTER(UCHAR, bVal)
+AUTOCOM_PRIMITIVE_SETTER(SHORT, iVal)
+AUTOCOM_PRIMITIVE_SETTER(USHORT, uiVal)
+AUTOCOM_PRIMITIVE_SETTER(INT, intVal)
+AUTOCOM_PRIMITIVE_SETTER(UINT, uintVal)
+AUTOCOM_PRIMITIVE_SETTER(LONG, lVal)
+AUTOCOM_PRIMITIVE_SETTER(ULONG, ulVal)
+AUTOCOM_PRIMITIVE_SETTER(LONGLONG, llVal)
+AUTOCOM_PRIMITIVE_SETTER(ULONGLONG, ullVal)
+AUTOCOM_PRIMITIVE_SETTER(FLOAT, fltVal)
+AUTOCOM_PRIMITIVE_SETTER(DOUBLE, dblVal)
+AUTOCOM_CLASS_SETTER(CURRENCY, cyVal)
+AUTOCOM_CLASS_POINTER_SETTER(DECIMAL, decVal)
+AUTOCOM_CLASS_VALUE_SETTER(VARIANT*, pvarVal)
+AUTOCOM_CLASS_VALUE_SETTER(Variant*, pvarVal)
+AUTOCOM_CLASS_SETTER(IUnknown*, punkVal)
+AUTOCOM_CLASS_SETTER(IDispatch*, pdispVal)
+// SAFEARRAY
+
+// SAFE
+AUTOCOM_SAFE_SETTER(Bool, boolVal)
+AUTOCOM_SAFE_SETTER(Char, cVal)
+AUTOCOM_SAFE_SETTER(UChar, bVal)
+AUTOCOM_SAFE_SETTER(Short, iVal)
+AUTOCOM_SAFE_SETTER(UShort, uiVal)
+AUTOCOM_SAFE_SETTER(Int, intVal)
+AUTOCOM_SAFE_SETTER(UInt, uintVal)
+AUTOCOM_SAFE_SETTER(Long, lVal)
+AUTOCOM_SAFE_SETTER(ULong, ulVal)
+AUTOCOM_SAFE_SETTER(Float, fltVal)
+AUTOCOM_SAFE_SETTER(Double, dblVal)
+AUTOCOM_SAFE_SETTER(LongLong, llVal)
+AUTOCOM_SAFE_SETTER(ULongLong, ullVal)
+AUTOCOM_SAFE_SETTER(Bstr, bstrVal)
+AUTOCOM_SAFE_SETTER(Currency, cyVal)
+AUTOCOM_SAFE_SETTER(Error, scode)
+AUTOCOM_SAFE_SETTER(Date, date)
+AUTOCOM_SAFE_SETTER(IUnknown, punkVal)
+AUTOCOM_SAFE_SETTER(IDispatch, pdispVal)
+AUTOCOM_SAFE_VALUE_SETTER(Variant, pvarVal)
+AUTOCOM_SAFE_POINTER_SETTER(Decimal, decVal)
+// SAFEARRAY
+
+// CLEANUP -- SETTERS
+// ------------------
+
+#undef AUTOCOM_SAFE_MOVE
+#undef AUTOCOM_SAFE_COPY
+#undef AUTOCOM_SET_PRIMITIVE
+#undef AUTOCOM_SET_MOVE
+#undef AUTOCOM_SET_COPY
+#undef AUTOCOM_SAFE_VALUE_SETTER
+#undef AUTOCOM_SAFE_POINTER_SETTER
+#undef AUTOCOM_SAFE_SETTER
+#undef AUTOCOM_PRIMITIVE_SETTER
+#undef AUTOCOM_CLASS_VALUE_SETTER
+#undef AUTOCOM_CLASS_POINTER_SETTER
+#undef AUTOCOM_CLASS_SETTER
+
+// MACROS -- GETTERS
+// -----------------
+
+
+/** \brief Cast value to expected vartype in variant.
+ */
+#define AUTOCOM_CONVERT_TYPE(variant, vartype)                          \
+    if (TO_VARTYPE(variant.vt) != TO_VARTYPE(vartype)) {                \
+        if (!changeVariantType(variant, vartype)) {                     \
+            throw ComFunctionError("VariantChangeType");                \
+        }                                                               \
+    }
+
+// GENERIC
+
+/** \brief Get value from variant.
+ */
+#define AUTOCOM_GET(type, field)                                        \
+                                                                        \
+    void get(VARIANT &variant,                                          \
+        type &value)                                                    \
+    {                                                                   \
+        AUTOCOM_CONVERT_TYPE(variant, VariantType<type>::vt)            \
+        value = variant.field;                                          \
+    }
+
+/** \brief Define a getter for type by value.
+ *
+ *  AUTOCOM_VALUE_GETTER(BSTR, VT_BSTR, bstrVal)
+ */
+#define AUTOCOM_VALUE_GETTER(type, field)                               \
+    AUTOCOM_GET(type, field)
+
+/** \brief Define a getter for type by reference.
+ *
+ *  AUTOCOM_POINTER_GETTER(BSTR, VT_BSTR, bstrVal)
+ */
+#define AUTOCOM_POINTER_GETTER(type, field)                             \
+    AUTOCOM_GET(type*, p##field)
+
+/** \brief Define a getter for type by value and by reference.
+ *
+ *  AUTOCOM_GETTER(BSTR, VT_BSTR, bstrVal)
+ */
+#define AUTOCOM_GETTER(type, field)                                     \
+    AUTOCOM_VALUE_GETTER(type, field)                                   \
+    AUTOCOM_POINTER_GETTER(type, field)
+
+// SAFE
+
+/** \brief Get value using type-safe wrapper.
+ */
+#define AUTOCOM_SAFE_GET(safe, field)                                   \
+                                                                        \
+    void get(VARIANT &variant,                                          \
+        safe value)                                                     \
+    {                                                                   \
+        auto &ref = typename safe::type(value);                         \
+        AUTOCOM_CONVERT_TYPE(variant, VariantType<safe>::vt)            \
+        ref = variant.field;                                            \
+    }
+
+/** \brief Define a getter for type by value.
+ *
+ *  AUTOCOM_SAFE_VALUE_GETTER(SafeBool, VT_BOOL, boolVal)
+ */
+#define AUTOCOM_SAFE_VALUE_GETTER(type, field)                          \
+    AUTOCOM_SAFE_GET(Get##type, field)
+
+/** \brief Define a getter for type by reference.
+ *
+ *  AUTOCOM_SAFE_POINTER_GETTER(SafeBool, VT_BOOL, boolVal)
+ */
+#define AUTOCOM_SAFE_POINTER_GETTER(type, field)                        \
+    AUTOCOM_SAFE_VALUE_GETTER(type##Ptr, p##field)
+
+/** \brief Define a getter for type by value and by reference.
+ *
+ *  AUTOCOM_SAFE_GETTER(SafeBool, VT_BOOL, boolVal)
+ */
+#define AUTOCOM_SAFE_GETTER(type, field)                                \
+    AUTOCOM_SAFE_VALUE_GETTER(type, field)                              \
+    AUTOCOM_SAFE_POINTER_GETTER(type, field)
+
+// FUNCTIONS -- GETTERS
+// --------------------
+
+
+/** \brief Get BSTR value in wrapper.
+ */
+void get(VARIANT &variant,
+    Bstr &value)
+{
+    AUTOCOM_CONVERT_TYPE(variant, VariantType<Bstr>::vt);
+    value.clear();
+    value.string = variant.bstrVal;
+}
+
+
+/** \brief Get BSTR value pointer in wrapper.
+ */
+void get(VARIANT &variant,
+    Bstr *&value)
+{
+    AUTOCOM_CONVERT_TYPE(variant, VariantType<Bstr*>::vt);
+    value->clear();
+    value->string = *variant.pbstrVal;
+}
+
+
+/** \brief Get SAFEARRAY pointer.
+ */
+void get(VARIANT &variant,
+    SAFEARRAY *&value)
+{
+    if (!(variant.vt & VT_ARRAY)) {
+        throw std::invalid_argument("Unrecognized type, expected VT_ARRAY, got: " + std::to_string(variant.vt));
+    }
+    value = variant.parray;
+}
+
+
+/** \brief Get SAFEARRAY double pointer.
+ */
+void get(VARIANT &variant,
+    SAFEARRAY **&value)
+{
+    if (!(variant.vt & (VT_ARRAY | VT_BYREF))) {
+        throw std::invalid_argument("Unrecognized type, expected VT_ARRAY | VT_BYREF, got: " + std::to_string(variant.vt));
+    }
+    value = variant.pparray;
+}
+
+
+// GENERIC
+AUTOCOM_GETTER(CHAR, cVal)
+AUTOCOM_GETTER(UCHAR, bVal)
+AUTOCOM_GETTER(SHORT, iVal)
+AUTOCOM_GETTER(USHORT, uiVal)
+AUTOCOM_GETTER(INT, intVal)
+AUTOCOM_GETTER(UINT, uintVal)
+AUTOCOM_GETTER(LONG, lVal)
+AUTOCOM_GETTER(ULONG, ulVal)
+AUTOCOM_GETTER(FLOAT, fltVal)
+AUTOCOM_GETTER(DOUBLE, dblVal)
+AUTOCOM_GETTER(LONGLONG, llVal)
+AUTOCOM_GETTER(ULONGLONG, ullVal)
+AUTOCOM_GETTER(CURRENCY, cyVal)
+AUTOCOM_GETTER(BSTR, bstrVal)
+AUTOCOM_GETTER(IUnknown*, punkVal)
+AUTOCOM_GETTER(IDispatch*, pdispVal)
+AUTOCOM_VALUE_GETTER(VARIANT*, pvarVal)
+AUTOCOM_POINTER_GETTER(DECIMAL, decVal)
+
+// SAFE
+AUTOCOM_SAFE_GETTER(Bool, boolVal)
+AUTOCOM_SAFE_GETTER(Char, cVal)
+AUTOCOM_SAFE_GETTER(UChar, bVal)
+AUTOCOM_SAFE_GETTER(Short, iVal)
+AUTOCOM_SAFE_GETTER(UShort, uiVal)
+AUTOCOM_SAFE_GETTER(Int, intVal)
+AUTOCOM_SAFE_GETTER(UInt, uintVal)
+AUTOCOM_SAFE_GETTER(Long, lVal)
+AUTOCOM_SAFE_GETTER(ULong, ulVal)
+AUTOCOM_SAFE_GETTER(Float, fltVal)
+AUTOCOM_SAFE_GETTER(LongLong, llVal)
+AUTOCOM_SAFE_GETTER(ULongLong, ullVal)
+AUTOCOM_SAFE_GETTER(Double, dblVal)
+AUTOCOM_SAFE_GETTER(Bstr, bstrVal)
+AUTOCOM_SAFE_GETTER(Currency, cyVal)
+AUTOCOM_SAFE_GETTER(Error, scode)
+AUTOCOM_SAFE_GETTER(Date, date)
+AUTOCOM_SAFE_GETTER(IUnknown, punkVal)
+AUTOCOM_SAFE_GETTER(IDispatch, pdispVal)
+AUTOCOM_SAFE_VALUE_GETTER(Variant, pvarVal)
+AUTOCOM_SAFE_POINTER_GETTER(Decimal, decVal)
+// SafeArray
+// PutSafeArray/GetSafeArray
+
+// CLEANUP -- GETTERS
+// ------------------
+
+#undef AUTOCOM_CONVERT_TYPE
+#undef AUTOCOM_GET
+#undef AUTOCOM_SAFE_GET
+#undef AUTOCOM_VALUE_GETTER
+#undef AUTOCOM_POINTER_GETTER
+#undef AUTOCOM_GETTER
+#undef AUTOCOM_SAFE_VALUE_GETTER
+#undef AUTOCOM_SAFE_POINTER_GETTER
+#undef AUTOCOM_SAFE_GETTER
+
 // OBJECTS
 // -------
 
