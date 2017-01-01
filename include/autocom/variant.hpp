@@ -190,6 +190,15 @@ void set(VARIANT &variant,
 void set(VARIANT &variant,
     SAFEARRAY **value);
 
+/** \brief Set a SAFEARRAY pointer-wrapper.
+ */
+void set(VARIANT &variant,
+    PutSafeArray value);
+
+/** \brief Set a SAFEARRAY double pointer-wrapper.
+ */
+void set(VARIANT &variant,
+    PutSafeArrayPtr value);
 
 // GENERIC
 AUTOCOM_PRIMITIVE_SETTER(CHAR);
@@ -337,6 +346,11 @@ void get(VARIANT &variant,
 void get(VARIANT &variant,
     Bstr *&value);
 
+/** \brief Get Variant value pointer in owning-wrapper.
+ */
+void get(VARIANT &variant,
+    Variant *&value);
+
 /** \brief Get SAFEARRAY pointer.
  */
 void get(VARIANT &variant,
@@ -346,6 +360,16 @@ void get(VARIANT &variant,
  */
 void get(VARIANT &variant,
     SAFEARRAY **&value);
+
+/** \brief Get SAFEARRAY pointer-wrapper.
+ */
+void get(VARIANT &variant,
+    GetSafeArray value);
+
+/** \brief Get SAFEARRAY double pointer-wrapper.
+ */
+void get(VARIANT &variant,
+    GetSafeArrayPtr value);
 
 // GENERIC
 AUTOCOM_GETTER(CHAR);
@@ -366,7 +390,6 @@ AUTOCOM_GETTER(IUnknown*);
 AUTOCOM_GETTER(IDispatch*);
 AUTOCOM_VALUE_GETTER(VARIANT*);
 AUTOCOM_POINTER_GETTER(DECIMAL);
-// SAFEARRAY
 
 // SAFE
 AUTOCOM_SAFE_GETTER(Bool);

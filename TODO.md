@@ -8,15 +8,14 @@
     - Overload PutVariant and GetVariant for get/setVariant -- DONE
     - Change getVariant to get -- DONE
     - Change setVariant to set -- DONE
+    - Need to test VariantType -- DONE
+    - Overload Get/PutSafeArray -- DONE
+    - Test Get/PutVariant -- DONE
+    - Test Get/PutSafeArray
 
-    -- Need to test VariantType
-    -- Need to test get and set for Variant, Get/PutVariant and SafeArray
-
-    - Overload PutSafeArray and GetSafeArray for get/setVariant
     - Overload SafeArray for get/setVariant
 
     - TODO: need to change everything to have native WinAPI properties as *backups*
-
 
 
 ## TODO

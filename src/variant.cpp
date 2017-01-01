@@ -255,6 +255,24 @@ void set(VARIANT &variant,
 }
 
 
+/** \brief Set a SAFEARRAY pointer-wrapper.
+ */
+void set(VARIANT &variant,
+    PutSafeArray value)
+{
+    set(variant, typename PutSafeArray::type(value));
+}
+
+
+/** \brief Set a SAFEARRAY double pointer-wrapper.
+ */
+void set(VARIANT &variant,
+    PutSafeArrayPtr value)
+{
+    set(variant, typename PutSafeArrayPtr::type(value));
+}
+
+
 // GENERIC
 AUTOCOM_PRIMITIVE_SETTER(CHAR, cVal)
 AUTOCOM_PRIMITIVE_SETTER(UCHAR, bVal)
@@ -426,6 +444,23 @@ void get(VARIANT &variant,
 }
 
 
+/** \brief Get Variant value pointer in owning-wrapper.
+ *
+ *  This is **DEFINED** behavior in C++11 and above with the definition
+ *  of standard layout types, which VARIANT and Variant statisfy, and
+ *  **UNDEFINED** with C++03. The static_assert is to prevent compilation
+ *  if reinterpret_cast could invoke undefined behavior.
+ */
+void get(VARIANT &variant,
+    Variant *&value)
+{
+    static_assert(std::is_standard_layout<Variant>::value, "Variant is not standard layout");
+
+    AUTOCOM_CONVERT_TYPE(variant, VariantType<Variant*>::vt)
+    value = reinterpret_cast<Variant*>(variant.pvarVal);
+}
+
+
 /** \brief Get SAFEARRAY pointer.
  */
 void get(VARIANT &variant,
@@ -447,6 +482,23 @@ void get(VARIANT &variant,
         throw std::invalid_argument("Unrecognized type, expected VT_ARRAY | VT_BYREF, got: " + std::to_string(variant.vt));
     }
     value = variant.pparray;
+}
+
+
+/** \brief Get SAFEARRAY pointer-wrapper.
+ */
+void get(VARIANT &variant,
+    GetSafeArray value)
+{
+    get(variant, typename GetSafeArray::type(value));
+}
+
+/** \brief Get SAFEARRAY double pointer-wrapper.
+ */
+void get(VARIANT &variant,
+    GetSafeArrayPtr value)
+{
+    get(variant, typename GetSafeArrayPtr::type(value));
 }
 
 
@@ -493,7 +545,6 @@ AUTOCOM_SAFE_GETTER(IDispatch, pdispVal)
 AUTOCOM_SAFE_VALUE_GETTER(Variant, pvarVal)
 AUTOCOM_SAFE_POINTER_GETTER(Decimal, decVal)
 // SafeArray
-// PutSafeArray/GetSafeArray
 
 // CLEANUP -- GETTERS
 // ------------------

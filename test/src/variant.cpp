@@ -113,6 +113,11 @@ TEST(Variant, SetVariant)
     variant.set(&dec);
     EXPECT_EQ(variant.vt, VT_DECIMAL | VT_BYREF);
 
+    // VARIANT
+    com::Variant var;
+    variant.set(&var);
+    EXPECT_EQ(variant.vt, VT_VARIANT | VT_BYREF);
+
     // LITERALS
     variant.set(L"");
     EXPECT_EQ(variant.vt, VT_BSTR);
@@ -152,6 +157,11 @@ TEST(Variant, SetWrapperVariant)
     variant.set(com::PutDecimalPtr(&dec));
     EXPECT_EQ(variant.vt, VT_DECIMAL | VT_BYREF);
 
+    // VARIANT
+    com::Variant var;
+    variant.set(com::PutVariant(&var));
+    EXPECT_EQ(variant.vt, VT_VARIANT | VT_BYREF);
+
     // WRAPPERS
     TEST_SET_WRAPPER(com::PutBool, VT_BOOL)(variant);
     TEST_SET_WRAPPER(com::PutChar, VT_I1)(variant);
@@ -190,6 +200,13 @@ TEST(Variant, GetVariant)
     variant.set(&dec);
     variant.get(pdec);
 
+    // VARIANT
+    VARIANT var, *pvar;
+    var.vt = VT_INT;
+    variant.set(&var);
+    variant.get(pvar);
+    EXPECT_EQ(pvar->vt, VT_INT);
+
     TEST_GET(CHAR)(variant);
     TEST_GET(UCHAR)(variant);
     TEST_GET(SHORT)(variant);
@@ -224,6 +241,16 @@ TEST(Variant, GetWrapperVariant)
     DECIMAL dec, *pdec;
     variant.set(com::PutDecimalPtr(&dec));
     variant.get(com::GetDecimalPtr(pdec));
+
+    // VARIANT
+    VARIANT *ptrvar;
+    com::Variant var, *pvar;
+    var.vt = VT_INT;
+    variant.set(&var);
+    variant.get(pvar);
+    variant.get(com::GetVariant(ptrvar));
+    EXPECT_EQ(pvar->vt, VT_INT);
+    EXPECT_EQ(ptrvar->vt, VT_INT);
 
     // WRAPPERS
     TEST_GET_WRAPPER(Bool)(variant);
