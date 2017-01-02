@@ -158,7 +158,6 @@ public:
 
     // DATA
     This copy() const;
-    explicit operator std::vector<T>() const;
 };
 
 // DOWNCASTING
@@ -700,18 +699,6 @@ auto SafeArray<T>::copy() const
     copy.lock();
 
     return copy;
-}
-
-
-/** \brief Convert array to STL vector.
- *
- *  \warning This will flatten any multidimensional data to a linear
- *  vector.
- */
-template <typename T>
-SafeArray<T>::operator std::vector<T>() const
-{
-    return std::vector<T>(begin(), end());
 }
 
 

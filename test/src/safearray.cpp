@@ -40,6 +40,10 @@ TEST(SafeArray, Stl)
 
     LONG index = 0;
     EXPECT_EQ(array[&index], 3);
+
+    std::vector<INT> copy(array.begin(), array.end());
+    EXPECT_EQ(copy[0], 3);
+    EXPECT_EQ(copy[2], 5);
 }
 
 
