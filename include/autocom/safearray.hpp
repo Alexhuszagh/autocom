@@ -32,6 +32,9 @@ struct SafeArrayBound: SAFEARRAYBOUND
 
     SafeArrayBound(const SAFEARRAYBOUND &bound);
     SafeArrayBound(SAFEARRAYBOUND &&bound);
+    SafeArrayBound(const size_t size);
+    SafeArrayBound(const size_t lower,
+        const size_t upper);
 
     // DATA
     ULONG size() const;
@@ -58,20 +61,24 @@ struct SafeArray: SAFEARRAY
     static constexpr VARTYPE vt = VariantType<T, true>::vt;
 
 // TODO: need to fix the constructors...
-//    SafeArray() = default;
+    SafeArray();
+    ~SafeArray();
 //    SafeArray(const SafeArray&) = default;
 //    SafeArray & operator=(const SafeArray&) = default;
 //    SafeArray(SafeArray&&) = default;
 //    SafeArray & operator=(SafeArray&&) = default;
 
+    // INITIALIZERS
+    void create(UINT dimensions,
+        SafeArrayBound *bound);
+    void close();
+
+    // DATA
     size_t size(const size_t size = 0) const;
     // TODO: iterator....
 
 //    SAFEARRAY * copy() const;
-//    void create(VARTYPE vt,
-//        UINT dimensions,
-//        SafeArrayBound *bound);
-//    void close();
+
 //    void * access();
 //    void unaccess();
 //    void * get(LONG *indices);
@@ -80,9 +87,56 @@ struct SafeArray: SAFEARRAY
 //    void resize(SafeArrayBound *bound);
 };
 
+// DOWNCASTING
+// -----------
+
+static_assert(sizeof(SafeArrayBound) == sizeof(SAFEARRAYBOUND), "sizeof(SafeArrayBound) != sizeof(SAFEARRAYBOUND), cannot safely downcast");
+static_assert(sizeof(SafeArray<INT>) == sizeof(SAFEARRAY), "sizeof(SafeArray) != sizeof(SAFEARRAY), cannot safely downcast");
 
 // IMPLEMENTATION
 // --------------
+
+
+/** \brief Create empty array.
+ */
+template <typename T>
+SafeArray<T>::SafeArray()
+{
+    SafeArrayBound bound(0);
+    create(1, &bound);
+}
+
+
+/** \brief Destructor.
+ */
+template <typename T>
+SafeArray<T>::~SafeArray()
+{
+    close();
+}
+
+
+/** \brief Create array.
+ */
+template <typename T>
+void SafeArray<T>::create(UINT dimensions,
+    SafeArrayBound *bound)
+{
+    auto *array = SafeArrayCreate(vt, dimensions, (bound));
+    if (!array) {
+        throw std::runtime_error("Unhandled exception in SafeArrayCreate, maybe out of memory?\n");
+    }
+    reinterpret_cast<SAFEARRAY&>(*this) = *array;
+}
+
+
+/** \brief Destroy array.
+ */
+template <typename T>
+void SafeArray<T>::close()
+{
+    SafeArrayDestroy(this);
+}
 
 
 /** \brief Get size of array.
@@ -96,6 +150,12 @@ size_t SafeArray<T>::size(const size_t size) const
 
     return SafeArrayBound(SAFEARRAY::rgsabound[size]).size();
 }
+
+
+/** \brief Write implementation for constexpr.
+ */
+template <typename T>
+constexpr VARTYPE SafeArray<T>::vt;
 
 
 }   /* autocom */

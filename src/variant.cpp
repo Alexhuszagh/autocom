@@ -292,7 +292,6 @@ AUTOCOM_CLASS_VALUE_SETTER(VARIANT*, pvarVal)
 AUTOCOM_CLASS_VALUE_SETTER(Variant*, pvarVal)
 AUTOCOM_CLASS_SETTER(IUnknown*, punkVal)
 AUTOCOM_CLASS_SETTER(IDispatch*, pdispVal)
-// SAFEARRAY
 
 // SAFE
 AUTOCOM_SAFE_SETTER(Bool, boolVal)
@@ -316,7 +315,6 @@ AUTOCOM_SAFE_SETTER(IUnknown, punkVal)
 AUTOCOM_SAFE_SETTER(IDispatch, pdispVal)
 AUTOCOM_SAFE_VALUE_SETTER(Variant, pvarVal)
 AUTOCOM_SAFE_POINTER_SETTER(Decimal, decVal)
-// SAFEARRAY
 
 // CLEANUP -- SETTERS
 // ------------------
@@ -544,7 +542,6 @@ AUTOCOM_SAFE_GETTER(IUnknown, punkVal)
 AUTOCOM_SAFE_GETTER(IDispatch, pdispVal)
 AUTOCOM_SAFE_VALUE_GETTER(Variant, pvarVal)
 AUTOCOM_SAFE_POINTER_GETTER(Decimal, decVal)
-// SafeArray
 
 // CLEANUP -- GETTERS
 // ------------------

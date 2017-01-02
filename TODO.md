@@ -11,9 +11,11 @@
     - Need to test VariantType -- DONE
     - Overload Get/PutSafeArray -- DONE
     - Test Get/PutVariant -- DONE
-    - Test Get/PutSafeArray
+    - Overload SafeArray for get/set -- DONE
 
-    - Overload SafeArray for get/setVariant
+    - Test Get/PutSafeArray (this needs to be created...)
+    - Test SafeArray
+
 
     - TODO: need to change everything to have native WinAPI properties as *backups*
 
@@ -37,40 +39,6 @@
         -- Need a safearray wrapper and this needs to be tested...
             http://stackoverflow.com/a/12484259/4131059
         -- Need to test unions... -- DONE
-
-
-    -- TODO: need to include SafeArray in Variant.hpp....
-
-## OLD
--- First need to test my methods.... Shit.
-
-
--- TODO: need to find out how to get the structures...
-    -- generate_module(tlib, ofi, pathname) -- DONE
-    -- Equality operation for tlib... -- DONE
-    -- TODO:
-
-        def _register(self, name, value, tlib=None):
-        -- modname = tlib.GetLibAttr()
-        -- fullname = "%s.%s" % (modname, name)
-        -- self.items[fullname] = value
-            -- Ok, they're storing the sring of the raw TlibAttrInfo
-                -- TLIBATTR(GUID={F0C5F3E3-4F2A-443E-A74D-0AABE3237494}, Version=1.0, LCID=0, FLags=0x8).MS_DataPeak
-                -- I just need the name...
-
-    -- Use PDB
-        -- pdb.runcall(test.foo, 1, 2)
-
-
-Compile Methods...
-    (<class 'ctypes.HRESULT'>, 'Open', (<class 'comtypes.BSTR'>,), ((0, 'szFileName'),), (1, u'method Open'), u'method Open')
-    WINFUNCTYPE(ctypes.HRESULT, comtypes.BSTR)
-
-    restype, name, argtypes, paramflags, idlflags, doc = item
-    _IXRawfile__com_Open
-
-    paramflags = ((0, 'szFileName'),)
-
 
 http://thrysoee.dk/InsideCOM+/ch05d.htm
 http://www.drdobbs.com/writing-com-clients-with-late-and-early/184403558

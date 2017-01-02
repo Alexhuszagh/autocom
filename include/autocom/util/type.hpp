@@ -198,7 +198,13 @@ AUTOCOM_WRAPPER(VARIANT*, Variant);
     struct VariantType<type, false>                                     \
     {                                                                   \
         static constexpr VARTYPE vt = vartype;                          \
-    };
+    };                                                                  \
+                                                                        \
+    template<>                                                          \
+    struct VariantType<type, true>                                      \
+    {                                                                   \
+        static constexpr VARTYPE vt = vartype;                          \
+    }
 
 /** \brief Specialize type by value for VariantType.
  */
@@ -361,7 +367,7 @@ LValueWrapper<T>::operator R() const
 }
 
 
-/** \brief Write implemnetation for constexpr.
+/** \brief Write implementation for constexpr.
  */
 template <
     typename T,
@@ -370,13 +376,13 @@ template <
 constexpr VARTYPE VariantType<T, IsArray>::vt;
 
 
-/** \brief Write implemnetation for constexpr.
+/** \brief Write implementation for constexpr.
  */
 template <typename T>
 constexpr VARTYPE VariantType<T, true>::vt;
 
 
-/** \brief Write implemnetation for constexpr.
+/** \brief Write implementation for constexpr.
  */
 template <typename T>
 constexpr VARTYPE VariantType<SafeArray<T>, true>::vt;

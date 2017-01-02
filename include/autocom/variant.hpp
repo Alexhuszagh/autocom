@@ -200,6 +200,29 @@ void set(VARIANT &variant,
 void set(VARIANT &variant,
     PutSafeArrayPtr value);
 
+
+/** \brief Set SafeArray pointer.
+ */
+template <typename T>
+void set(VARIANT &variant,
+    SafeArray<T> *value)
+{
+    variant.vt = VariantType<T>::vt | VT_ARRAY;
+    variant.parray = value;
+}
+
+
+/** \brief Set SafeArray double pointer.
+ */
+template <typename T>
+void set(VARIANT &variant,
+    SafeArray<T> **value)
+{
+    variant.vt = VariantType<T>::vt | VT_ARRAY | VT_BYREF;
+    variant.pparray = value;
+}
+
+
 // GENERIC
 AUTOCOM_PRIMITIVE_SETTER(CHAR);
 AUTOCOM_PRIMITIVE_SETTER(UCHAR);
@@ -242,7 +265,6 @@ AUTOCOM_SAFE_SETTER(IUnknown);
 AUTOCOM_SAFE_SETTER(IDispatch);
 AUTOCOM_SAFE_VALUE_SETTER(Variant);
 AUTOCOM_SAFE_POINTER_SETTER(Decimal);
-// SAFEARRAY
 
 // CLEANUP -- SETTERS
 // ------------------
@@ -371,6 +393,33 @@ void get(VARIANT &variant,
 void get(VARIANT &variant,
     GetSafeArrayPtr value);
 
+
+/** \brief Get SafeArray pointer.
+ */
+template <typename T>
+void get(VARIANT &variant,
+    SafeArray<T> *&value)
+{
+    if (!(variant.vt & VariantType<T, true>::vt)) {
+        throw std::invalid_argument("SafeArray types do not match.");
+    }
+    get(variant, reinterpret_cast<SAFEARRAY*&>(value));
+}
+
+
+/** \brief Get SafeArray double pointer.
+ */
+template <typename T>
+void get(VARIANT &variant,
+    SafeArray<T> **&value)
+{
+    if (!(variant.vt & VariantType<T, true>::vt)) {
+        throw std::invalid_argument("SafeArray types do not match.");
+    }
+    get(variant, reinterpret_cast<SAFEARRAY**&>(value));
+}
+
+
 // GENERIC
 AUTOCOM_GETTER(CHAR);
 AUTOCOM_GETTER(UCHAR);
@@ -413,7 +462,6 @@ AUTOCOM_SAFE_GETTER(IUnknown);
 AUTOCOM_SAFE_GETTER(IDispatch);
 AUTOCOM_SAFE_VALUE_GETTER(Variant);
 AUTOCOM_SAFE_POINTER_GETTER(Decimal);
-// SAFEARRAY
 
 // CLEANUP -- GETTERS
 // ------------------
@@ -450,6 +498,11 @@ struct Variant: public VARIANT
     void get(T &&t);
 };
 
+
+// DOWNCASTING
+// -----------
+
+static_assert(sizeof(Variant) == sizeof(VARIANT), "sizeof(Variant) != sizeof(VARIANT), cannot safely downcast");
 
 // IMPLEMENTATION
 // --------------

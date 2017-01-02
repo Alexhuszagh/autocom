@@ -52,4 +52,5 @@ public:
         const std::string &method);
 };
 
+
 }   /* autocom */

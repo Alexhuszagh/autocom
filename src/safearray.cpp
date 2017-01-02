@@ -14,7 +14,7 @@ namespace autocom
 // -------
 
 
-/** \brief Initialize from copies bounds.
+/** \brief Initialize from copied bounds.
  */
 SafeArrayBound::SafeArrayBound(const SAFEARRAYBOUND &bound):
     SAFEARRAYBOUND(bound)
@@ -24,8 +24,27 @@ SafeArrayBound::SafeArrayBound(const SAFEARRAYBOUND &bound):
 /** \brief Initialize from moved bounds.
  */
 SafeArrayBound::SafeArrayBound(SAFEARRAYBOUND &&bound):
-    SAFEARRAYBOUND(bound)
+    SAFEARRAYBOUND(std::move(bound))
 {}
+
+
+/** \brief Initialize C-style array bounds by size.
+ */
+SafeArrayBound::SafeArrayBound(const size_t size)
+{
+    lLbound = 0;
+    cElements = size;
+}
+
+
+/** \brief Initialize bounds with lower and upper range.
+ */
+SafeArrayBound::SafeArrayBound(const size_t lower,
+    const size_t upper)
+{
+    lLbound = lower;
+    cElements = upper;
+}
 
 
 /** \brief Get number of elements in bound.

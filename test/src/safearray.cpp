@@ -12,6 +12,9 @@
 namespace com = autocom;
 
 
+struct X { int y; };
+
+
 // TESTS
 // -----
 
@@ -27,6 +30,13 @@ TEST(SafeArrayBound, Methods)
 
 TEST(SafeArray, Methods)
 {
-    //com::SafeArray array;
+    com::SafeArray<INT> array;
     //array.create(VT_INT, 3, );
+}
+
+
+TEST(SafeArray, Type)
+{
+     EXPECT_EQ(com::SafeArray<X>::vt, VT_RECORD);
+     EXPECT_EQ(com::SafeArray<INT>::vt, VT_INT);
 }

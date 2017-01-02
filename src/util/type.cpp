@@ -19,7 +19,8 @@ namespace autocom
 /** \brief Specialize type for VariantType.
  */
 #define AUTOCOM_SPECIALIZE(type)                                        \
-    constexpr VARTYPE VariantType<type, false>::vt
+    constexpr VARTYPE VariantType<type, false>::vt;                     \
+    constexpr VARTYPE VariantType<type, true>::vt
 
 /** \brief Specialize type by value for VariantType.
  */
