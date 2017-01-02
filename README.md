@@ -127,7 +127,7 @@ dispatch.get("GetDate", auto com::GetDate(date));   // safe
 
 Each COM type has both "Get" and "Put" wrappers. "Put" wrappers accept both L- and R-values, and move/copy the value (or pointer) into DISPPARAMS. "Get" wrappers only accept L-values, assigning directly to the reference.
 
-## Template Library
+## RAII & Template Library
 
 
 
