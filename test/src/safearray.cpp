@@ -28,10 +28,18 @@ TEST(SafeArrayBound, Methods)
 }
 
 
-TEST(SafeArray, Methods)
+TEST(SafeArray, Stl)
 {
-    com::SafeArray<INT> array;
-    //array.create(VT_INT, 3, );
+    com::SafeArray<INT> array = {3, 4, 5};
+    EXPECT_EQ(array.size(), 3);
+    EXPECT_EQ(array.front(), 3);
+    EXPECT_EQ(array.back(), 5);
+    EXPECT_EQ(array[0], 3);
+    EXPECT_EQ(array[1], 4);
+    EXPECT_EQ(array[2], 5);
+
+    LONG index = 0;
+    EXPECT_EQ(array[&index], 3);
 }
 
 

@@ -100,6 +100,11 @@ public:
     SafeArray(const SAFEARRAY &other);
     This & operator=(const SAFEARRAY &other);
     SafeArray(SAFEARRAY &&other);
+    SafeArray(const std::vector<T> &other);
+    SafeArray(const std::initializer_list<T> other);
+    template <typename Iter>
+    SafeArray(Iter begin,
+        Iter end);
 
     // CAPACITY
     size_t size(const LONG size = -1) const;
@@ -120,10 +125,27 @@ public:
     const_reverse_iterator crend() const noexcept;
 
     // ELEMENT ACCESS
-    reference operator[](LONG *indices);
-    const_reference operator[](LONG *indices) const;
-    reference at(LONG *indices);
-    const_reference at(LONG *indices) const;
+    template <typename U>
+    typename std::enable_if<std::is_pointer<U>::value, reference>::type
+    operator[](U indices);
+
+    template <typename U>
+    typename std::enable_if<std::is_pointer<U>::value, const_reference>::type
+    operator[](U indices) const;
+
+    template <typename U>
+    typename std::enable_if<std::is_pointer<U>::value, reference>::type
+    at(U indices);
+
+    template <typename U>
+    typename std::enable_if<std::is_pointer<U>::value, const_reference>::type
+    at(U indices) const;
+
+    reference operator[](const LONG index);
+    const_reference operator[](const LONG index) const;
+    reference at(const LONG index);
+    const_reference at(const LONG index) const;
+
     reference front();
     const_reference front() const;
     reference back();
@@ -273,6 +295,58 @@ SafeArray<T>::SafeArray(SAFEARRAY &&other):
 }
 
 
+/** \brief Initialize SafeArray from vector.
+ */
+template <typename T>
+SafeArray<T>::SafeArray(const std::vector<T> &other)
+{
+    SafeArrayBound bound(other.size());
+    create(1, &bound);
+    lock();
+
+    auto *array = reinterpret_cast<pointer>(SAFEARRAY::pvData);
+    for (const auto &item: other) {
+        *array++ = item;
+    }
+}
+
+
+/** \brief Initialize SafeArray from initializer list.
+ */
+template <typename T>
+SafeArray<T>::SafeArray(const std::initializer_list<T> other)
+{
+    SafeArrayBound bound(other.size());
+    create(1, &bound);
+    lock();
+
+    auto *array = reinterpret_cast<pointer>(SAFEARRAY::pvData);
+    for (const auto &item: other) {
+        *array++ = item;
+    }
+}
+
+
+/** \brief Range constructor.
+ */
+template <typename T>
+template <typename Iter>
+SafeArray<T>::SafeArray(Iter begin,
+    Iter end)
+{
+    static_assert(std::is_same<typename Iter::value_type, T>::value, "Value type of iterator must be same as array.");
+
+    SafeArrayBound bound(end - begin);
+    create(1, &bound);
+    lock();
+
+    auto *array = reinterpret_cast<pointer>(SAFEARRAY::pvData);
+    while (begin < end) {
+        *array++ = *begin++;
+    }
+}
+
+
 /** \brief Destructor.
  */
 template <typename T>
@@ -288,7 +362,7 @@ template <typename T>
 auto SafeArray<T>::begin() noexcept
     -> iterator
 {
-    return SAFEARRAY::pvData;
+    return reinterpret_cast<iterator>(SAFEARRAY::pvData);
 }
 
 
@@ -328,7 +402,7 @@ template <typename T>
 auto SafeArray<T>::cbegin() const noexcept
     -> const_iterator
 {
-    return const_cast<const_iterator>(SAFEARRAY::pvData);
+    return const_cast<const_iterator>(begin());
 }
 
 
@@ -407,21 +481,21 @@ auto SafeArray<T>::crend() const noexcept
 template <typename T>
 size_t SafeArray<T>::size(const LONG size) const
 {
-    if (SAFEARRAY::cDims < 1 || SAFEARRAY::cDims >= size) {
+    if (size >= SAFEARRAY::cDims) {
         throw std::out_of_range("SafeArray:: Size requested is out of bounds");
     }
 
-    if (size == -1) {
+    if (size < 0) {
         // get all dimensions
         size_t size = 1;
         for (USHORT i = 0; i < SAFEARRAY::cDims; ++i) {
-            auto &bound = SAFEARRAY::rgsabound[i];
+            const auto &bound = SAFEARRAY::rgsabound[i];
             size *= (bound.cElements - bound.lLbound);
         }
         return size;
     } else {
         // get single dimension
-        auto &bound = SAFEARRAY::rgsabound[size];
+        const auto &bound = SAFEARRAY::rgsabound[size];
         return (bound.cElements - bound.lLbound);
     }
 }
@@ -436,31 +510,34 @@ bool SafeArray<T>::empty() const
 }
 
 
-/** \brief Get element at index.
+/** \brief Get element at multi-dimensional index.
  */
 template <typename T>
-auto SafeArray<T>::operator[](LONG *indices)
-    -> reference
+template <typename U>
+typename std::enable_if<std::is_pointer<U>::value, T&>::type
+SafeArray<T>::operator[](U indices)
 {
     return at(indices);
 }
 
 
-/** \brief Get element at index.
+/** \brief Get element at multi-dimensional index.
  */
 template <typename T>
-auto SafeArray<T>::operator[](LONG *indices) const
-    -> const_reference
+template <typename U>
+typename std::enable_if<std::is_pointer<U>::value, const T&>::type
+SafeArray<T>::operator[](U indices) const
 {
     return at(indices);
 }
 
 
-/** \brief Get element at index.
+/** \brief Get element at multi-dimensional index.
  */
 template <typename T>
-auto SafeArray<T>::at(LONG *indices)
-    -> reference
+template <typename U>
+typename std::enable_if<std::is_pointer<U>::value, T&>::type
+SafeArray<T>::at(U indices)
 {
     T *data;
     SafeArrayPtrOfIndex(this, indices, (void**) &data);
@@ -469,16 +546,59 @@ auto SafeArray<T>::at(LONG *indices)
 }
 
 
-/** \brief Get element at index.
+/** \brief Get element at multi-dimensional index.
  */
 template <typename T>
-auto SafeArray<T>::at(LONG *indices) const
-    -> const_reference
+template <typename U>
+typename std::enable_if<std::is_pointer<U>::value, const T&>::type
+SafeArray<T>::at(U indices) const
 {
     T *data;
     SafeArrayPtrOfIndex(this, indices, (void**) &data);
 
     return const_cast<const_reference>(data);
+}
+
+
+/** \brief Get element at index (STL-like).
+ */
+template <typename T>
+auto SafeArray<T>::operator[](const LONG index)
+    -> reference
+{
+    return at(index);
+}
+
+
+/** \brief Get element at index (STL-like).
+ */
+template <typename T>
+auto SafeArray<T>::operator[](const LONG index) const
+    -> const_reference
+{
+    return at(index);
+}
+
+
+/** \brief Get element at index (STL-like).
+ */
+template <typename T>
+auto SafeArray<T>::at(const LONG index)
+    -> reference
+{
+    auto *array = reinterpret_cast<pointer>(SAFEARRAY::pvData);
+    return array[index];
+}
+
+
+/** \brief Get element at index (STL-like).
+ */
+template <typename T>
+auto SafeArray<T>::at(const LONG index) const
+    -> const_reference
+{
+    auto *array = reinterpret_cast<pointer>(SAFEARRAY::pvData);
+    return const_cast<const_reference>(array[index]);
 }
 
 

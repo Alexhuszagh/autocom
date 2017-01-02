@@ -9,7 +9,9 @@ AutoCOM is a C++11 interface for the Component Object Model (COM) supporting Min
 - [Motivation](#motivation)
 - [Interface](#interface)
 - [Types](#types)
-- [RAII & Template Library](#raii-&-template-library)
+- [RAII](#raii)
+- [Template Library](#template-library)
+- [Unicode](#unicode)
 - [Building](#building)
 - [Issues](#issues)
 - [Platforms](#platforms)
@@ -127,9 +129,52 @@ dispatch.get("GetDate", auto com::GetDate(date));   // safe
 
 Each COM type has both "Get" and "Put" wrappers. "Put" wrappers accept both L- and R-values, and move/copy the value (or pointer) into DISPPARAMS. "Get" wrappers only accept L-values, assigning directly to the reference.
 
-## RAII & Template Library
+## RAII
 
+AutoCOM believes that resource initialization is acquisition, and that object destruction should cleanup any allocated resources. 
 
+For COM interfaces, each COM object is wrapped in a `shared_ptr`, calling `IUnknown::Release` when the reference count drops to 0. The COM library itself is initialized and deinitialized on a thread-by-thread basis using thread-local reference counting. The use of smart pointers and automatic initialize removes the need for `AddRef` or `Release`, and guarantee exception-safe resource cleanup.
+
+For BSTRs, VARIANTs, and SAFEARRAYs, AutoCOM includes RAII classes (Bstr, Variant, and SafeArray, respectively). These classes can inherit resources, or be forwarded to COM dispatchers. 
+
+To facilitate resource ownership, AutoCOM differentiates between move and copy semantics: copy semantics copy resource data into the RAII class, leaving the old data intact, while move semantics take ownership of the resource.
+
+```cpp
+BSTR getString(...) {....}
+
+// copy semantics, copies BSTR and creates RAII copy
+auto string = getString();
+com::Bstr copied(string);
+
+// move semantics, takes ownership of BSTR, no copying occurs
+com::Bstr moved(getString());
+```
+
+## Template Library
+
+AutoCOM aims to facilitate use of COM APIs with the Standard Template Library, or STL, which provides the backbone of modern C++ programming.
+
+The `Bstr` and `SafeArray` RAII classes have interfaces comparable to `std::wstring` and `std::vector`, including explicit conversions between them. Iteration, auto-ranges, and indexing are all supported.
+
+```cpp
+com::Bstr bstr(L"This is a string");
+// auto-ranges
+for (const wchar_t c: bstr) {
+    std::cout << c << std::endl;
+}
+// element access
+std::cout << bstr.front();                  // L'T'
+std::cout << bstr.back();                   // L'g'
+std::cout << bstr[1];                       // L'h'
+std::cout << bstr.at(2);                    // L'i'
+// conversions
+std::wstring wstring(bstr);
+com::Bstr copy(wstring);
+```
+
+## Unicode
+
+AutoCOM supports Unicode through Windows wide-string APIs, and assumes narrow strings are UTF-8 encoded, while wide strings are UTF-16 encoded.
 
 ## Building
 

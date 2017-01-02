@@ -105,6 +105,8 @@ public:
     INT flags(const UINT index) const;
     DllEntry entry(const MEMBERID id,
         const INVOKEKIND invocation) const;
+
+    // WINAPI
 };
 
 
@@ -135,6 +137,9 @@ public:
     Documentation documentation(const INT index) const;
     UINT count() const;
     TypeInfo info(const UINT index) const;
+
+    // WINAPI
+
 };
 
 
@@ -174,6 +179,8 @@ public:
     WORD minor() const;
     TypeDesc alias() const;
     IdlDesc idl() const;
+
+    // WINAPI
 };
 
 
@@ -203,6 +210,8 @@ public:
     WORD major() const;
     WORD minor() const;
     WORD flags() const;
+
+    // WINAPI
 };
 
 
@@ -275,6 +284,8 @@ public:
     const VARIANT & variant() const;
     WORD flags() const;
     VARKIND kind() const;
+
+    // WINAPI
 };
 
 
@@ -311,6 +322,8 @@ public:
     ElemDesc returnType() const;
     SHORT returnCount() const;
     WORD flags() const;
+
+    // WINAPI
 };
 
 
@@ -336,6 +349,8 @@ public:
     TypeDesc pointer() const;
     ArrayDesc array() const;
     HREFTYPE reference() const;
+
+    // WINAPI
 };
 
 
@@ -360,6 +375,8 @@ public:
     TypeDesc type() const;
     USHORT count() const;
     SafeArrayBound bound(const USHORT index) const;
+
+    // WINAPI
 };
 
 
@@ -379,6 +396,8 @@ public:
 
     IdlDesc(const IDLDESC &desc);
     IdlDesc(IDLDESC &&desc);
+
+    // WINAPI
 };
 
 
@@ -403,6 +422,8 @@ public:
     TypeDesc type() const;
     IdlDesc idl() const;
     ParamDesc param() const;
+
+    // WINAPI
 };
 
 
@@ -427,6 +448,8 @@ public:
     ULONG size() const;
     VARIANTARG value() const;
     USHORT flags() const;
+
+    // WINAPI
 };
 
 
