@@ -12,6 +12,7 @@
     - Overload Get/PutSafeArray -- DONE
     - Test Get/PutVariant -- DONE
     - Overload SafeArray for get/set -- DONE
+    - Finish STL wrapper for SAFEARRAY -- DONE
 
     - Test Get/PutSafeArray (this needs to be created...)
     - Test SafeArray

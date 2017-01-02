@@ -22,28 +22,6 @@ bool changeVariantType(VARIANT &variant,
     return VariantChangeType(&variant, &variant, 0, vt) == S_OK;
 }
 
-
-/** \brief IUnknown type-safe wrapper for SafeArrayGetVartype.
- *
- *  SafeArrayGetVartype fails for IUnknown, because MSDN cannot properly
- *  define flags, or do bitwise operations, so must check explicitly.
- *  https://msdn.microsoft.com/en-us/library/windows/desktop/ms221446(v=vs.85).aspx
- */
-VARTYPE getSafeArrayType(SAFEARRAY *value)
-{
-    VARTYPE vt;
-    if (value->fFeatures & FADF_UNKNOWN) {
-        vt = VT_UNKNOWN;
-    } else {
-        if (FAILED(SafeArrayGetVartype(value, &vt))) {
-            throw ComFunctionError("SafeArrayGetVartype");
-        }
-    }
-
-    return vt;
-}
-
-
 // MACROS
 // ------
 

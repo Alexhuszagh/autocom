@@ -1,3 +1,4 @@
+
 AutoCOM
 =======
 
@@ -8,6 +9,7 @@ AutoCOM is a C++11 interface for the Component Object Model (COM) supporting Min
 - [Motivation](#motivation)
 - [Interface](#interface)
 - [Types](#types)
+- [RAII & Template Library](#raii-&-template-library)
 - [Building](#building)
 - [Issues](#issues)
 - [Platforms](#platforms)
@@ -111,6 +113,7 @@ AutoCOM uses C++'s strong-typing to determine VARIANT-type when possible. The fo
 - DECIMAL
 - IUnknown
 - IDispatch
+- SAFEARRAY
 
 **Wrappers**
 
@@ -123,6 +126,10 @@ dispatch.get("GetDate", auto com::GetDate(date));   // safe
 ```
 
 Each COM type has both "Get" and "Put" wrappers. "Put" wrappers accept both L- and R-values, and move/copy the value (or pointer) into DISPPARAMS. "Get" wrappers only accept L-values, assigning directly to the reference.
+
+## Template Library
+
+
 
 ## Building
 
