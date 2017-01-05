@@ -51,6 +51,7 @@ struct Bstr
 
     Bstr(const std::string &string);
     Bstr(const std::wstring &string);
+    Bstr(VARIANT &variant);
     Bstr(const char *cstring);
     Bstr(const wchar_t *cstring);
     Bstr(const char *array,

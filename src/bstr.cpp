@@ -76,6 +76,15 @@ Bstr::Bstr(const std::wstring &string):
 {}
 
 
+/** \brief Initialize string from variant.
+ */
+Bstr::Bstr(VARIANT &variant)
+{
+    reset(variant);
+}
+
+
+
 /** \brief Initialize string from narrow C-string.
  */
 Bstr::Bstr(const char *cstring)
