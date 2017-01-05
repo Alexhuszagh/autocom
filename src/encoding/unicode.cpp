@@ -6,7 +6,7 @@
  *  \brief Convert Unicode code points between encodings.
  */
 
-#include "autocom.hpp"
+#include "autocom/encoding/unicode.hpp"
 
 #include <cstdlib>
 #include <functional>

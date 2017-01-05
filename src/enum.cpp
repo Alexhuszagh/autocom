@@ -5,7 +5,8 @@
  *  \brief C++ handle around IEnumVARIANT.
  */
 
-#include "autocom.hpp"
+#include "autocom/enum.hpp"
+#include "autocom/util/exception.hpp"
 
 
 namespace autocom
@@ -80,11 +81,7 @@ EnumVariant::EnumVariant(IEnumVARIANT *enumvariant)
  */
 void EnumVariant::open(IEnumVARIANT *enumvariant)
 {
-    if (enumvariant) {
-        ppv.reset(enumvariant, destroy<IEnumVARIANT>);
-    } else {
-        ppv.reset();
-    }
+    ppv.reset(enumvariant);
 }
 
 

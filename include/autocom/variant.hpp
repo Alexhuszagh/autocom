@@ -8,15 +8,12 @@
 #pragma once
 
 #include "bstr.hpp"
-#include "encoding.hpp"
-#include "util.hpp"
+#include "util/type.hpp"
+#include "util/define.hpp"
+#include "util/variadic.hpp"
 
 #include <oaidl.h>
-#include <windows.h>
-#include <wtypes.h>
 
-#include <typeinfo>
-#include <initializer_list>
 #include <vector>
 
 
@@ -155,30 +152,55 @@ void set(VARIANT &variant,
 void set(VARIANT &variant,
     PutNull value);
 
+/** \brief Overload from character literals.
+ */
+void set(VARIANT &variant,
+    const char *value);
+
+/** \brief Overload from character literals.
+ */
+void set(VARIANT &variant,
+    const wchar_t *value);
+
 /** \brief Set a BSTR value from copy.
  */
 void set(VARIANT &variant,
-    const BSTR &value);
+    BSTR &value);
 
 /** \brief Set a BSTR value from move.
  */
 void set(VARIANT &variant,
     BSTR &&value);
 
-/** \brief Set a BSTR value from wrapper.
- */
-void set(VARIANT &variant,
-    const Bstr &value);
-
 /** \brief Set a pointer to a BSTR.
  */
 void set(VARIANT &variant,
     BSTR *value);
 
+/** \brief Set a BSTR value from wrapper.
+ */
+void set(VARIANT &variant,
+    Bstr &value);
+
 /** \brief Set a pointer to BSTR from wrapper.
  */
 void set(VARIANT &variant,
     Bstr *value);
+
+/** \brief Set a BSTR value from wrapper.
+ */
+void set(VARIANT &variant,
+    PutBstr &&value);
+
+/** \brief Set a BSTR value from wrapper.
+ */
+void set(VARIANT &variant,
+    PutBstr &value);
+
+/** \brief Set a pointer to BSTR from wrapper.
+ */
+void set(VARIANT &variant,
+    PutBstrPtr value);
 
 /** \brief Set a pointer to a SAFEARRAY pointer.
  */
@@ -257,7 +279,6 @@ AUTOCOM_SAFE_SETTER(Float);
 AUTOCOM_SAFE_SETTER(Double);
 AUTOCOM_SAFE_SETTER(LongLong);
 AUTOCOM_SAFE_SETTER(ULongLong);
-AUTOCOM_SAFE_SETTER(Bstr);
 AUTOCOM_SAFE_SETTER(Currency);
 AUTOCOM_SAFE_SETTER(Error);
 AUTOCOM_SAFE_SETTER(Date);
@@ -358,6 +379,16 @@ AUTOCOM_SAFE_POINTER_SETTER(Decimal);
 // FUNCTIONS -- GETTERS
 // --------------------
 
+/** \brief Get BSTR value.
+ */
+void get(VARIANT &variant,
+    BSTR &value);
+
+/** \brief Get BSTR reference.
+ */
+void get(VARIANT &variant,
+    BSTR *&value);
+
 /** \brief Get BSTR value in wrapper.
  */
 void get(VARIANT &variant,
@@ -367,6 +398,16 @@ void get(VARIANT &variant,
  */
 void get(VARIANT &variant,
     Bstr *&value);
+
+/** \brief Get BSTR value in wrapper.
+ */
+void get(VARIANT &variant,
+    GetBstr value);
+
+/** \brief Get BSTR value pointer in wrapper.
+ */
+void get(VARIANT &variant,
+    GetBstrPtr value);
 
 /** \brief Get Variant value pointer in owning-wrapper.
  */
@@ -434,7 +475,6 @@ AUTOCOM_GETTER(DOUBLE);
 AUTOCOM_GETTER(LONGLONG);
 AUTOCOM_GETTER(ULONGLONG);
 AUTOCOM_GETTER(CURRENCY);
-AUTOCOM_GETTER(BSTR);
 AUTOCOM_GETTER(IUnknown*);
 AUTOCOM_GETTER(IDispatch*);
 AUTOCOM_VALUE_GETTER(VARIANT*);
@@ -454,7 +494,6 @@ AUTOCOM_SAFE_GETTER(Float);
 AUTOCOM_SAFE_GETTER(LongLong);
 AUTOCOM_SAFE_GETTER(ULongLong);
 AUTOCOM_SAFE_GETTER(Double);
-AUTOCOM_SAFE_GETTER(Bstr);
 AUTOCOM_SAFE_GETTER(Currency);
 AUTOCOM_SAFE_GETTER(Error);
 AUTOCOM_SAFE_GETTER(Date);
@@ -487,9 +526,11 @@ struct Variant: public VARIANT
     Variant();
     ~Variant();
 
+    // MODIFIERS
     void init();
     void clear();
     bool changeType(const VARTYPE vt);
+    // TODO: need reset();
 
     template <typename T>
     void set(T &&t);

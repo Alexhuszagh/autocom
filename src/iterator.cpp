@@ -5,7 +5,7 @@
  *  \brief Iterator for IEnumVARIANT interfaces.
  */
 
-#include "autocom.hpp"
+#include "autocom/iterator.hpp"
 
 
 namespace autocom
@@ -16,7 +16,7 @@ namespace autocom
 
 /** \brief Initializer list constructor.
  */
-Iterator::Iterator(std::weak_ptr<IEnumVARIANT> ppv):
+Iterator::Iterator(itl::weak_ptr<IEnumVARIANT> ppv):
     ppv(ppv)
 {}
 

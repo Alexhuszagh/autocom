@@ -28,6 +28,7 @@ protected:
     friend class Dispatch;
 
     void open(const std::string &string);
+    void open(const std::wstring &string);
 
 public:
     Guid() = default;
@@ -37,17 +38,25 @@ public:
     Guid & operator=(Guid&&) = default;
 
     Guid(const GUID &guid);
+
     Guid(const char *cstring);
     Guid(const char *array,
         const size_t length);
     Guid(const std::string &string);
+    Guid(const wchar_t *cstring);
+    Guid(const wchar_t *array,
+        const size_t length);
+    Guid(const std::wstring &string);
 
     // DATA
     static Guid fromProgid(const std::string &string);
+    static Guid fromProgid(const std::wstring &string);
     std::string toProgid();
     static Guid fromClsid(const std::string &string);
+    static Guid fromClsid(const std::wstring &string);
     std::string toClsid();
     static Guid fromIid(const std::string &string);
+    static Guid fromIid(const std::wstring &string);
     std::string toIid();
     std::string string() const;
 

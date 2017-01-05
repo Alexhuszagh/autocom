@@ -11,6 +11,7 @@ AutoCOM is a C++11 interface for the Component Object Model (COM) supporting Min
 - [Types](#types)
 - [RAII](#raii)
 - [Template Library](#template-library)
+- [Ownership](#ownership)
 - [Unicode](#unicode)
 - [Building](#building)
 - [Issues](#issues)
@@ -22,7 +23,7 @@ AutoCOM is a C++11 interface for the Component Object Model (COM) supporting Min
 
 AutoCOM is a modern COM interface library for C++11. AutoCOM supports both compile-time interface binding, or use of a dispatcher interface at run-time, with either MSVC or MinGW.
 
-AutoCOM believes that resource initialization is acqusition. The COM interface is initialized on a per-thread basis during object construction, and uninitialized when the last object destructor is called. 
+AutoCOM believes that resource initialization is StringPtracqusition. The COM interface is initialized on a per-thread basis during object construction, and uninitialized when the last object destructor is called. 
 
 **Compile-Time**
 
@@ -172,6 +173,15 @@ std::wstring wstring(bstr);
 com::Bstr copy(wstring);
 ```
 
+## Ownership
+
+AutoCOM uses COM ownership semantics for `put` and `method` calls: objects passed by value take ownership of the object, while those passed by reference are still owned by the user. References to existing objects passed by value should be considered invalid.
+
+For `get` calls, the inverse is assumed: you take ownership of objects acquired by value, and do not take ownership of objects passed by reference.
+
+// TODO: finish when done, passing ownership
+There are times when it 
+
 ## Unicode
 
 AutoCOM supports Unicode through Windows wide-string APIs, and assumes narrow strings are UTF-8 encoded, while wide strings are UTF-16 encoded.
@@ -190,31 +200,10 @@ make -j 5                       # "msbuild AutoCOM.sln" for MSVC
 
 ## Issues
 
-Due to the automated memory management and variable forwarding/copying of arguments in AutoCOM, undefined behavior can appear to be highly variable.
+To avoid this undefined behavior, AutoCOM expects the following:
 
-For example, since AutoCOM calls `VariantClear` on all internal VARIANTs, all BSTRs are either reallocated or moved into the VARIANT, causing uninitialized BSTRs to invoke undefined behavior.
-
-```cpp
-// uninitialized
-autocom:DispParams dp;
-BSTR ptr;
-dp.setArgs(BSTR());         // works
-dp.setArgs(ptr);            // fails, SysAllocStringLen(ptr, SysStringLen(ptr))
-
-// null initialized
-ptr = nullptr;
-dp.setArgs(ptr);            // works
-
-// safe wrappers
-Bstr wrapper;
-dp.setArgs(Bstr());         // works
-dp.setArgs(wrapper);        // works, wrappers initialize all pointers
-```
-
-To avoid this undesirable behavior, AutoCOM expects the following:
-
-- Pointers to strings must be null-initialized, contain length data (BSTRs), or be null-terminated when passed as a value to a method call.
-- Pointers may be uninitialized when used only for assignment, such as with `get` methods.
+- Pointers to objects passed by value (BSTR, IUnknown, IDispatch, SAFEARRAY) for `put` and `method` calls **must** be initialized.
+- Pointers to objects passed by value for `get` calls may be uninitialized.
 
 Any other issues can be reported on the [bug tracker](https://github.com/Alexhuszagh/autocom/issues).
 

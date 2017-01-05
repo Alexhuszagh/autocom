@@ -5,7 +5,9 @@
  *  \brief Variant object and collection definitions.
  */
 
-#include "autocom.hpp"
+#include "autocom/safearray.hpp"
+#include "autocom/variant.hpp"
+#include "autocom/encoding/converters.hpp"
 
 
 namespace autocom
@@ -163,13 +165,34 @@ void set(VARIANT &variant,
 }
 
 
+/** \brief Overload from character literals.
+ */
+void set(VARIANT &variant,
+    const char *value)
+{
+    variant.vt = VT_BSTR;
+    auto wide = WIDE(std::string(value));
+    variant.bstrVal = SysAllocStringLen(wide.data(), wide.size());
+}
+
+/** \brief Overload from character literals.
+ */
+void set(VARIANT &variant,
+    const wchar_t *value)
+{
+    variant.vt = VT_BSTR;
+    variant.bstrVal = SysAllocStringLen(value, wcslen(value));
+}
+
+
 /** \brief Set a BSTR value from copy.
  */
 void set(VARIANT &variant,
-    const BSTR &value)
+    BSTR &value)
 {
     variant.vt = VariantType<BSTR>::vt;
-    variant.bstrVal = SysAllocStringLen(value, SysStringLen(value));
+    variant.bstrVal = value;
+    value = nullptr;
 }
 
 
@@ -183,16 +206,6 @@ void set(VARIANT &variant,
 }
 
 
-/** \brief Set a BSTR value from wrapper.
- */
-void set(VARIANT &variant,
-    const Bstr &value)
-{
-    variant.vt = VariantType<Bstr>::vt;
-    variant.bstrVal = value.copy();
-}
-
-
 /** \brief Set a pointer to a BSTR.
  */
 void set(VARIANT &variant,
@@ -202,6 +215,16 @@ void set(VARIANT &variant,
     variant.pbstrVal = value;
 }
 
+
+/** \brief Set a BSTR value from wrapper.
+ */
+void set(VARIANT &variant,
+    Bstr &value)
+{
+    variant.vt = VariantType<Bstr>::vt;
+    variant.bstrVal = value.string;
+    value.string = nullptr;
+}
 
 /** \brief Set a pointer to BSTR from wrapper.
  */
@@ -213,6 +236,37 @@ void set(VARIANT &variant,
 }
 
 
+/** \brief Set a BSTR value from wrapper.
+ */
+void set(VARIANT &variant,
+    PutBstr &&value)
+{
+    variant.vt = VariantType<PutBstr>::vt;
+    variant.bstrVal = typename PutBstr::type(value);
+}
+
+
+/** \brief Set a BSTR value from wrapper.
+ */
+void set(VARIANT &variant,
+    PutBstr &value)
+{
+    variant.vt = VariantType<PutBstr>::vt;
+    variant.bstrVal = typename PutBstr::type(value);
+    value = PutBstr(nullptr);
+}
+
+
+/** \brief Set a pointer to BSTR from wrapper.
+ */
+void set(VARIANT &variant,
+    PutBstrPtr value)
+{
+    variant.vt = VariantType<PutBstrPtr>::vt;
+    variant.pbstrVal = typename PutBstrPtr::type(value);
+}
+
+
 /** \brief Set a pointer to a SAFEARRAY pointer.
  */
 void set(VARIANT &variant,
@@ -220,6 +274,7 @@ void set(VARIANT &variant,
 {
     variant.vt = getSafeArrayType(value) | VT_ARRAY;
     variant.parray = value;
+    value = nullptr;
 }
 
 
@@ -285,7 +340,6 @@ AUTOCOM_SAFE_SETTER(Float, fltVal)
 AUTOCOM_SAFE_SETTER(Double, dblVal)
 AUTOCOM_SAFE_SETTER(LongLong, llVal)
 AUTOCOM_SAFE_SETTER(ULongLong, ullVal)
-AUTOCOM_SAFE_SETTER(Bstr, bstrVal)
 AUTOCOM_SAFE_SETTER(Currency, cyVal)
 AUTOCOM_SAFE_SETTER(Error, scode)
 AUTOCOM_SAFE_SETTER(Date, date)
@@ -398,6 +452,27 @@ AUTOCOM_SAFE_POINTER_SETTER(Decimal, decVal)
 // --------------------
 
 
+/** \brief Get BSTR value.
+ */
+void get(VARIANT &variant,
+    BSTR &value)
+{
+    AUTOCOM_CONVERT_TYPE(variant, VariantType<Bstr>::vt);
+    value = variant.bstrVal;
+    variant.bstrVal = nullptr;
+}
+
+
+/** \brief Get BSTR reference.
+ */
+void get(VARIANT &variant,
+    BSTR *&value)
+{
+    AUTOCOM_CONVERT_TYPE(variant, VariantType<Bstr>::vt);
+    value = variant.pbstrVal;
+}
+
+
 /** \brief Get BSTR value in wrapper.
  */
 void get(VARIANT &variant,
@@ -406,6 +481,7 @@ void get(VARIANT &variant,
     AUTOCOM_CONVERT_TYPE(variant, VariantType<Bstr>::vt);
     value.clear();
     value.string = variant.bstrVal;
+    variant.bstrVal = nullptr;
 }
 
 
@@ -417,6 +493,29 @@ void get(VARIANT &variant,
     AUTOCOM_CONVERT_TYPE(variant, VariantType<Bstr*>::vt);
     value->clear();
     value->string = *variant.pbstrVal;
+}
+
+
+/** \brief Get BSTR value in wrapper.
+ */
+void get(VARIANT &variant,
+    GetBstr value)
+{
+    AUTOCOM_CONVERT_TYPE(variant, VariantType<GetBstr>::vt);
+    auto &ref = typename GetBstr::type(value);
+    ref = variant.bstrVal;
+    variant.bstrVal = nullptr;
+}
+
+
+/** \brief Get BSTR value pointer in wrapper.
+ */
+void get(VARIANT &variant,
+    GetBstrPtr value)
+{
+    AUTOCOM_CONVERT_TYPE(variant, VariantType<Bstr*>::vt);
+    auto &ref = typename GetBstrPtr::type(value);
+    ref = variant.pbstrVal;
 }
 
 
@@ -446,6 +545,7 @@ void get(VARIANT &variant,
         throw std::invalid_argument("Unrecognized type, expected VT_ARRAY, got: " + std::to_string(variant.vt));
     }
     value = variant.parray;
+    variant.parray = nullptr;
 }
 
 
@@ -492,7 +592,6 @@ AUTOCOM_GETTER(DOUBLE, dblVal)
 AUTOCOM_GETTER(LONGLONG, llVal)
 AUTOCOM_GETTER(ULONGLONG, ullVal)
 AUTOCOM_GETTER(CURRENCY, cyVal)
-AUTOCOM_GETTER(BSTR, bstrVal)
 AUTOCOM_GETTER(IUnknown*, punkVal)
 AUTOCOM_GETTER(IDispatch*, pdispVal)
 AUTOCOM_VALUE_GETTER(VARIANT*, pvarVal)
@@ -512,7 +611,6 @@ AUTOCOM_SAFE_GETTER(Float, fltVal)
 AUTOCOM_SAFE_GETTER(LongLong, llVal)
 AUTOCOM_SAFE_GETTER(ULongLong, ullVal)
 AUTOCOM_SAFE_GETTER(Double, dblVal)
-AUTOCOM_SAFE_GETTER(Bstr, bstrVal)
 AUTOCOM_SAFE_GETTER(Currency, cyVal)
 AUTOCOM_SAFE_GETTER(Error, scode)
 AUTOCOM_SAFE_GETTER(Date, date)

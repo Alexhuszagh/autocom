@@ -5,7 +5,7 @@
  *  \brief Templates to automate dispparams construction.
  */
 
-#include "autocom.hpp"
+#include "autocom/dispparams.hpp"
 
 
 namespace autocom

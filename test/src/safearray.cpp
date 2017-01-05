@@ -25,6 +25,8 @@ TEST(SafeArrayBound, Methods)
     bound.lower() = 0;
     bound.upper() = 5;
     EXPECT_EQ(bound.size(), 5);
+    EXPECT_EQ(bound.lower(), bound.lLbound);
+    EXPECT_EQ(bound.upper(), bound.cElements);
 }
 
 
@@ -44,6 +46,14 @@ TEST(SafeArray, Stl)
     std::vector<INT> copy(array.begin(), array.end());
     EXPECT_EQ(copy[0], 3);
     EXPECT_EQ(copy[2], 5);
+}
+
+
+TEST(SafeArray, WinApi)
+{
+    com::SafeArray<INT> array = {3, 4, 5};
+    EXPECT_EQ(array.cDims, 1);
+    EXPECT_EQ(array.cLocks, 1);
 }
 
 

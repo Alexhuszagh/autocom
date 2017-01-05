@@ -8,12 +8,11 @@
 #pragma once
 
 #include "dispparams.hpp"
-#include "guid.hpp"
+#include "util/define.hpp"
+#include "util/shared_ptr.hpp"
 
 #include <initguid.h>
 #include <dispex.h>
-
-#include <memory>
 
 
 namespace autocom
@@ -23,6 +22,7 @@ namespace autocom
 
 typedef MEMBERID Function;
 typedef std::string Name;
+typedef std::wstring WName;
 
 // FUNCTIONS
 // ---------
@@ -35,15 +35,6 @@ void initialize();
 /** \brief Uninitialize COM context for current thread.
  */
 void uninitialize();
-
-
-/** \brief Destroy COM object.
- */
-template <typename T>
-void destroy(T *t)
-{
-    t->Release();
-}
 
 
 /** \brief Check if two COM handles point to same object.
@@ -102,9 +93,10 @@ bool equalObject(ObjectPtr left,
 class DispatchBase
 {
 protected:
-    std::shared_ptr<IDispatch> ppv;
+    SharedPointer<IDispatch> ppv;
 
     Function getFunction(const Name &name);
+    Function getFunction(const WName &name);
 
     template <typename... Ts>
     bool invoke(DispatchFlags flags,
@@ -116,6 +108,12 @@ protected:
     bool invoke(DispatchFlags flags,
         VARIANT *result,
         const Name &name,
+        Ts&&... ts);
+
+    template <typename... Ts>
+    bool invoke(DispatchFlags flags,
+        VARIANT *result,
+        const WName &name,
         Ts&&... ts);
 
     friend bool operator==(const DispatchBase &left,
@@ -177,6 +175,18 @@ template <typename... Ts>
 bool DispatchBase::invoke(DispatchFlags flags,
     VARIANT *result,
     const Name &name,
+    Ts&&... ts)
+{
+    return invoke(flags, result, getFunction(name), AUTOCOM_FWD(ts)...);
+}
+
+
+/** \brief Call dispatch method by wide function name.
+ */
+template <typename... Ts>
+bool DispatchBase::invoke(DispatchFlags flags,
+    VARIANT *result,
+    const WName &name,
     Ts&&... ts)
 {
     return invoke(flags, result, getFunction(name), AUTOCOM_FWD(ts)...);

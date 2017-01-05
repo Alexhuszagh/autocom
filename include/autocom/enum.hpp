@@ -8,10 +8,9 @@
 #pragma once
 
 #include "iterator.hpp"
+#include "util/shared_ptr.hpp"
 
 #include <oaidl.h>
-
-#include <memory>
 
 
 namespace autocom
@@ -32,7 +31,7 @@ IEnumVARIANT * newEnumVariant(IDispatch *dispatch);
 class EnumVariant
 {
 protected:
-    std::shared_ptr<IEnumVARIANT> ppv;
+    SharedPointer<IEnumVARIANT> ppv;
 
     friend bool operator==(const EnumVariant &left,
         const EnumVariant &right);

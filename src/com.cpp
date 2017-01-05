@@ -5,9 +5,10 @@
  *  \brief Base definitions for COM objects.
  */
 
-#include "autocom.hpp"
+#include "autocom/com.hpp"
+#include "autocom/encoding/converters.hpp"
+#include "autocom/util/exception.hpp"
 
-#include <mutex>
 #include <thread>
 
 
@@ -58,11 +59,18 @@ void uninitialize()
  */
 Function DispatchBase::getFunction(const Name &name)
 {
+    return getFunction(WIDE(name));
+}
+
+
+/** \brief Get dispatch identifier from function identifier.
+ */
+Function DispatchBase::getFunction(const WName &name)
+{
     DISPID id;
     WORD flags = DISPATCH_METHOD;
     LCID locale = LOCALE_USER_DEFAULT;
-    auto wide = WIDE(name);
-    LPOLESTR string = const_cast<wchar_t*>(wide.data());
+    LPOLESTR string = const_cast<wchar_t*>(name.data());
     if (FAILED(ppv->GetIDsOfNames(IID_NULL, &string, flags, locale, &id))) {
         throw ComMethodError("IDispatch", "GetIDsOfNames(IID_NULL, ...)");
     }
@@ -101,11 +109,7 @@ DispatchBase::DispatchBase(IDispatch *dispatch)
  */
 void DispatchBase::open(IDispatch *dispatch)
 {
-    if (dispatch) {
-        ppv.reset(dispatch, destroy<IDispatch>);
-    } else {
-        ppv.reset();
-    }
+    ppv.reset(dispatch);
 }
 
 

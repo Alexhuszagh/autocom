@@ -5,7 +5,7 @@
  *  \brief COM exception definitions.
  */
 
-#include "autocom.hpp"
+#include "autocom/util/exception.hpp"
 
 
 namespace autocom
@@ -14,18 +14,27 @@ namespace autocom
 // ---------
 
 
-/** \brief Construct exception with error.
+/** \brief Construct exception with message.
  */
 ComFunctionError::ComFunctionError(const std::string &function):
     message("AutoCOM: Unable to call function: " + function + ".")
 {}
 
 
-/** \brief Construct exception with error.
+/** \brief Construct exception with message.
  */
 ComMethodError::ComMethodError(const std::string &object,
         const std::string &method):
     message("AutoCOM: Unable to call method: " + object + "::" + method + ".")
+{}
+
+
+/** \brief Construct exception with message.
+ */
+ComTypeError::ComTypeError(const std::string &expected,
+        const std::string &actual,
+        const std::string &op):
+    message("AutoCOM: Expected \"" + expected + "\" " + op + " " + actual + " to be true.")
 {}
 
 

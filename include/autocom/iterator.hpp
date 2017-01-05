@@ -10,7 +10,6 @@
 #include "com.hpp"
 
 #include <iterator>
-#include <memory>
 
 
 namespace autocom
@@ -27,7 +26,7 @@ class Iterator: public std::iterator<
     >
 {
 protected:
-    std::weak_ptr<IEnumVARIANT> ppv;
+    itl::weak_ptr<IEnumVARIANT> ppv;
     DispatchBase dispatch;
 
 public:
@@ -37,7 +36,7 @@ public:
     Iterator(Iterator&&) = default;
     Iterator & operator=(Iterator&&) = default;
 
-    Iterator(std::weak_ptr<IEnumVARIANT> ppv);
+    Iterator(itl::weak_ptr<IEnumVARIANT> ppv);
 
     DispatchBase & operator*();
     const DispatchBase & operator*() const;

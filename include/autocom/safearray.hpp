@@ -7,7 +7,8 @@
 
 #pragma once
 
-#include "util.hpp"
+#include "util/exception.hpp"
+#include "util/type.hpp"
 
 #include <oaidl.h>
 
@@ -35,6 +36,10 @@ VARTYPE getSafeArrayType(const SAFEARRAY *value);
  */
 struct SafeArrayBound: SAFEARRAYBOUND
 {
+    // WinAPI
+    // ULONG cElements;
+    // LONG  lLbound;
+
     SafeArrayBound() = default;
     SafeArrayBound(const SafeArrayBound&) = default;
     SafeArrayBound & operator=(const SafeArrayBound&) = default;
@@ -76,7 +81,19 @@ protected:
         SafeArrayBound *bound);
     void close();
 
+    // ASSIGNERS
+    void assign(SAFEARRAY &safearray);
+    void assign(VARIANT &variant);
+
 public:
+    // WinAPI
+    // USHORT         cDims;
+    // USHORT         fFeatures;
+    // ULONG          cbElements;
+    // ULONG          cLocks;
+    // PVOID          pvData;
+    // SAFEARRAYBOUND rgsabound[1];
+
     // MEMBER TYPES
     // ------------
     typedef T value_type;
@@ -102,6 +119,7 @@ public:
     SafeArray(SAFEARRAY &&other);
     SafeArray(const std::vector<T> &other);
     SafeArray(const std::initializer_list<T> other);
+    SafeArray(VARIANT &variant);
     template <typename Iter>
     SafeArray(Iter begin,
         Iter end);
@@ -155,6 +173,9 @@ public:
     // MODIFIERS
     void resize(SafeArrayBound *bound);
     void resize(const LONG size);
+    void reset();
+    void reset(SAFEARRAY &safearray);
+    void reset(VARIANT &variant);
 
     // DATA
     This copy() const;
@@ -175,7 +196,9 @@ static_assert(sizeof(SafeArray<INT>) == sizeof(SAFEARRAY), "sizeof(SafeArray) !=
 template <typename T>
 void SafeArray<T>::lock()
 {
-    if (FAILED(SafeArrayLock(this))) {
+    auto hr = SafeArrayLock(this);
+    if (FAILED(hr)) {
+        printf("FUCK: %d\n", hr);
         throw ComFunctionError("SafeArrayLock()");
     }
 }
@@ -203,7 +226,7 @@ void SafeArray<T>::create(UINT dimensions,
     if (!array) {
         throw std::runtime_error("Unhandled exception in SafeArrayCreate, maybe out of memory?\n");
     }
-    reinterpret_cast<SAFEARRAY&>(*this) = *array;
+    assign(*array);
 }
 
 
@@ -214,6 +237,31 @@ void SafeArray<T>::close()
 {
     unlock();
     SafeArrayDestroy(this);
+}
+
+
+/** \brief Assign data from SAFEARRAY.
+ */
+template <typename T>
+void SafeArray<T>::assign(SAFEARRAY &safearray)
+{
+    reinterpret_cast<SAFEARRAY&>(*this) = safearray;
+}
+
+
+/** \brief Assign data from VARIANT.
+ */
+template <typename T>
+void SafeArray<T>::assign(VARIANT &variant)
+{
+    if (variant.vt & (VT_BYREF)) {
+        throw std::runtime_error("Cannot take ownership of value by reference");
+    } else if (variant.vt & VT_ARRAY) {
+        assign(*variant.parray);
+        variant.parray = nullptr;
+    } else {
+        throw ComTypeError("VT_ARRAY", std::to_string(variant.vt), "&");
+    }
 }
 
 
@@ -248,7 +296,7 @@ auto SafeArray<T>::operator=(const This &other)
     if (SafeArrayCopy(ptr, &array) == E_OUTOFMEMORY) {
         throw std::runtime_error("E_OUTOFMEMORY from SafeArrayCopy()\n");
     }
-    reinterpret_cast<SAFEARRAY&>(*this) = *array;
+    assign(*array);
     lock();
 
     return *this;
@@ -277,7 +325,7 @@ auto SafeArray<T>::operator=(const SAFEARRAY &other)
     if (SafeArrayCopy(&other, &array) == E_OUTOFMEMORY) {
         throw std::runtime_error("E_OUTOFMEMORY from SafeArrayCopy()\n");
     }
-    reinterpret_cast<SAFEARRAY&>(*this) = *array;
+    assign(*array);
     lock();
 
     return *this;
@@ -323,6 +371,16 @@ SafeArray<T>::SafeArray(const std::initializer_list<T> other)
     for (const auto &item: other) {
         *array++ = item;
     }
+}
+
+
+/** \brief Initialize SafeArray from variant.
+ */
+template <typename T>
+SafeArray<T>::SafeArray(VARIANT &variant)
+{
+    assign(variant);
+    lock();
 }
 
 
@@ -683,6 +741,40 @@ void SafeArray<T>::resize(const LONG size)
 
     resize(bound);
     delete[] bound;
+}
+
+
+/** \brief Reset and clear current array.
+ */
+template <typename T>
+void SafeArray<T>::reset()
+{
+    close();
+    SafeArrayBound bound(0);
+    create(1, &bound);
+    lock();
+}
+
+
+/** \brief Reset SAFEARRAY and own new array.
+ */
+template <typename T>
+void SafeArray<T>::reset(SAFEARRAY &safearray)
+{
+    close();
+    assign(safearray);
+    lock();
+}
+
+
+/** \brief Change dimension bounds size of least significant bound.
+ */
+template <typename T>
+void SafeArray<T>::reset(VARIANT &variant)
+{
+    close();
+    assign(variant);
+    lock();
 }
 
 

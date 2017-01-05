@@ -91,6 +91,9 @@ struct Bstr
     // MODIFIERS
     BSTR copy() const;
     void push_back(const wchar_t c);
+    void reset();
+    void reset(BSTR bstr);
+    void reset(VARIANT &variant);
 
     template <typename... Ts>
     Bstr & operator +=(Ts&&... ts);

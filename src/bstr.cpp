@@ -5,7 +5,8 @@
  *  \brief c++ BSTR wrapper.
  */
 
-#include "autocom.hpp"
+#include "autocom/bstr.hpp"
+#include "autocom/encoding/converters.hpp"
 
 #include <cassert>
 #include <cwchar>
@@ -366,6 +367,37 @@ void Bstr::push_back(const wchar_t c)
     wide.push_back(c);
     clear();
     string = SysAllocStringLen(wide.data(), wide.size());
+}
+
+
+/** \brief Release handle to string.
+ */
+void Bstr::reset()
+{
+    clear();
+}
+
+
+/** \brief Reset BSTR and own new string.
+ */
+void Bstr::reset(BSTR bstr)
+{
+    clear();
+    string = bstr;
+}
+
+
+/** \brief Reset BSTR and own new string from VARIANT.
+ */
+void Bstr::reset(VARIANT &variant)
+{
+    clear();
+    if (variant.vt & (VT_BSTR | VT_BYREF)) {
+        throw std::runtime_error("Cannot take ownership of value by reference");
+    } else if (variant.vt & VT_BSTR) {
+        string = variant.bstrVal;
+        variant.bstrVal = nullptr;
+    }
 }
 
 

@@ -13,9 +13,14 @@
     - Test Get/PutVariant -- DONE
     - Overload SafeArray for get/set -- DONE
     - Finish STL wrapper for SAFEARRAY -- DONE
-
-    - Test Get/PutSafeArray (this needs to be created...)
     - Test SafeArray
+
+    -- Create a SharedObject ptr, which has shared ownership.
+        -- Calls ->Release() as a default deleter...
+
+    -- Check ownership of SAFEARRAYs.
+    -- Need to be able to "take control" of resources via `reset`.
+        -- Can be from VARIANTs, or others...
 
 
     - TODO: need to change everything to have native WinAPI properties as *backups*
@@ -25,11 +30,6 @@
     -- Define open methods
         -- RAII needs to be exception-proof, so define open methods.
 
-    -- TODO: Use Vtbl offsets
-        -- https://stackoverflow.com/questions/9983967/vtables-and-function-pointers-pointing-to-different-addresses
-    -- The static IIDs aren't working...
-        -- Need to be "{...-...-}", not "..._..._"
-
     -- TODO: need to create derived classes from dispatchers
         -- Manage co-initialization
         -- Read description here... 
@@ -37,8 +37,6 @@
         -- Implement IClassFactory and IClassFactory2 
             https://msdn.microsoft.com/en-us/library/windows/desktop/ms694364(v=vs.85).aspx
 
-        -- Need a safearray wrapper and this needs to be tested...
-            http://stackoverflow.com/a/12484259/4131059
         -- Need to test unions... -- DONE
 
 http://thrysoee.dk/InsideCOM+/ch05d.htm

@@ -5,7 +5,8 @@
  *  \brief COM GUID utilities.
  */
 
-#include "autocom.hpp"
+#include "autocom/guid.hpp"
+#include "autocom/encoding/converters.hpp"
 
 
 namespace autocom
@@ -57,11 +58,18 @@ auto TO_LPIID(GUID *guid)
  */
 void Guid::open(const std::string &string)
 {
-    auto wide = WIDE(string);
-    if (!wide.empty() && wide.front() == L'{') {
-        CLSIDFromString(wide.data(), TO_LPCLSID(&id));
+    open(WIDE(string));
+}
+
+
+/** \brief Open GUID from wide-string identifier.
+ */
+void Guid::open(const std::wstring &string)
+{
+    if (!string.empty() && string.front() == L'{') {
+        CLSIDFromString(string.data(), TO_LPCLSID(&id));
     } else {
-        CLSIDFromProgID(wide.data(), TO_LPCLSID(&id));
+        CLSIDFromProgID(string.data(), TO_LPCLSID(&id));
     }
 }
 
@@ -98,9 +106,42 @@ Guid::Guid(const std::string &string)
 }
 
 
+/** \brief Initializer from wide C-string.
+ */
+Guid::Guid(const wchar_t *cstring)
+{
+    open(std::wstring(cstring));
+}
+
+
+/** \brief Initializer from character array.
+ */
+Guid::Guid(const wchar_t *array,
+    const size_t length)
+{
+    open(std::wstring(array, length));
+}
+
+
+/** \brief Initializer from wide string identifier.
+ */
+Guid::Guid(const std::wstring &string)
+{
+    open(string);
+}
+
+
 /** \brief Construct Guid from progid.
  */
 Guid Guid::fromProgid(const std::string &string)
+{
+    return Guid(string);
+}
+
+
+/** \brief Construct Guid from progid.
+ */
+Guid Guid::fromProgid(const std::wstring &string)
 {
     return Guid(string);
 }
@@ -131,6 +172,14 @@ Guid Guid::fromClsid(const std::string &string)
 }
 
 
+/** \brief Construct Guid from clsid.
+ */
+Guid Guid::fromClsid(const std::wstring &string)
+{
+    return Guid(string);
+}
+
+
 /** \brief Get clsid from Guid.
  */
 std::string Guid::toClsid()
@@ -152,9 +201,16 @@ std::string Guid::toClsid()
  */
 Guid Guid::fromIid(const std::string &string)
 {
+    return fromIid(WIDE(string));
+}
+
+
+/** \brief Construct Guid from IID.
+ */
+Guid Guid::fromIid(const std::wstring &string)
+{
     Guid guid;
-    auto wide = WIDE(string);
-    IIDFromString(wide.data(), TO_LPIID(&guid.id));
+    IIDFromString(string.data(), TO_LPIID(&guid.id));
 
     return guid;
 }

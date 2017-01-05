@@ -5,7 +5,9 @@
  *  \brief C++ handle around ITypeInfo.
  */
 
-#include "autocom.hpp"
+#include "autocom/bstr.hpp"
+#include "autocom/com.hpp"
+#include "autocom/typeinfo.hpp"
 
 #include <cassert>
 
@@ -169,11 +171,7 @@ TypeInfo::TypeInfo(ITypeInfo *info)
  */
 void TypeInfo::open(ITypeInfo *info)
 {
-    if (info) {
-        ppv.reset(info, destroy<ITypeInfo>);
-    } else {
-        ppv.reset();
-    }
+    ppv.reset(info);
 }
 
 
@@ -272,6 +270,14 @@ DllEntry TypeInfo::entry(const MEMBERID id,
 }
 
 
+/** \brief Get documentation from TypeInfo.
+ */
+Documentation TypeInfo::GetDocumentation(const MEMBERID id) const
+{
+    return documentation(id);
+}
+
+
 /** \brief Equality operator.
  */
 bool operator==(const TypeLib &left,
@@ -302,11 +308,7 @@ TypeLib::TypeLib(ITypeLib *tlib)
  */
 void TypeLib::open(ITypeLib *tlib)
 {
-    if (tlib) {
-        ppv.reset(tlib, destroy<ITypeLib>);
-    } else {
-        ppv.reset();
-    }
+    ppv.reset(tlib);
 }
 
 
@@ -339,6 +341,30 @@ UINT TypeLib::count() const
 TypeInfo TypeLib::info(const UINT index) const
 {
     return TypeInfo(newTypeInfo(ppv.get(), index));
+}
+
+
+/** \brief Get documentation from TypeLib.
+ */
+Documentation TypeLib::GetDocumentation(const INT index) const
+{
+    return documentation(index);
+}
+
+
+/** \brief Get number of type-descriptions in library.
+ */
+UINT TypeLib::GetTypeInfoCount() const
+{
+    return count();
+}
+
+
+/** \brief Get type info for member at index.
+ */
+TypeInfo TypeLib::GetTypeInfo(const UINT index) const
+{
+    return info(index);
 }
 
 
@@ -502,6 +528,118 @@ IdlDesc TypeAttr::idl() const
 }
 
 
+/** \brief Get MEMBERID of constructor from TYPEATTR.
+ */
+MEMBERID TypeAttr::memidConstructor() const
+{
+    return constructor();
+}
+
+
+/** \brief Get MEMBERID of destructor from TYPEATTR.
+ */
+MEMBERID TypeAttr::memidDestructor() const
+{
+    return destructor();
+}
+
+
+/** \brief Get size of type instance from TYPEATTR.
+ */
+ULONG TypeAttr::cbSizeInstance() const
+{
+    return size();
+}
+
+
+/** \brief Get type kind from TYPEATTR.
+ */
+TYPEKIND TypeAttr::typekind() const
+{
+    return kind();
+}
+
+
+/** \brief Get member function count from TYPEATTR.
+ */
+WORD TypeAttr::cFuncs() const
+{
+    return functions();
+}
+
+
+/** \brief Get member variable count from TYPEATTR.
+ */
+WORD TypeAttr::cVars() const
+{
+    return variables();
+}
+
+
+/** \brief Get interface count from TYPEATTR.
+ */
+WORD TypeAttr::cImplTypes() const
+{
+    return interfaces();
+}
+
+
+/** \brief Get size of virtual table from TYPEATTR.
+ */
+WORD TypeAttr::cbSizeVft() const
+{
+    return vtblSize();
+}
+
+
+/** \brief Get byte alignment from TYPEATTR.
+ */
+WORD TypeAttr::cbAlignment() const
+{
+    return alignment();
+}
+
+
+/** \brief Get type flags from TYPEATTR.
+ */
+WORD TypeAttr::wTypeFlags() const
+{
+    return flags();
+}
+
+
+/** \brief Get major version number from TYPEATTR.
+ */
+WORD TypeAttr::wMajorVerNum() const
+{
+    return major();
+}
+
+
+/** \brief Get minor version number from TYPEATTR.
+ */
+WORD TypeAttr::wMinorVerNum() const
+{
+    return minor();
+}
+
+
+/** \brief Get description of alias if kind() is TKIND_ALIAS.
+ */
+TypeDesc TypeAttr::tdescAlias() const
+{
+    return alias();
+}
+
+
+/** \brief Get IDL attributes of type.
+ */
+IdlDesc TypeAttr::idldescType() const
+{
+    return idl();
+}
+
+
 /** \brief Construct TLIBATTR from ITypeLib.
  */
 TypeLibAttr::TypeLibAttr(const ITypeLibPtr &tlib)
@@ -582,6 +720,30 @@ WORD TypeLibAttr::flags() const
 }
 
 
+/** \brief Get major version number from TLIBATTR.
+ */
+WORD TypeLibAttr::wMajorVerNum() const
+{
+    return major();
+}
+
+
+/** \brief Get minor version number from TLIBATTR.
+ */
+WORD TypeLibAttr::wMinorVerNum() const
+{
+    return minor();
+}
+
+
+/** \brief Get library flags from TLIBATTR.
+ */
+WORD TypeLibAttr::wLibFlags() const
+{
+    return flags();
+}
+
+
 /** \brief Open VARDESC from ITypeInfo.
  */
 VarDesc::VarDesc(const ITypeInfoPtr &info,
@@ -653,6 +815,46 @@ WORD VarDesc::flags() const
 VARKIND VarDesc::kind() const
 {
     return desc->varkind;
+}
+
+
+/** \brief Variable member ID.
+ */
+MEMBERID VarDesc::memid() const
+{
+    return id();
+}
+
+
+/** \brief Description of variable.
+ */
+ElemDesc VarDesc::elemdescVar() const
+{
+    return element();
+}
+
+
+/** \brief Reference to VARIANT (not null only if kind() is VAR_CONST).
+ */
+const VARIANT & VarDesc::lpvarValue() const
+{
+    return variant();
+}
+
+
+/** \brief Variable flags.
+ */
+WORD VarDesc::wVarFlags() const
+{
+    return flags();
+}
+
+
+/** \brief Variable kind.
+ */
+VARKIND VarDesc::varkind() const
+{
+    return kind();
 }
 
 
@@ -777,6 +979,94 @@ WORD FuncDesc::flags() const
 }
 
 
+/** \brief Function member ID.
+ */
+MEMBERID FuncDesc::memid() const
+{
+    return id();
+}
+
+
+/** \brief Function kind (static, virtual, dispatch-only).
+ */
+FUNCKIND FuncDesc::funckind() const
+{
+    return kind();
+}
+
+
+/** \brief Invocation type (propertyget, propertyput, function).
+ */
+INVOKEKIND FuncDesc::invkind() const
+{
+    return invocation();
+}
+
+
+/** \brief Function decoration (__fastcall, etc.).
+ */
+CALLCONV FuncDesc::callconv() const
+{
+    return decoration();
+}
+
+
+/** \brief Element description for function argument at index.
+ */
+ElemDesc FuncDesc::lprgelemdescParam(const SHORT index) const
+{
+    return arg(index);
+}
+
+
+/** \brief Get argument count.
+ */
+SHORT FuncDesc::cParams() const
+{
+    return args();
+}
+
+
+/** \brief Get optional argument count.
+ */
+SHORT FuncDesc::cParamsOpt() const
+{
+    return optional();
+}
+
+
+/** \brief Get offset for virtual function in vtable.
+ */
+SHORT FuncDesc::oVft() const
+{
+    return offset();
+}
+
+
+/** \brief Eelment description of return type.
+ */
+ElemDesc FuncDesc::elemdescFunc() const
+{
+    return returnType();
+}
+
+
+/** \brief Number of possible return values.
+ */
+SHORT FuncDesc::cScodes() const
+{
+    return returnCount();
+}
+
+
+/** \brief Function flags.
+ */
+WORD FuncDesc::wFuncFlags() const
+{
+    return flags();
+}
+
+
 /** \brief Initialize from copied typedesc.
  */
 TypeDesc::TypeDesc(const TYPEDESC &desc):
@@ -826,6 +1116,30 @@ ArrayDesc TypeDesc::array() const
 }
 
 
+/** \brief Get description for pointer type.
+ */
+TypeDesc TypeDesc::lptdesc() const
+{
+    return pointer();
+}
+
+
+/** \brief Get reference for type info.
+ */
+HREFTYPE TypeDesc::hreftype() const
+{
+    return reference();
+}
+
+
+/** \brief Get description for array type.
+ */
+ArrayDesc TypeDesc::lpadesc() const
+{
+    return array();
+}
+
+
 /** \brief Initialize from copied arraydesc.
  */
 ArrayDesc::ArrayDesc(const ARRAYDESC &desc):
@@ -861,6 +1175,30 @@ USHORT ArrayDesc::count() const
 SafeArrayBound ArrayDesc::bound(const USHORT index) const
 {
     return SafeArrayBound(desc.rgbounds[index]);
+}
+
+
+/** \brief Get type description.
+ */
+TypeDesc ArrayDesc::tdescElem() const
+{
+    return type();
+}
+
+
+/** \brief Get number of array dimensions.
+ */
+USHORT ArrayDesc::cDims() const
+{
+    return count();
+}
+
+
+/** \brief Get dimension at index.
+ */
+SafeArrayBound ArrayDesc::rgbounds(const USHORT index) const
+{
+    return bound(index);
 }
 
 
@@ -916,6 +1254,30 @@ ParamDesc ElemDesc::param() const
 }
 
 
+/** \brief Get type description.
+ */
+TypeDesc ElemDesc::tdesc() const
+{
+    return type();
+}
+
+
+/** \brief Get IDL description.
+ */
+IdlDesc ElemDesc::idldesc() const
+{
+    return idl();
+}
+
+
+/** \brief Get param description.
+ */
+ParamDesc ElemDesc::paramdesc() const
+{
+    return param();
+}
+
+
 /** \brief Initialize from copied paramdesc.
  */
 ParamDesc::ParamDesc(const PARAMDESC &desc):
@@ -953,6 +1315,30 @@ VARIANTARG ParamDesc::value() const
 USHORT ParamDesc::flags() const
 {
     return desc.wParamFlags;
+}
+
+
+/** \brief Get size of default parameter.
+ */
+ULONG ParamDesc::cBytes() const
+{
+    return size();
+}
+
+
+/** \brief Get value of default parameter.
+ */
+VARIANTARG ParamDesc::varDefaultValue() const
+{
+    return value();
+}
+
+
+/** \brief Get flags for parameter.
+ */
+USHORT ParamDesc::wParamFlags() const
+{
+    return flags();
 }
 
 }   /* autocom */

@@ -53,4 +53,23 @@ public:
 };
 
 
+/** \brief Wraps a general COM type error.
+ */
+class ComTypeError: public std::exception
+{
+protected:
+    std::string message;
+
+    virtual const char *what() const throw()
+    {
+        return message.data();
+    }
+
+public:
+    ComTypeError(const std::string &expected,
+        const std::string &actual,
+        const std::string &op);
+};
+
+
 }   /* autocom */

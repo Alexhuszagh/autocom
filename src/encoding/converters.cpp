@@ -5,7 +5,8 @@
  *  \brief Character set conversion utilities.
  */
 
-#include "autocom.hpp"
+#include "autocom/encoding/converters.hpp"
+#include "autocom/encoding/unicode.hpp"
 
 
 namespace autocom

@@ -7,7 +7,7 @@
  *  aliases, for use with dispparams.
  */
 
-#include "autocom.hpp"
+#include "autocom/util/type.hpp"
 
 
 namespace autocom

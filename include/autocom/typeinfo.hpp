@@ -9,10 +9,9 @@
 
 #include "guid.hpp"
 #include "safearray.hpp"
+#include "util/shared_ptr.hpp"
 
 #include <oaidl.h>
-
-#include <memory>
 
 
 namespace autocom
@@ -37,8 +36,8 @@ class ParamDesc;
 // TYPES
 // -----
 
-typedef std::shared_ptr<ITypeInfo> ITypeInfoPtr;
-typedef std::shared_ptr<ITypeLib> ITypeLibPtr;
+typedef itl::shared_ptr<ITypeInfo> ITypeInfoPtr;
+typedef itl::shared_ptr<ITypeLib> ITypeLibPtr;
 typedef std::shared_ptr<TYPEATTR> TYPEATTRPtr;
 typedef std::shared_ptr<TLIBATTR> TLIBATTRPtr;
 typedef std::shared_ptr<VARDESC> VARDESCPtr;
@@ -107,6 +106,7 @@ public:
         const INVOKEKIND invocation) const;
 
     // WINAPI
+    Documentation GetDocumentation(const MEMBERID id) const;
 };
 
 
@@ -139,7 +139,9 @@ public:
     TypeInfo info(const UINT index) const;
 
     // WINAPI
-
+    Documentation GetDocumentation(const INT index) const;
+    UINT GetTypeInfoCount() const;
+    TypeInfo GetTypeInfo(const UINT index) const;
 };
 
 
@@ -181,6 +183,22 @@ public:
     IdlDesc idl() const;
 
     // WINAPI
+    //Guid guid() const;
+    //LCID lcid() const;
+    MEMBERID memidConstructor() const;
+    MEMBERID memidDestructor() const;
+    ULONG cbSizeInstance() const;
+    TYPEKIND typekind() const;
+    WORD cFuncs() const;
+    WORD cVars() const;
+    WORD cImplTypes() const;
+    WORD cbSizeVft() const;
+    WORD cbAlignment() const;
+    WORD wTypeFlags() const;
+    WORD wMajorVerNum() const;
+    WORD wMinorVerNum() const;
+    TypeDesc tdescAlias() const;
+    IdlDesc idldescType() const;
 };
 
 
@@ -212,6 +230,12 @@ public:
     WORD flags() const;
 
     // WINAPI
+    //Guid guid() const;
+    //LCID lcid() const;
+    //SYSKIND syskind() const;
+    WORD wMajorVerNum() const;
+    WORD wMinorVerNum() const;
+    WORD wLibFlags() const;
 };
 
 
@@ -286,6 +310,11 @@ public:
     VARKIND kind() const;
 
     // WINAPI
+    MEMBERID memid() const;
+    ElemDesc elemdescVar() const;
+    const VARIANT & lpvarValue() const;
+    WORD wVarFlags() const;
+    VARKIND varkind() const;
 };
 
 
@@ -324,6 +353,17 @@ public:
     WORD flags() const;
 
     // WINAPI
+    MEMBERID memid() const;
+    FUNCKIND funckind() const;
+    INVOKEKIND invkind() const;
+    CALLCONV callconv() const;
+    ElemDesc lprgelemdescParam(const SHORT index) const;
+    SHORT cParams() const;
+    SHORT cParamsOpt() const;
+    SHORT oVft() const;
+    ElemDesc elemdescFunc() const;
+    SHORT cScodes() const;
+    WORD wFuncFlags() const;
 };
 
 
@@ -351,6 +391,10 @@ public:
     HREFTYPE reference() const;
 
     // WINAPI
+    // VARTYPE vt() const;
+    TypeDesc lptdesc() const;
+    HREFTYPE hreftype() const;
+    ArrayDesc lpadesc() const;
 };
 
 
@@ -377,6 +421,9 @@ public:
     SafeArrayBound bound(const USHORT index) const;
 
     // WINAPI
+    TypeDesc tdescElem() const;
+    USHORT cDims() const;
+    SafeArrayBound rgbounds(const USHORT index) const;
 };
 
 
@@ -424,6 +471,9 @@ public:
     ParamDesc param() const;
 
     // WINAPI
+    TypeDesc tdesc() const;
+    IdlDesc idldesc() const;
+    ParamDesc paramdesc() const;
 };
 
 
@@ -450,6 +500,9 @@ public:
     USHORT flags() const;
 
     // WINAPI
+    ULONG cBytes() const;
+    VARIANTARG varDefaultValue() const;
+    USHORT wParamFlags() const;
 };
 
 

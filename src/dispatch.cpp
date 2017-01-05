@@ -5,7 +5,7 @@
  *  \brief C++ handle around IDispatch.
  */
 
-#include "autocom.hpp"
+#include "autocom/dispatch.hpp"
 
 
 namespace autocom
@@ -85,7 +85,7 @@ void Dispatch::open(const Guid &guid,
     if (FAILED(CoCreateInstance(guid.id, outter, context, IID_IDispatch, (void **) &dispatch))) {
         throw ComFunctionError("CoCreateInstance()");
     }
-    DispatchBase::ppv.reset(dispatch, destroy<IDispatch>);
+    DispatchBase::ppv.reset(dispatch);
 }
 
 

@@ -8,6 +8,8 @@
 #pragma once
 
 #include "variant.hpp"
+#include "util/define.hpp"
+#include "util/enum.hpp"
 
 
 namespace autocom

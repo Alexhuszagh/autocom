@@ -9,9 +9,7 @@
 
 #include "dispparams.hpp"
 #include "enum.hpp"
-#include "guid.hpp"
 #include "typeinfo.hpp"
-#include "util.hpp"
 
 
 namespace autocom

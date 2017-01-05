@@ -5,7 +5,7 @@
  *  \brief COM SafeArray wrapper.
  */
 
-#include "autocom.hpp"
+#include "autocom/safearray.hpp"
 
 
 namespace autocom
