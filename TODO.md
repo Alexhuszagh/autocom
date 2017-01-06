@@ -13,17 +13,8 @@
     - Test Get/PutVariant -- DONE
     - Overload SafeArray for get/set -- DONE
     - Finish STL wrapper for SAFEARRAY -- DONE
-    - Test SafeArray
-
-    -- Create a SharedObject ptr, which has shared ownership.
-        -- Calls ->Release() as a default deleter...
-
-    -- Check ownership of SAFEARRAYs.
-    -- Need to be able to "take control" of resources via `reset`.
-        -- Can be from VARIANTs, or others...
-
-
-    - TODO: need to change everything to have native WinAPI properties as *backups*
+    - Test SafeArray -- DONE
+    - TODO: need to change everything to have native WinAPI properties as *backups* -- DONE
 
 
 ## TODO

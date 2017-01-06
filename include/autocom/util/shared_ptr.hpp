@@ -21,7 +21,9 @@ namespace autocom
 template <typename T>
 void release(T *t)
 {
-    t->Release();
+    if (t) {
+        t->Release();
+    }
 }
 
 // OBJECTS

@@ -24,6 +24,15 @@ namespace autocom
 
 struct Variant;
 
+// SFINAE
+// ------
+
+template <typename T>
+using IsVariant = std::is_convertible<T&, VARIANT&>;
+
+template <typename T>
+constexpr bool IsVariantV = IsVariant<T>::value;
+
 // FUNCTIONS
 // ---------
 
@@ -409,10 +418,40 @@ void get(VARIANT &variant,
 void get(VARIANT &variant,
     GetBstrPtr value);
 
+/** \brief Get VARIANT pointer.
+ */
+void get(VARIANT &variant,
+    VARIANT *&value);
+
 /** \brief Get Variant value pointer in owning-wrapper.
  */
 void get(VARIANT &variant,
     Variant *&value);
+
+/** \brief Get VARIANT pointer in wrapper.
+ */
+void get(VARIANT &variant,
+    GetVariant value);
+
+/** \brief Get IUnknown by value.
+ */
+void get(VARIANT &variant,
+    IUnknown *&value);
+
+/** \brief Get IUnknown by value in wrapper.
+ */
+void get(VARIANT &variant,
+    GetIUnknown value);
+
+/** \brief Get IDispatch by value.
+ */
+void get(VARIANT &variant,
+    IDispatch *&value);
+
+/** \brief Get IDispatch by value in wrapper.
+ */
+void get(VARIANT &variant,
+    GetIDispatch value);
 
 /** \brief Get SAFEARRAY pointer.
  */
@@ -475,9 +514,8 @@ AUTOCOM_GETTER(DOUBLE);
 AUTOCOM_GETTER(LONGLONG);
 AUTOCOM_GETTER(ULONGLONG);
 AUTOCOM_GETTER(CURRENCY);
-AUTOCOM_GETTER(IUnknown*);
-AUTOCOM_GETTER(IDispatch*);
-AUTOCOM_VALUE_GETTER(VARIANT*);
+AUTOCOM_POINTER_GETTER(IUnknown*);
+AUTOCOM_POINTER_GETTER(IDispatch*);
 AUTOCOM_POINTER_GETTER(DECIMAL);
 
 // SAFE
@@ -497,9 +535,8 @@ AUTOCOM_SAFE_GETTER(Double);
 AUTOCOM_SAFE_GETTER(Currency);
 AUTOCOM_SAFE_GETTER(Error);
 AUTOCOM_SAFE_GETTER(Date);
-AUTOCOM_SAFE_GETTER(IUnknown);
-AUTOCOM_SAFE_GETTER(IDispatch);
-AUTOCOM_SAFE_VALUE_GETTER(Variant);
+AUTOCOM_SAFE_POINTER_GETTER(IUnknown);
+AUTOCOM_SAFE_POINTER_GETTER(IDispatch);
 AUTOCOM_SAFE_POINTER_GETTER(Decimal);
 
 // CLEANUP -- GETTERS
@@ -526,14 +563,26 @@ struct Variant: public VARIANT
     Variant();
     ~Variant();
 
+    Variant(const Variant &other);
+    Variant & operator=(const Variant &other);
+    Variant(Variant &&other);
+    Variant & operator=(Variant &&other);
+
+    template <typename T>
+    Variant(T &&t,
+        typename std::enable_if<!IsVariantV<T>>::type* = 0);
+
     // MODIFIERS
     void init();
     void clear();
     bool changeType(const VARTYPE vt);
-    // TODO: need reset();
+    void reset();
 
     template <typename T>
     void set(T &&t);
+
+    template <typename T>
+    void reset(T &&t);
 
     template <typename T>
     void get(T &&t);
@@ -549,12 +598,32 @@ static_assert(sizeof(Variant) == sizeof(VARIANT), "sizeof(Variant) != sizeof(VAR
 // --------------
 
 
+/** \brief Initalize and set variant value.
+ */
+template <typename T>
+Variant::Variant(T &&t,
+    typename std::enable_if<!IsVariantV<T>>::type*)
+{
+    set(AUTOCOM_FWD(t));
+}
+
+
 /** \brief Set value in variant.
  */
 template <typename T>
 void Variant::set(T &&t)
 {
     autocom::set(*this, AUTOCOM_FWD(t));
+}
+
+
+/** \brief Reset variant and set value.
+ */
+template <typename T>
+void Variant::reset(T &&t)
+{
+    clear();
+    set(AUTOCOM_FWD(t));
 }
 
 

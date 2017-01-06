@@ -22,30 +22,70 @@ const DispatchFlags PUTREF = DispatchFlags::PUTREF;
 // -------
 
 
+/** \brief Reset DISPPARAMS.
+ */
+void DispParams::reset(const bool useNamed)
+{
+    dp.cArgs = vargs.size();
+    if (vargs.size()) {
+        dp.rgvarg = const_cast<Variant*>(vargs.data());
+    }
+
+    if (useNamed) {
+        dp.cNamedArgs = 1;
+        dp.rgdispidNamedArgs = &named;
+    } else {
+        dp.cNamedArgs = 0;
+        dp.rgdispidNamedArgs = nullptr;
+    }
+}
+
+
 /** \brief Null constructor.
  */
 DispParams::DispParams()
 {
-    dp.cArgs = 0;
-    dp.rgdispidNamedArgs = nullptr;
-    dp.cNamedArgs = 0;
+    reset(false);
 }
 
 
 /** \brief Copy constructor.
  */
 DispParams::DispParams(const DispParams &other):
-    vargs(other.vargs),
-    named(other.named)
+    vargs(other.vargs)
 {
-    dp.cArgs = vargs.size();
-    dp.rgvarg = const_cast<Variant*>(vargs.data());
-    dp.cNamedArgs = other.dp.cNamedArgs;
-    if (other.dp.rgdispidNamedArgs) {
-        dp.rgdispidNamedArgs = &named;
-    } else {
-        dp.rgdispidNamedArgs = nullptr;
-    }
+    reset(other.dp.rgdispidNamedArgs);
+}
+
+
+/** \brief Copy assignment operator.
+ */
+DispParams & DispParams::operator=(const DispParams &other)
+{
+    vargs = other.vargs;
+    reset(other.dp.rgdispidNamedArgs);
+
+    return *this;
+}
+
+
+/** \brief Move constructor.
+ */
+DispParams::DispParams(DispParams &&other):
+    vargs(std::move(other.vargs))
+{
+    reset(std::move(other.dp.rgdispidNamedArgs));
+}
+
+
+/** \brief Move assignment operator.
+ */
+DispParams & DispParams::operator=(DispParams &&other)
+{
+    vargs = std::move(other.vargs);
+    reset(std::move(other.dp.rgdispidNamedArgs));
+
+    return *this;
 }
 
 

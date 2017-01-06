@@ -519,6 +519,17 @@ void get(VARIANT &variant,
 }
 
 
+/** \brief Get VARIANT pointer.
+ */
+void get(VARIANT &variant,
+    VARIANT *&value)
+{
+    AUTOCOM_CONVERT_TYPE(variant, VariantType<VARIANT*>::vt)
+    value = variant.pvarVal;
+    variant.pvarVal = nullptr;
+}
+
+
 /** \brief Get Variant value pointer in owning-wrapper.
  *
  *  This is **DEFINED** behavior in C++11 and above with the definition
@@ -533,6 +544,56 @@ void get(VARIANT &variant,
 
     AUTOCOM_CONVERT_TYPE(variant, VariantType<Variant*>::vt)
     value = reinterpret_cast<Variant*>(variant.pvarVal);
+    variant.pvarVal = nullptr;
+}
+
+
+/** \brief Get VARIANT pointer in wrapper.
+ */
+void get(VARIANT &variant,
+    GetVariant value)
+{
+    get(variant, typename GetVariant::type(value));
+}
+
+
+/** \brief Get IUnknown by value.
+ */
+void get(VARIANT &variant,
+    IUnknown *&value)
+{
+    AUTOCOM_CONVERT_TYPE(variant, VariantType<IUnknown*>::vt)
+    value = variant.punkVal;
+    variant.punkVal = nullptr;
+}
+
+
+/** \brief Get IUnknown by value in wrapper.
+ */
+void get(VARIANT &variant,
+    GetIUnknown value)
+{
+    get(variant, typename GetIUnknown::type(value));
+}
+
+
+/** \brief Get IDispatch by value.
+ */
+void get(VARIANT &variant,
+    IDispatch *&value)
+{
+    AUTOCOM_CONVERT_TYPE(variant, VariantType<IDispatch*>::vt)
+    value = variant.pdispVal;
+    variant.pdispVal = nullptr;
+}
+
+
+/** \brief Get IDispatch by value in wrapper.
+ */
+void get(VARIANT &variant,
+    GetIDispatch value)
+{
+    get(variant, typename GetIDispatch::type(value));
 }
 
 
@@ -591,10 +652,9 @@ AUTOCOM_GETTER(FLOAT, fltVal)
 AUTOCOM_GETTER(DOUBLE, dblVal)
 AUTOCOM_GETTER(LONGLONG, llVal)
 AUTOCOM_GETTER(ULONGLONG, ullVal)
+AUTOCOM_POINTER_GETTER(IUnknown*, punkVal)
+AUTOCOM_POINTER_GETTER(IDispatch*, pdispVal)
 AUTOCOM_GETTER(CURRENCY, cyVal)
-AUTOCOM_GETTER(IUnknown*, punkVal)
-AUTOCOM_GETTER(IDispatch*, pdispVal)
-AUTOCOM_VALUE_GETTER(VARIANT*, pvarVal)
 AUTOCOM_POINTER_GETTER(DECIMAL, decVal)
 
 // SAFE
@@ -614,9 +674,8 @@ AUTOCOM_SAFE_GETTER(Double, dblVal)
 AUTOCOM_SAFE_GETTER(Currency, cyVal)
 AUTOCOM_SAFE_GETTER(Error, scode)
 AUTOCOM_SAFE_GETTER(Date, date)
-AUTOCOM_SAFE_GETTER(IUnknown, punkVal)
-AUTOCOM_SAFE_GETTER(IDispatch, pdispVal)
-AUTOCOM_SAFE_VALUE_GETTER(Variant, pvarVal)
+AUTOCOM_SAFE_POINTER_GETTER(IUnknown, punkVal)
+AUTOCOM_SAFE_POINTER_GETTER(IDispatch, pdispVal)
 AUTOCOM_SAFE_POINTER_GETTER(Decimal, decVal)
 
 // CLEANUP -- GETTERS
@@ -652,6 +711,43 @@ Variant::~Variant()
 }
 
 
+/** \brief Copy constructor.
+ */
+Variant::Variant(const Variant &other)
+{
+    VariantCopy(this, const_cast<Variant*>(&other));
+}
+
+
+/** \brief Copy assignment operator.
+ */
+Variant & Variant::operator=(const Variant &other)
+{
+    VariantCopy(this, const_cast<Variant*>(&other));
+    return *this;
+}
+
+
+/** \brief Move constructor.
+ */
+Variant::Variant(Variant &&other):
+    VARIANT(static_cast<VARIANT&&>(other))
+{
+    other.vt = VT_EMPTY;
+}
+
+
+/** \brief Move assignment operator.
+ */
+Variant & Variant::operator=(Variant &&other)
+{
+    VARIANT::operator=(static_cast<VARIANT&&>(other));
+    other.vt = VT_EMPTY;
+    return *this;
+}
+
+
+
 /** \brief Initialize variant.
  */
 void Variant::init()
@@ -673,6 +769,14 @@ void Variant::clear()
 bool Variant::changeType(const VARTYPE vt)
 {
     return changeVariantType(*this, vt);
+}
+
+
+/** \brief Reset variant with no value.
+ */
+void Variant::reset()
+{
+    clear();
 }
 
 }   /* autocom */

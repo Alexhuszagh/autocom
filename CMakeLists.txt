@@ -93,8 +93,10 @@ endif()
 
 set(AUTOCOM_EXAMPLE_SOURCES
     example/regexp.cpp
+    example/script.cpp
     example/thermo.cpp
     example/vtable.cpp
+    example/wsh.cpp
 )
 
 if (BUILD_EXAMPLES)

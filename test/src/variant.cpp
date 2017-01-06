@@ -97,6 +97,9 @@ TEST(Variant, Variant)
     // clear
     variant.clear();
     EXPECT_EQ(variant.vt, VT_EMPTY);
+
+    variant = com::Variant(LONG(1));
+    EXPECT_EQ(variant.vt, VT_I4);
 }
 
 
@@ -248,6 +251,7 @@ TEST(Variant, GetWrapperVariant)
     var.vt = VT_INT;
     variant.set(&var);
     variant.get(pvar);
+    variant.set(&var);      // null reset, owned, so must "restore"
     variant.get(com::GetVariant(ptrvar));
     EXPECT_EQ(pvar->vt, VT_INT);
     EXPECT_EQ(ptrvar->vt, VT_INT);

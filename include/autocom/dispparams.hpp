@@ -8,7 +8,6 @@
 #pragma once
 
 #include "variant.hpp"
-#include "util/define.hpp"
 #include "util/enum.hpp"
 
 
@@ -37,6 +36,20 @@ extern const DispatchFlags GET;
 extern const DispatchFlags METHOD;
 extern const DispatchFlags PUT;
 extern const DispatchFlags PUTREF;
+
+// FORWARD
+// -------
+
+class DispParams;
+
+// SFINAE
+// ------
+
+template <typename T>
+using IsDispParams = std::is_convertible<T&, DispParams&>;
+
+template <typename T>
+constexpr bool IsDispParamsV = IsDispParams<T>::value;
 
 // FOWARDERS
 // ---------
@@ -94,9 +107,14 @@ protected:
     VariantList vargs;
     DISPID named = DISPID_PROPERTYPUT;
 
+    void reset(const bool useNamed);
+
 public:
     DispParams();
     DispParams(const DispParams &other);
+    DispParams & operator=(const DispParams &other);
+    DispParams(DispParams &&other);
+    DispParams & operator=(DispParams &&other);
 
     ~DispParams();
 

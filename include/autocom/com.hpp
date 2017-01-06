@@ -9,6 +9,7 @@
 
 #include "dispparams.hpp"
 #include "util/define.hpp"
+#include "util/exception.hpp"
 #include "util/shared_ptr.hpp"
 
 #include <initguid.h>
@@ -23,6 +24,7 @@ namespace autocom
 typedef MEMBERID Function;
 typedef std::string Name;
 typedef std::wstring WName;
+typedef std::pair<Variant, bool> MethodResult;
 
 // FUNCTIONS
 // ---------
@@ -116,6 +118,18 @@ protected:
         const WName &name,
         Ts&&... ts);
 
+    template <typename... Ts>
+    MethodResult get_(Ts&&... ts);
+
+    template <typename... Ts>
+    MethodResult put_(Ts&&... ts);
+
+    template <typename... Ts>
+    MethodResult putref_(Ts&&... ts);
+
+    template <typename... Ts>
+    MethodResult method_(Ts&&... ts);
+
     friend bool operator==(const DispatchBase &left,
         const DispatchBase &right);
     friend bool operator!=(const DispatchBase &left,
@@ -133,6 +147,7 @@ public:
     void open(IDispatch *dispatch);
     void reset();
 
+    // INTERNAL VARIANT
     template <typename... Ts>
     bool get(Ts&&... ts);
 
@@ -144,6 +159,19 @@ public:
 
     template <typename... Ts>
     bool method(Ts&&... ts);
+
+    // CUSTOM VARIANT
+    template <typename... Ts>
+    Variant getV(Ts&&... ts);
+
+    template <typename... Ts>
+    Variant putV(Ts&&... ts);
+
+    template <typename... Ts>
+    Variant putrefV(Ts&&... ts);
+
+    template <typename... Ts>
+    Variant methodV(Ts&&... ts);
 
     explicit operator bool() const;
 };
@@ -165,6 +193,9 @@ bool DispatchBase::invoke(DispatchFlags flags,
     dp.setArgs(AUTOCOM_FWD(ts)...);
     dp.setFlags(flags);
 
+    //auto hr = (ppv->Invoke(id, IID_NULL, LOCALE_USER_DEFAULT, FROM_ENUM(flags), dp.params(), result, nullptr, nullptr));
+    //printf("HR is %d\n", hr);
+    //return SUCCEEDED(hr);
     return SUCCEEDED(ppv->Invoke(id, IID_NULL, LOCALE_USER_DEFAULT, FROM_ENUM(flags), dp.params(), result, nullptr, nullptr));
 }
 
@@ -193,56 +224,147 @@ bool DispatchBase::invoke(DispatchFlags flags,
 }
 
 
-/** \brief Call get with function ID.
+template <typename... Ts>
+MethodResult DispatchBase::get_(Ts&&... ts)
+{
+    static_assert(sizeof...(Ts) == 2, "Must provide function and reference");
+
+    Variant result;
+    if (invoke(GET, &result, packGet<0>(AUTOCOM_FWD(ts)...))) {
+        autocom::get(result, packGet<1>(AUTOCOM_FWD(ts)...));
+        return std::make_pair(result, true);
+    }
+
+    return std::make_pair(result, false);
+}
+
+
+template <typename... Ts>
+MethodResult DispatchBase::put_(Ts&&... ts)
+{
+    static_assert(sizeof...(Ts) >= 1, "Must provide function identifier");
+
+    Variant result;
+    auto status = invoke(PUT, &result, AUTOCOM_FWD(ts)...);
+
+    return std::make_pair(result, status);
+}
+
+
+template <typename... Ts>
+MethodResult DispatchBase::putref_(Ts&&... ts)
+{
+    static_assert(sizeof...(Ts) >= 1, "Must provide function identifier");
+
+    Variant result;
+    auto status = invoke(PUTREF, &result, AUTOCOM_FWD(ts)...);
+
+    return std::make_pair(result, status);
+}
+
+
+template <typename... Ts>
+MethodResult DispatchBase::method_(Ts&&... ts)
+{
+    static_assert(sizeof...(Ts) >= 1, "Must provide function identifier");
+
+    Variant result;
+    auto status = invoke(METHOD, &result, AUTOCOM_FWD(ts)...);
+
+    return std::make_pair(result, status);
+}
+
+
+/** \brief Call get with return status.
  */
 template <typename... Ts>
 bool DispatchBase::get(Ts&&... ts)
 {
-    static_assert(sizeof...(Ts) == 2, "Must provide function and reference");
-
-    VARIANT result;
-    if (invoke(GET, &result, packGet<0>(AUTOCOM_FWD(ts)...))) {
-        autocom::get(result, packGet<1>(AUTOCOM_FWD(ts)...));
-        return true;
-    }
-
-    return false;
+    return get_(AUTOCOM_FWD(ts)...).second;
 }
 
 
-/** \brief Call put.
+/** \brief Call put with return status.
  */
 template <typename... Ts>
 bool DispatchBase::put(Ts&&... ts)
 {
-    static_assert(sizeof...(Ts) >= 1, "Must provide function identifier");
-
-    Variant result;
-    return invoke(PUT, &result, AUTOCOM_FWD(ts)...);
+    return put_(AUTOCOM_FWD(ts)...).second;
 }
 
 
-/** \brief Call put by reference.
+/** \brief Call putref with return status.
  */
 template <typename... Ts>
 bool DispatchBase::putref(Ts&&... ts)
 {
-    static_assert(sizeof...(Ts) >= 1, "Must provide function identifier");
-
-    Variant result;
-    return invoke(PUTREF, &result, AUTOCOM_FWD(ts)...);
+    return putref_(AUTOCOM_FWD(ts)...).second;
 }
 
 
-/** \brief Call method.
+/** \brief Call method with return status.
  */
 template <typename... Ts>
 bool DispatchBase::method(Ts&&... ts)
 {
-    static_assert(sizeof...(Ts) >= 1, "Must provide function identifier");
-
-    Variant result;
-    return invoke(METHOD, &result, AUTOCOM_FWD(ts)...);
+    return method_(AUTOCOM_FWD(ts)...).second;
 }
+
+
+/** \brief Call get with return variant.
+ */
+template <typename... Ts>
+Variant DispatchBase::getV(Ts&&... ts)
+{
+    auto value = get_(AUTOCOM_FWD(ts)...);
+    if (!value.second) {
+        throw ComMethodError("IDispatch", "Invoke(DISPATCH_PROPERTYGET, ...)");
+    }
+
+    return value.first;
+}
+
+
+/** \brief Call put with return variant.
+ */
+template <typename... Ts>
+Variant DispatchBase::putV(Ts&&... ts)
+{
+    auto value = put_(AUTOCOM_FWD(ts)...);
+    if (!value.second) {
+        throw ComMethodError("IDispatch", "Invoke(DISPATCH_PROPERTYPUT, ...)");
+    }
+
+    return value.first;
+}
+
+
+/** \brief Call putref with return variant.
+ */
+template <typename... Ts>
+Variant DispatchBase::putrefV(Ts&&... ts)
+{
+    auto value = putref_(AUTOCOM_FWD(ts)...);
+    if (!value.second) {
+        throw ComMethodError("IDispatch", "Invoke(DISPATCH_PROPERTYPUTREF, ...)");
+    }
+
+    return value.first;
+}
+
+
+/** \brief Call method with return variant.
+ */
+template <typename... Ts>
+Variant DispatchBase::methodV(Ts&&... ts)
+{
+    auto value = method_(AUTOCOM_FWD(ts)...);
+    if (!value.second) {
+        throw ComMethodError("IDispatch", "Invoke(DISPATCH_METHOD, ...)");
+    }
+
+    return value.first;
+}
+
 
 }   /* autocom */

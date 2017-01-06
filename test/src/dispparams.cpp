@@ -27,6 +27,7 @@ TEST(DispParams, Constructor)
 {
     com::DispParams dispparams;
     com::DispParams copy(dispparams);
+    EXPECT_EQ(dispparams.args().size(), 0);
 }
 
 
