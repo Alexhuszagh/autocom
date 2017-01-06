@@ -278,6 +278,39 @@ Documentation TypeInfo::GetDocumentation(const MEMBERID id) const
 }
 
 
+/** \brief Get type info from reference to other type.
+ */
+TypeInfo TypeInfo::GetRefTypeInfo(const HREFTYPE type) const
+{
+    return info(type);
+}
+
+
+/** \brief Get reference for any inherited intefaces.
+ */
+HREFTYPE TypeInfo::GetRefTypeOfImplType(const UINT index) const
+{
+    return reference(index);
+}
+
+
+/** \brief Get reference for implied type.
+ */
+INT TypeInfo::GetImplTypeFlags(const UINT index) const
+{
+    return flags(index);
+}
+
+
+/** \brief Get function entry point.
+ */
+DllEntry TypeInfo::GetDllEntry(const MEMBERID id,
+    const INVOKEKIND invocation) const
+{
+    return entry(id, invocation);
+}
+
+
 /** \brief Equality operator.
  */
 bool operator==(const TypeLib &left,

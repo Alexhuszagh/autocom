@@ -107,6 +107,11 @@ public:
 
     // WINAPI
     Documentation GetDocumentation(const MEMBERID id) const;
+    TypeInfo GetRefTypeInfo(const HREFTYPE type) const;
+    HREFTYPE GetRefTypeOfImplType(const UINT index) const;
+    INT GetImplTypeFlags(const UINT index) const;
+    DllEntry GetDllEntry(const MEMBERID id,
+        const INVOKEKIND invocation) const;
 };
 
 

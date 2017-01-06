@@ -126,33 +126,40 @@ void parseDescription(Description &description,
 /** \brief Parse item from TypeInfo of subelement.
  */
 template <typename Description>
-void parseItem(Description &description,
+void parseItem(Description &desc,
     const TypeInfo &info)
 {
     switch (info.attr().kind()) {
         case TKIND_ENUM:
-            description.enums.emplace_back(Enum(info, description));
+            desc.enums.emplace_back(Enum(info, desc));
             break;
         case TKIND_RECORD:
-            description.records.emplace_back(Record(info, description));
+            desc.records.emplace_back(Record(info, desc));
             break;
         case TKIND_MODULE:
-            description.modules.emplace_back(Module(info, description));
+            desc.modules.emplace_back(Module(info, desc));
             break;
         case TKIND_INTERFACE:
-            description.interfaces.emplace_back(Interface(info, description));
+            desc.interfaces.emplace_back(Interface(info, desc));
             break;
         case TKIND_DISPATCH:
-            description.dispatchers.emplace_back(Dispatch(info, description));
+            try {
+                // dual interface
+                auto href = info.reference(-1);
+                desc.interfaces.emplace_back(Interface(info.info(href), desc));
+            } catch (ComMethodError) {
+                // no dual interface
+                desc.dispatchers.emplace_back(Dispatch(info, desc));
+            }
             break;
         case TKIND_COCLASS:
-            description.coclasses.emplace_back(CoClass(info, description));
+            desc.coclasses.emplace_back(CoClass(info, desc));
             break;
         case TKIND_ALIAS:
-            description.aliases.emplace_back(Alias(info, description));
+            desc.aliases.emplace_back(Alias(info, desc));
             break;
         case TKIND_UNION:
-            description.unions.emplace_back(Union(info, description));
+            desc.unions.emplace_back(Union(info, desc));
             break;
     }
 }
@@ -351,7 +358,9 @@ Function::Function(const TypeInfo &info,
     const WORD index)
 {
     // get descriptors
+    //std::cout << "auto fd = info.funcdesc(index);" << std::endl;
     auto fd = info.funcdesc(index);
+    //std::cout << "auto documentation = info.documentation(fd.id());" << std::endl;
     auto documentation = info.documentation(fd.id());
 
     decorator = DECORATIONS[fd.decoration()];

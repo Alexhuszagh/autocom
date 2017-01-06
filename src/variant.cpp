@@ -747,7 +747,6 @@ Variant & Variant::operator=(Variant &&other)
 }
 
 
-
 /** \brief Initialize variant.
  */
 void Variant::init()

@@ -16,6 +16,11 @@
     - Test SafeArray -- DONE
     - TODO: need to change everything to have native WinAPI properties as *backups* -- DONE
 
+    -- TODO: Bug in MSScriptInfo
+        >>> import comtypes.client
+        >>> a = comtypes.client.CreateObject("MSScriptControl.ScriptControl")
+        -- IScriptProcedureCollection, Index 7 (ComTypes says **3** functions)
+
 
 ## TODO
     -- Define open methods
