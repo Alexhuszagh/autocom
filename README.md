@@ -106,7 +106,7 @@ For some types, especially type aliases, automated type-detection can be insuffi
 ```cpp
 DATE date;
 dispatch.get("GetDate", date);                      // ambiguous
-dispatch.get("GetDate", autocom::GetDate(date));   // safe
+dispatch.get("GetDate", autocom::GetDate(date));    // safe
 ```
 
 Each COM type has both "Get" and "Put" wrappers. "Put" wrappers accept both L- and R-values, and move/copy the value (or pointer) into DISPPARAMS. "Get" wrappers only accept L-values, assigning directly to the reference.
