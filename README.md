@@ -7,7 +7,6 @@ AutoCOM is a C++11 interface for the Component Object Model (COM) supporting Min
 **Table of Contents**
 
 - [Motivation](#motivation)
-- [Interface](#interface)
 - [Types](#types)
 - [RAII](#raii)
 - [Template Library](#template-library)
@@ -21,13 +20,31 @@ AutoCOM is a C++11 interface for the Component Object Model (COM) supporting Min
 
 ## Motivation
 
-AutoCOM is a modern COM interface library for C++11. AutoCOM supports both compile-time interface binding, or use of a dispatcher interface at run-time, with either MSVC or MinGW.
-
-AutoCOM believes that resource initialization is acqusition. The COM interface is initialized on a per-thread basis during object construction, and uninitialized when the last object destructor is called. 
+AutoCOM is a modern COM interface library for C++11. AutoCOM MinGW and MSVC, with either a compile-time (analogous to `#import` statements) or run-time (IDispatch) interface. For both interfaces, the `CoInitializeEx` is called on a per-thread basis prior to COM object construction, and `CoUninitialize` is called after the last COM object is destroyed. 
 
 **Compile-Time**
 
-AutoCOM uses COM's TypeLib interface to generate native C++ headers during compilation, to replace MSVC-only `#import` directives with native C++ headers, compatible for use with COM's QueryInterface.
+AutoCOM uses COM's TypeLib interface to generate native C++ headers during compilation, to replace MSVC-only `#import` directives with native C++ headers, compatible for use with COM's QueryInterface. In addition, smart pointer (prefixed with "AutoCom") wrap the interface to automate `CoInitializeEx` and `CoUninitialize` during object creation and destruction, respectively.
+
+```cpp
+#include "MSScriptControl.hpp"
+namespace com = autocom;
+
+int main(int argc, char *argv[])
+{
+    AutoComScriptControl script;
+
+    com::Bstr command(L"VBScript");
+    auto hr = script->Language(command.data());
+    hr = script->AllowUI(VARIANT_FALSE);
+    hr = script->Timeout(-1);
+
+    com::Bstr statement(L"var a = 'test'");
+    hr = script->ExecuteStatement(statement.data());
+
+    return 0;
+}
+```
 
 **Run-Time**
 
@@ -36,6 +53,9 @@ AutoCOM uses thread-local reference-counting, C++ variadic templates, and perfec
 Dynamic-dispatchers never looked so friendly:
 
 ```cpp
+#include "autocom.hpp"
+namespace com = autocom;
+
 int main(int argc, char *argv[])
 {
     com::Bstr text;
@@ -50,48 +70,9 @@ int main(int argc, char *argv[])
 
 Compare this snippet to [code](https://gist.github.com/Alexhuszagh/c231052cb6e51868215608305fe4e797) invoking C++ IDispatch interface without AutoCOM.
 
-## Interface
-
-AutoCOM supports both early and late-binding interfaces, for both compile-time interface wrapping and dynamic dispatchers.
-
-**Compile-Time**
-
-```
-#include "MSFileReader.hpp"
-#include <cstdio>
-
-
-int main(int argc, char *argv[])
-{
-    return 0;
-}
-```
-
-**Run-Time**
-
-```cpp
-#include "autocom.hpp"
-#include <cstdio>
-
-
-int main(int argc, char *argv[])
-{
-    com::Dispatch dispatch("{1D23188D-53FE-4C25-B032-DC70ACDBDC02}");
-    dispatch.method("Open", "Thermo.raw");
-
-    LONG version;
-    dispatch.method("GetVersionNumber", &version);
-    printf("Version is %d\n", version);
-
-    dispatch.method("Close");
-
-    return 0;
-}
-```
-
 ## Types
 
-The following only applies to the late-binding interface, where the parameter types for the COM method are unknown at compilation.
+The following only applies to the late-binding interface, where the parameter types for COM methods are unknown at compilation.
 
 **Literals**
 
@@ -120,12 +101,12 @@ AutoCOM uses C++'s strong-typing to determine VARIANT-type when possible. The fo
 
 **Wrappers**
 
-For some types, which are aliases of one another, automated type-detection is insufficient (for example, `VARIANT_BOOL` and `SHORT` are both aliases of `short`, and `DATE` is an alias of `DOUBLE`). AutoCOM provides type-safe value and reference wrappers to avoid VARTYPE ambiguity.
+For some types, especially type aliases, automated type-detection can be insufficient (for example, `VARIANT_BOOL` and `SHORT` are both aliases of `short`, and `DATE` is an alias of `DOUBLE`). AutoCOM provides type-safe value and reference wrappers to avoid VARTYPE ambiguity.
 
 ```cpp
 DATE date;
 dispatch.get("GetDate", date);                      // ambiguous
-dispatch.get("GetDate", auto com::GetDate(date));   // safe
+dispatch.get("GetDate", autocom::GetDate(date));   // safe
 ```
 
 Each COM type has both "Get" and "Put" wrappers. "Put" wrappers accept both L- and R-values, and move/copy the value (or pointer) into DISPPARAMS. "Get" wrappers only accept L-values, assigning directly to the reference.
@@ -182,13 +163,12 @@ For `get` calls, the inverse is assumed: you take ownership of objects acquired 
 Finally, ownership can be transfer from a VARIANT to a SafeArray or Bstr, so the new object is responsible for resource cleanup.
 
 ```cpp
-
-com::Dispatch disp(L"SomeInterface");
-com::Variant variant;
+autocom::Dispatch disp(L"SomeInterface");
+autocom::Variant variant;
 
 {
     disp.method(L"GetSafearray", &variant);                 // variant owns SA
-    com::SafeArray array(variant);                          // array owns SA
+    autocom::SafeArray array(variant);                      // array owns SA
 }       // SA is deallocated since array goes out of scope
 ```
 
