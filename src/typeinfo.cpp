@@ -124,7 +124,7 @@ Documentation getDocumentation(Type *ppv,
     Bstr name, doc, file;
     DWORD help;
 
-    if (FAILED(ppv->GetDocumentation(id, &name.string, &doc.string, &help, &file.string))) {
+    if (FAILED(ppv->GetDocumentation(id, &name.data(), &doc.data(), &help, &file.data()))) {
         throw ComMethodError("ITypeLib/ITypeInfo", "GetDocumentation(...)");
     }
 
@@ -263,7 +263,7 @@ DllEntry TypeInfo::entry(const MEMBERID id,
     Bstr dll, name;
     WORD ordinal;
     printf("Dll name is %S\n", dll);
-    if (FAILED(ppv->GetDllEntry(id, invocation, &dll.string, &name.string, &ordinal))) {
+    if (FAILED(ppv->GetDllEntry(id, invocation, &dll.data(), &name.data(), &ordinal))) {
         throw ComMethodError("ITypeInfo", "GetDllEntry()");
     }
 

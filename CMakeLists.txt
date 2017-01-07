@@ -20,6 +20,7 @@ option(BUILD_EXAMPLES "Build example files" ON)
 option(BUILD_GENERATOR "Build early-binding generator" ON)
 option(BUILD_STATIC "Build static library" ON)
 option(BUILD_TESTS "Build unittests (requires GTest)" OFF)
+option(HAVE_THERMO "Have Thermo MSFileReader for tests" OFF)
 
 if(BUILD_STATIC)
     if (MINGW)
@@ -127,11 +128,26 @@ endif()
 if (BUILD_EXAMPLES AND BUILD_GENERATOR)
     include(generator)
     include_directories("${CMAKE_CURRENT_BINARY_DIR}")
-    AutoComGenerate("{1D23188D-53FE-4C25-B032-DC70ACDBDC02}" "${CMAKE_CURRENT_BINARY_DIR}" "MSFileReader")
 
-    add_executable(thermo_early example/early/thermo.cpp)
-    target_link_libraries(thermo_early ${AUTOCOM_LIBRARIES})
-    add_dependencies(thermo_early "MSFileReader")
+    # WScript
+    AutoComGenerate("WScript.Shell.1" "${CMAKE_CURRENT_BINARY_DIR}" "WScript")
+    add_executable(wsh_early example/early/wsh.cpp)
+    target_link_libraries(wsh_early ${AUTOCOM_LIBRARIES})
+    add_dependencies(wsh_early "WScript")
+
+    # MSScriptControl
+    AutoComGenerate("MSScriptControl.ScriptControl" "${CMAKE_CURRENT_BINARY_DIR}" "MSScriptControl")
+    add_executable(script_early example/early/script.cpp)
+    target_link_libraries(script_early ${AUTOCOM_LIBRARIES})
+    add_dependencies(script_early "MSScriptControl")
+
+    # Thermo
+    if (HAVE_THERMO)
+        AutoComGenerate("{1D23188D-53FE-4C25-B032-DC70ACDBDC02}" "${CMAKE_CURRENT_BINARY_DIR}" "MSFileReader")
+        add_executable(thermo_early example/early/thermo.cpp)
+        target_link_libraries(thermo_early ${AUTOCOM_LIBRARIES})
+        add_dependencies(thermo_early "MSFileReader")
+    endif()
 endif()
 
 # TESTS

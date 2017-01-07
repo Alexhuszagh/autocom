@@ -412,6 +412,14 @@ void Bstr::reset(VARIANT &variant)
 
 /** \brief Get BSTR data.
  */
+BSTR & Bstr::data()
+{
+    return string;
+}
+
+
+/** \brief Get BSTR data.
+ */
 const BSTR & Bstr::data() const
 {
     return string;

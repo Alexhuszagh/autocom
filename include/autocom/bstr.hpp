@@ -106,9 +106,10 @@ struct Bstr
     Bstr & assign(Ts&&... ts);
 
     // OPERATORS
+    BSTR & data();
     const BSTR & data() const;
-    explicit operator bool() const;
     explicit operator BSTR() const;
+    explicit operator bool() const;
     explicit operator std::string() const;
     explicit operator std::wstring() const;
 

@@ -214,6 +214,7 @@ To avoid this undefined behavior, AutoCOM expects the following:
 
 - Pointers to objects passed by value (BSTR, IUnknown, IDispatch, SAFEARRAY) for `put` and `method` calls **must** be initialized.
 - Pointers to objects passed by value for `get` calls may be uninitialized.
+- For the early-binding interface, HRESULT values **must** be explicitly stored to avoid compiler mis-optimization.
 
 Any other issues can be reported on the [bug tracker](https://github.com/Alexhuszagh/autocom/issues).
 

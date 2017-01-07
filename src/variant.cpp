@@ -222,8 +222,8 @@ void set(VARIANT &variant,
     Bstr &value)
 {
     variant.vt = VariantType<Bstr>::vt;
-    variant.bstrVal = value.string;
-    value.string = nullptr;
+    variant.bstrVal = value.data();
+    value.data() = nullptr;
 }
 
 /** \brief Set a pointer to BSTR from wrapper.
@@ -232,7 +232,7 @@ void set(VARIANT &variant,
     Bstr *value)
 {
     variant.vt = VariantType<Bstr*>::vt;
-    variant.pbstrVal = &value->string;
+    variant.pbstrVal = &value->data();
 }
 
 
@@ -480,7 +480,7 @@ void get(VARIANT &variant,
 {
     AUTOCOM_CONVERT_TYPE(variant, VariantType<Bstr>::vt);
     value.clear();
-    value.string = variant.bstrVal;
+    value.data() = variant.bstrVal;
     variant.bstrVal = nullptr;
 }
 
@@ -492,7 +492,7 @@ void get(VARIANT &variant,
 {
     AUTOCOM_CONVERT_TYPE(variant, VariantType<Bstr*>::vt);
     value->clear();
-    value->string = *variant.pbstrVal;
+    value->data() = *variant.pbstrVal;
 }
 
 
