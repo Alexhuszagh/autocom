@@ -262,6 +262,7 @@ DllEntry TypeInfo::entry(const MEMBERID id,
     DllEntry entry;
     Bstr dll, name;
     WORD ordinal;
+    printf("Dll name is %S\n", dll);
     if (FAILED(ppv->GetDllEntry(id, invocation, &dll.string, &name.string, &ordinal))) {
         throw ComMethodError("ITypeInfo", "GetDllEntry()");
     }

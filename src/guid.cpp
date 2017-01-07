@@ -233,17 +233,36 @@ std::string Guid::toIid()
 }
 
 
-/** \brief Export GUID to printable representation.
+/** \brief Export GUID to UUID representation.
+ *
+ *  guid.uuid() -> "00000000-0000-0000-C000-000000000046"
  */
-std::string Guid::string() const
+std::string Guid::uuid() const
 {
     // 36 characters + null character
     char *buffer = new char[37];
-    const size_t size = sprintf(buffer, "%08lX_%04hX_%04hX_%02hhX%02hhX_%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX", id.Data1, id.Data2, id.Data3, id.Data4[0], id.Data4[1], id.Data4[2], id.Data4[3], id.Data4[4], id.Data4[5], id.Data4[6], id.Data4[7]);
+    const size_t size = sprintf(buffer, "%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX", id.Data1, id.Data2, id.Data3, id.Data4[0], id.Data4[1], id.Data4[2], id.Data4[3], id.Data4[4], id.Data4[5], id.Data4[6], id.Data4[7]);
     std::string output(buffer, size);
     delete[] buffer;
 
     return output;
+}
+
+
+
+/** \brief Export GUID to define representation.
+ *
+ *  guid.define() -> "DEFINE_GUID(IID_IUnknown, 0x00000000, 0x0000, 0x0000, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46);"
+ */
+std::string Guid::define(const std::string &prefix,
+    const std::string &name) const
+{
+    char *buffer = new char[75];
+    const size_t size = sprintf(buffer, "0x%08lX, 0x%04hX, 0x%04hX, 0x%02hhX, 0x%02hhX, 0x%02hhX, 0x%02hhX, 0x%02hhX, 0x%02hhX, 0x%02hhX, 0x%02hhX", id.Data1, id.Data2, id.Data3, id.Data4[0], id.Data4[1], id.Data4[2], id.Data4[3], id.Data4[4], id.Data4[5], id.Data4[6], id.Data4[7]);
+    std::string output(buffer, size);
+    delete[] buffer;
+
+    return "DEFINE_GUID(" + prefix + "_" + name + ", " + output + ");";
 }
 
 

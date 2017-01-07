@@ -59,9 +59,6 @@ struct SafeArrayBound: SAFEARRAYBOUND
 };
 
 
-// TODO: need iterators...
-
-
 /** \brief C++ wrapper around SAFEARRAY.
  *
  *  Provides an STL-like interface with automatic std::vector

@@ -9,7 +9,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <iostream>             // TODO: REMOVE
 #include <sstream>
 #include <stdexcept>
 
@@ -167,27 +166,30 @@ void parseItem(Description &desc,
 
 /** \brief Get variable type name from VARTYPE descriptor.
  */
-std::string getTypeName(const TypeInfo &info,
+DataType getTypeName(const TypeInfo &info,
     const TypeDesc &desc)
 {
     auto it = TYPE_NAMES.find(desc.vt());
     if (it != TYPE_NAMES.end()) {
-        return it->second;
+        return std::make_pair(it->second, "");
     } else if (desc.vt() == VT_CARRAY) {
         // get type description for C-style array: char[5][4]
         auto array = desc.array();
-        auto name = getTypeName(info, array.type());
+        auto pair = getTypeName(info, array.type());
         for (USHORT index = 0; index < array.count(); ++index) {
-            name += "[" + std::to_string(array.bound(index).size()) + "]";
+            pair.second += "[" + std::to_string(array.bound(index).size()) + "]";
         }
-        return name;
+        return pair;
     } else if (desc.vt() == VT_PTR) {
         // return pointer type
-        return getTypeName(info, desc.pointer()) + "*";
+        auto pair = getTypeName(info, desc.pointer());
+        pair.first += "*";
+        return pair;
     } else if (desc.vt() == VT_USERDEFINED) {
-        return info.info(desc.reference()).documentation(-1).name;
+        auto name = info.info(desc.reference()).documentation(-1).name;
+        return std::make_pair(name, "");
     } else if (desc.vt() == VT_SAFEARRAY) {
-        return "SAFEARRAY";
+        return std::make_pair("SAFEARRAY", "");
     }
 
     // VT_VOID
@@ -301,8 +303,9 @@ Parameter::Parameter(const TypeInfo &info,
     auto vd = info.vardesc(index);
     assert(vd.kind() == VAR_PERINSTANCE);
 
-    type = getTypeName(info, vd.element().type());
-    name = info.documentation(vd.id()).name;
+    auto pair = getTypeName(info, vd.element().type());
+    type = pair.first;
+    name = info.documentation(vd.id()).name + pair.second;
 }
 
 
@@ -323,9 +326,10 @@ Variable::Variable(const TypeInfo &info,
     auto vd = info.vardesc(index);
     assert(vd.kind() == VAR_CONST);
 
-    type = getTypeName(info, vd.element().type());
+    auto pair = getTypeName(info, vd.element().type());
+    type = pair.first;
     name = info.documentation(vd.id()).name;
-    value = getValueName(vd.variant());
+    value = getValueName(vd.variant()) + pair.second;
 }
 
 
@@ -358,21 +362,21 @@ Function::Function(const TypeInfo &info,
     const WORD index)
 {
     // get descriptors
-    //std::cout << "auto fd = info.funcdesc(index);" << std::endl;
     auto fd = info.funcdesc(index);
-    //std::cout << "auto documentation = info.documentation(fd.id());" << std::endl;
     auto documentation = info.documentation(fd.id());
 
     decorator = DECORATIONS[fd.decoration()];
-    returns = getTypeName(info, fd.returnType().type());
+    auto pair = getTypeName(info, fd.returnType().type());
+    returns = pair.first + pair.second;
     name = documentation.name;
     doc = documentation.doc;
     id = fd.id();
     offset = fd.offset();
     args.resize(fd.args());
     for (SHORT index = 0; index < fd.args(); ++index) {
-        args[index].type = getTypeName(info, fd.arg(index).type());
-        args[index].name = "arg" + std::to_string(index);
+        pair = getTypeName(info, fd.arg(index).type());
+        args[index].type = pair.first;
+        args[index].name = "arg" + std::to_string(index) + pair.second;
     }
 }
 
@@ -400,7 +404,8 @@ std::string Function::definition() const
 std::string Function::header() const
 {
     std::ostringstream stream;
-    stream << decorator << " " << returns << " " << definition() << ";";
+    stream << "virtual " << returns << " " << decorator
+           << " " << definition() << ";";
 
     return stream.str();
 }
@@ -532,7 +537,6 @@ Interface::Interface(const TypeInfo &info,
         base = info.info(info.reference(0)).documentation(-1).name;
         object = base;
         while (IGNORED.find(object) == IGNORED.end()) {
-            std::cout << object << std::endl;
             object = bases.at(object);
         }
         bases[name] = object;
@@ -570,17 +574,15 @@ std::string Interface::header() const
 {
     std::ostringstream stream;
 
-    // TODO: I need to fix how these are compiled in....
-    stream << "constexpr char IID_" << name << "[]"
-           << " = \"" << iid.string() << "\";\r\n\r\n";
-    // class definition and base class
+    stream << iid.define("IID", name) << "\r\n\r\n";
     stream << "struct " << name;
     if (!base.empty()) {
         stream << ": " << base;
     }
     // initialize with static, constexpr values which do not add to struct
     stream << "\r\n"
-          << "{\r\n"
+           << "{\r\n"
+           << "    static constexpr IID const &iid = IID_" << name << ";\r\n"
            << "    static constexpr WORD flags = " << flags << ";\r\n";
     // properties
     for (const auto &item: properties) {
@@ -605,8 +607,6 @@ Dispatch::Dispatch(const TypeInfo &info,
 {
     auto attr = info.attr();
     for (WORD index = 0; index < attr.variables(); ++index) {
-        // TODO: these are dispatch properties, assert(false) and check
-        std::cout << "Dispatch property: " << index << std::endl;
         assert(false);
         //properties.emplace_back(Property(info, index));
     }
@@ -630,7 +630,11 @@ CoClass::CoClass(const TypeInfo &info,
 
     for (WORD index = 0; index < attr.interfaces(); ++index) {
         auto tinfo = info.info(info.reference(0));
-        interfaces.emplace_back(tinfo.documentation(-1).name);
+        auto name = tinfo.documentation(-1).name;
+        if (added.find(name) == added.end()) {
+            interfaces.emplace_back(name);
+            added.emplace(name);
+        }
     }
 }
 
@@ -650,12 +654,19 @@ std::string CoClass::header() const
     assert(interfaces.size());
 
     std::ostringstream stream;
+    stream << clsid.define("CLSID", name) << "\r\n\r\n";
     stream << "struct " << name << ": ";
+
     for (auto it = interfaces.begin(); it < interfaces.end() - 1; ++it) {
         stream << *it << ", ";
     }
     stream << interfaces.back() << "\r\n";
-    stream << "{};\r\n";
+    stream << "{\r\n"
+           << "    static constexpr CLSID const &clsid = CLSID_" << name << ";\r\n"
+           << "    static constexpr IID const &iid = IID_" << interfaces.front() << ";\r\n"
+           << "};\r\n";
+    stream << "typedef autocom::ComObject<" << name
+           << "> AutoCom" << name << ";\r\n";
 
     return stream.str();
 }
@@ -667,7 +678,7 @@ Alias::Alias(const TypeInfo &info,
     Description &description)
 {
     name = info.documentation(-1).name;
-    type = getTypeName(info, info.attr().alias());
+    type = getTypeName(info, info.attr().alias()).first;
 }
 
 

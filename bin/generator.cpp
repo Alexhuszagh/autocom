@@ -43,7 +43,6 @@ static bool ValidateProgId(const char *flagname,
 
 DEFINE_string(progid, "", "Program ID or CLSID for COM object");
 DEFINE_string(header, "./", "Directory to store generated header.");
-DEFINE_string(source, "./", "Directory to store generated source.");
 DEFINE_validator(progid, &ValidateProgId);
 
 // FUNCTIONS

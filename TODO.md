@@ -16,10 +16,17 @@
     - Test SafeArray -- DONE
     - TODO: need to change everything to have native WinAPI properties as *backups* -- DONE
 
-    -- TODO: Bug in MSScriptInfo
-        >>> import comtypes.client
-        >>> a = comtypes.client.CreateObject("MSScriptControl.ScriptControl")
-        -- IScriptProcedureCollection, Index 7 (ComTypes says **3** functions)
+    -- TODO: need to get the DLL to link against from:
+        GetModuleFileName
+        DllEntryPoint
+
+        -- TODO: bug with arrays
+
+    -- TODO: (this is wrong)
+         __stdcall HRESULT GetMassListFromScanNum 
+     -- TODO: This is right
+        virtual HRESULT STDMETHODCALLTYPE Open(BSTR szFileName);
+
 
 
 ## TODO

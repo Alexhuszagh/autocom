@@ -39,7 +39,9 @@ struct Description;
 
 typedef std::string Type;
 typedef std::string Name;
+typedef std::string Array;
 typedef std::string Value;
+typedef std::pair<Type, Array> DataType;
 
 // DESCRIPTIONS
 typedef std::vector<Enum> EnumList;
@@ -55,7 +57,8 @@ typedef std::vector<External> ExternalList;
 // MEMOIZERS
 typedef std::unordered_set<Type> IgnoredMethods;
 typedef std::unordered_map<Name, Type> Memo;
-typedef std::unordered_map<Type, Type> BaseClasses;
+typedef std::unordered_map<Type, Type> InterfaceMap;
+typedef std::unordered_map<Type, Guid> GUIDMap;
 
 // OBJECTS
 // -------
@@ -286,6 +289,10 @@ struct Dispatch: Interface
 
 
 /** \brief Description for a COM object implementing CoClass methods.
+ *
+ *  `added` provides a memo for the base interfaces, while `interfaces`
+ *   keeps the sorted order of the interfaces. Some COM interfaces,
+ *  like MS
  */
 struct CoClass: CppCode
 {
@@ -293,6 +300,7 @@ struct CoClass: CppCode
     Guid clsid;
     WORD flags;
     std::vector<Type> interfaces;
+    std::unordered_set<Type> added;
 
     CoClass() = default;
     CoClass(const CoClass&) = default;
@@ -372,7 +380,7 @@ struct Description
     ExternalList externals;
 
     // redundancy checks
-    BaseClasses bases;
+    InterfaceMap bases;
 };
 
 }   /* detail */

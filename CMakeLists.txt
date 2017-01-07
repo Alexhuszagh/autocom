@@ -91,14 +91,15 @@ endif()
 # EXAMPLES
 # --------
 
-set(AUTOCOM_EXAMPLE_SOURCES
-    example/regexp.cpp
-    example/script.cpp
-    example/thermo.cpp
-    example/vtable.cpp
-    example/wsh.cpp
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
+
+set(AUTOCOM_LATEBINDING_EXAMPLE_SOURCES
+    example/late/regexp.cpp
+    example/late/thermo.cpp
+    example/late/wsh.cpp
 )
 
+# EARLY
 if (BUILD_EXAMPLES)
     set(OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
     if(MSVC)
@@ -113,13 +114,24 @@ if (BUILD_EXAMPLES)
         DESTINATION ${OUTPUT_DIRECTORY}
     )
 
-    foreach(source ${AUTOCOM_EXAMPLE_SOURCES})
+    foreach(source ${AUTOCOM_LATEBINDING_EXAMPLE_SOURCES})
         get_filename_component(example ${source} NAME_WE)
-        set(target "AutoCOM_${example}")
+        set(target "AutoCOMLate_${example}")
         add_executable(${target} "${source}")
-        set_target_properties(${target} PROPERTIES OUTPUT_NAME ${example})
+        set_target_properties(${target} PROPERTIES OUTPUT_NAME ${example}_late)
         target_link_libraries(${target} ${AUTOCOM_LIBRARIES})
     endforeach(source)
+endif()
+
+# LATE
+if (BUILD_EXAMPLES AND BUILD_GENERATOR)
+    include(generator)
+    include_directories("${CMAKE_CURRENT_BINARY_DIR}")
+    AutoComGenerate("{1D23188D-53FE-4C25-B032-DC70ACDBDC02}" "${CMAKE_CURRENT_BINARY_DIR}" "MSFileReader")
+
+    add_executable(thermo_early example/early/thermo.cpp)
+    target_link_libraries(thermo_early ${AUTOCOM_LIBRARIES})
+    add_dependencies(thermo_early "MSFileReader")
 endif()
 
 # TESTS

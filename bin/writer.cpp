@@ -9,7 +9,6 @@
 
 #include <fstream>
 #include <ostream>
-#include <iostream>             // TODO: REMOVE
 
 
 namespace autocom
@@ -36,7 +35,7 @@ void writeDocString(std::ostream &stream)
 void writeImportStatement(std::ostream &stream,
     TypeLibDescription &tlib)
 {
-    stream << "#include \"" << tlib.guid.string() << ".hpp\"\r\n";
+    stream << "#include \"" << tlib.guid.uuid() << ".hpp\"\r\n";
 }
 
 
@@ -110,13 +109,14 @@ std::string writeImportHeader(TypeLibDescription &tlib,
 std::string writeClsidHeader(TypeLibDescription &tlib,
     std::string &directory)
 {
-    auto name = tlib.guid.string() + ".hpp";
+    auto name = tlib.guid.uuid() + ".hpp";
     std::string path = directory + "\\" + name;
     std::ofstream stream(path, std::ios::binary);
 
     // write data
     writeDocString(stream);
     stream << "#include <autocom.hpp>\r\n\r\n";
+    stream << tlib.guid.define("CLSID", tlib.documentation.name) << "\r\n\r\n";
 
     // SIMPLE
     writeSection(stream, tlib.description.enums, "ENUMS");

@@ -179,8 +179,18 @@ AutoCOM uses COM ownership semantics for `put` and `method` calls: objects passe
 
 For `get` calls, the inverse is assumed: you take ownership of objects acquired by value, and do not take ownership of objects passed by reference.
 
-// TODO: finish when done, passing ownership
-There are times when it 
+Finally, ownership can be transfer from a VARIANT to a SafeArray or Bstr, so the new object is responsible for resource cleanup.
+
+```cpp
+
+com::Dispatch disp(L"SomeInterface");
+com::Variant variant;
+
+{
+    disp.method(L"GetSafearray", &variant);                 // variant owns SA
+    com::SafeArray array(variant);                          // array owns SA
+}       // SA is deallocated since array goes out of scope
+```
 
 ## Unicode
 

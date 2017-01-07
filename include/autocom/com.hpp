@@ -90,7 +90,7 @@ bool equalObject(ObjectPtr left,
 // -------
 
 
-/** \brief COM object wrapper for the IDispatch model.
+/** \brief COM object wrapper for the IDispatch (late-binding) model.
  */
 class DispatchBase
 {
@@ -177,6 +177,31 @@ public:
 };
 
 
+/** \brief Wrapper for the CoClass (early-binding) model.
+ *
+ *  Automates class construction and destruction, forcing per-thread
+ *  initialization, creating the proper object from the CLSID and IID,
+ *  and deinitializing after object cleanup.
+ */
+template <
+    typename T,
+    typename Interface = T
+>
+class ComObject: public SharedPointer<Interface>
+{
+protected:
+    typedef SharedPointer<Interface> Base;
+    typedef ComObject<Interface> This;
+
+public:
+    ComObject();
+    ~ComObject();
+
+    void open();
+    void close();
+};
+
+
 // IMPLEMENTATION
 // --------------
 
@@ -193,9 +218,6 @@ bool DispatchBase::invoke(DispatchFlags flags,
     dp.setArgs(AUTOCOM_FWD(ts)...);
     dp.setFlags(flags);
 
-    //auto hr = (ppv->Invoke(id, IID_NULL, LOCALE_USER_DEFAULT, FROM_ENUM(flags), dp.params(), result, nullptr, nullptr));
-    //printf("HR is %d\n", hr);
-    //return SUCCEEDED(hr);
     return SUCCEEDED(ppv->Invoke(id, IID_NULL, LOCALE_USER_DEFAULT, FROM_ENUM(flags), dp.params(), result, nullptr, nullptr));
 }
 
@@ -364,6 +386,60 @@ Variant DispatchBase::methodV(Ts&&... ts)
     }
 
     return value.first;
+}
+
+
+/** \brief Initialize interface on construction.
+ */
+template <
+    typename T,
+    typename Interface
+>
+ComObject<T, Interface>::ComObject()
+{
+    open();
+}
+
+
+/** \brief Uninitialize COM interface on object destruction.
+ */
+template <
+    typename T,
+    typename Interface
+>
+ComObject<T, Interface>::~ComObject()
+{
+    close();
+}
+
+
+/** \brief Initialize COM interface.
+ */
+template <
+    typename T,
+    typename Interface
+>
+void ComObject<T, Interface>::open()
+{
+    initialize();
+    Interface *ppv;
+    if (FAILED(CoCreateInstance(T::clsid, nullptr, CLSCTX_INPROC_SERVER, Interface::iid, (void **) &ppv))) {
+        throw ComFunctionError("CoCreateInstance()");
+    }
+    Base::reset(ppv);
+}
+
+
+/** \brief Uninitialize COM interface.
+ */
+template <
+    typename T,
+    typename Interface
+>
+void ComObject<T, Interface>::close()
+{
+    Base::reset();
+    uninitialize();
 }
 
 

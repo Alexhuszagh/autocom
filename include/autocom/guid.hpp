@@ -32,8 +32,8 @@ protected:
 
 public:
     Guid() = default;
-    Guid(const Guid &other) = delete;
-    Guid & operator=(const Guid&) = delete;
+    Guid(const Guid &other) = default;
+    Guid & operator=(const Guid&) = default;
     Guid(Guid&&) = default;
     Guid & operator=(Guid&&) = default;
 
@@ -58,7 +58,10 @@ public:
     static Guid fromIid(const std::string &string);
     static Guid fromIid(const std::wstring &string);
     std::string toIid();
-    std::string string() const;
+
+    std::string uuid() const;
+    std::string define(const std::string &prefix,
+        const std::string &name) const;
 
     friend bool operator==(const Guid &left,
         const Guid &right);
