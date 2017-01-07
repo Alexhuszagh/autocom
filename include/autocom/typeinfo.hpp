@@ -1,5 +1,5 @@
 //  :copyright: (c) 2015-2016 The Regents of the University of California.
-//  :license: MIT, see licenses/mit.md for more details.
+//  :license: MIT, see LICENSE.md for more details.
 /*
  *  \addtogroup AutoCOM
  *  \brief C++ handle around ITypeInfo.

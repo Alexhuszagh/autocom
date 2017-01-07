@@ -20,7 +20,7 @@ AutoCOM is a C++11 interface for the Component Object Model (COM) supporting Min
 
 ## Motivation
 
-AutoCOM is a modern COM interface library for C++11. AutoCOM MinGW and MSVC, with either a compile-time (analogous to `#import` statements) or run-time (IDispatch) interface. For both interfaces, the `CoInitializeEx` is called on a per-thread basis prior to COM object construction, and `CoUninitialize` is called after the last COM object is destroyed. 
+AutoCOM is a modern COM interface library for C++11 and supports either a compile-time (analogous to `#import` statements) or run-time (IDispatch) interface. For both interfaces, the `CoInitializeEx` is called on a per-thread basis prior to COM object construction, and `CoUninitialize` is called after the last COM object is destroyed. 
 
 **Compile-Time**
 
