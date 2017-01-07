@@ -140,15 +140,18 @@ The `Bstr` and `SafeArray` RAII classes have interfaces comparable to `std::wstr
 
 ```cpp
 com::Bstr bstr(L"This is a string");
+
 // auto-ranges
 for (const wchar_t c: bstr) {
     std::cout << c << std::endl;
 }
+
 // element access
 std::cout << bstr.front();                  // L'T'
 std::cout << bstr.back();                   // L'g'
 std::cout << bstr[1];                       // L'h'
 std::cout << bstr.at(2);                    // L'i'
+
 // conversions
 std::wstring wstring(bstr);
 com::Bstr copy(wstring);
