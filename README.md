@@ -2,7 +2,7 @@
 AutoCOM
 =======
 
-AutoCOM is a C++11 interface for the Component Object Model (COM) supporting MinGW and MSVC, inspired by [ComTypes](https://github.com/enthought/comtypes).
+AutoCOM is a C++11 interface for the Component Object Model (COM), supporting MinGW and MSVC, inspired by [ComTypes](https://github.com/enthought/comtypes).
 
 **Table of Contents**
 
@@ -20,7 +20,7 @@ AutoCOM is a C++11 interface for the Component Object Model (COM) supporting Min
 
 ## Description
 
-AutoCOM is a COM interface library, supporting both [early-binding](/doc/EarlyBinding.md) (analogous to `#import` statements) and [late-binding](/doc/LateBinding.md) interfaces. AutoCOM manages object reference counts and parameter lists construction, for simple, cross-compiler COM use.
+AutoCOM is a COM interface library, supporting both [early-binding](/doc/EarlyBinding.md) and [late-binding](/doc/LateBinding.md) interfaces. AutoCOM internally manages object reference counts and parameter lists construction, for simple, cross-compiler COM use.
 
 ## Examples
 
@@ -68,17 +68,17 @@ Compare this snippet to [code](https://gist.github.com/Alexhuszagh/c231052cb6e51
 
 ## RAII
 
-AutoCOM believes that resource acquisition is initialization (RAII): that construction should initialize COM objects and destruction should free allocated resources. To ensure resource management is tied to object lifecycle, AutoCOM includes the following features:
+AutoCOM believes that resource acquisition is initialization (RAII): that construction should initialize COM resources and destruction should free allocated resources. To ensure resource management is tied to object lifecycle, AutoCOM includes the following features:
 
-- Smart-pointers wrappers for COM objects, removing calls to `AddRef` and `Release`.
-- Thread-local counters manage COM library initialization/uninitialization in constructors/destructors. 
-- BSTR, VARIANT, and SAFEARRAY have the RAII counterparts Bstr, Variant, SafeArray in the `autocom` namespace.
+- Smart-pointers wrappers for COM objects, replacing manual reference-counting via `AddRef` and `Release`.
+- Automated `CoInitializeEx` and `CoUninitialize` calls via thread-local COM instance counters. 
+- Wrappers for BSTR (Bstr), VARIANT (Variant), and SAFEARRAY (SafeArray) in the `autocom` namespace.
 
 ## Standard Template Library
 
 AutoCOM adds Standard Template Library (STL) container methods to Windows-specific containers, to facilitate use of COM APIs in modern C++.
 
-`Bstr` and `SafeArray` have interfaces comparable to `std::wstring` and `std::vector`, and are implicitly convertible to `BSTR` and `SAFEARRAY`.
+`Bstr` and `SafeArray` have interfaces comparable to `std::wstring` and `std::vector`, and are implicitly convertible to `BSTR` and `SAFEARRAY`, respectively.
 
 ```cpp
 com::Bstr string(L"This is a string");
@@ -100,20 +100,33 @@ com::Bstr copy(bstr);
 
 ## Ownership
 
-AutoCOM uses COM ownership semantics for `put` and `method` calls: objects passed by value take ownership of the object, while those passed by reference are still owned by the user. Any existing references to objects passed by value are invalidated.
+AutoCOM uses COM ownership semantics for `put` and `method` calls: the COM library takes ownership of objects passed by value, while the ownership of objects passed by reference remains unchanged. Any existing references to objects passed by value are invalidated.
 
-For `get` calls, the inverse is assumed: you take ownership of objects acquired by value, and do not take ownership of objects passed by reference.
+For `get` calls, the caller takes ownership of objects acquired by value, while the ownership of objects passed by reference remains unchanged.
 
-Finally, SafeArrays and Bstrs can inherit resources from VARIANTs/Variants through object construction or assignment, so VARIANTs can be safely discarded after method dispatch.
+Finally, SafeArrays and Bstrs can inherit resources from VARIANTs/Variants through object construction or assignment, so VARIANTs can be safely discarded after method calls.
 
 ```cpp
 Dispatch disp(L"SomeInterface");
 Variant variant;
 
 {
-    disp.method(L"GetSafearray", &variant);                 // variant owns SA
-    SafeArray array(variant);                               // array owns SA
-}       // SA is deallocated with array destruction, variant is empty
+    // Call method that constructs a `SAFEARRAY` and sets a pointer
+    // in `variant.parray`. `variant` owns the resource, and will
+    // deallocate it on object destruction.
+    disp.method(L"GetSafearray", &variant);
+
+    // Inherit resource from `Variant`, emptying the variant.
+    // `array` now owns the `SAFEARRAY`, and will deallocate it
+    // on destruction.
+    SafeArray<int> array(variant);
+    for (const int value: array) {
+        // do something with data
+    }
+
+// `array` is destroyed, freeing the `SAFEARRAY`, while the existing
+// `variant` remains empty.
+}
 ```
 
 ## Unicode
