@@ -131,7 +131,7 @@ Variant variant;
 
 ## Unicode
 
-AutoCOM supports Unicode through Windows wide-string APIs, and assumes char-based strings are UTF-8 encoded, while wchar_t-based strings are UTF-16 encoded. 
+AutoCOM supports Unicode through Windows wide-string APIs, and assumes `char`-based strings are UTF-8 encoded, while `wchar_t`-based strings are UTF-16 encoded. 
 
 To convert to UTF-8, the functions `UTF32_TO_UTF8` and `UTF16_TO_UTF8` are provided.
 
@@ -162,8 +162,8 @@ AutoCOM has been tested and confirmed to work with the following compilers/ecosy
 
 - MSYS2, GCC 6.2
 - Visual Studio 14 2015
-- MinGW 5.4, Linux (running on Wine32)
-- MXE
+- MinGW 5.4, Linux (running on 32-bit Wine)
+- MXE (running on 32-bit Wine)
 
 ## Contributors
 
