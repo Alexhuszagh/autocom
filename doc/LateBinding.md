@@ -2,42 +2,117 @@
 Late-Binding AutoCOM
 ====================
 
-AutoCOM's run-time interface uses thread-local reference-counting, C++ variadic templates, and perfect-forwarding to simplify dynamic method dispatch via `IDispatch::Invoke`. 
+AutoCOM's late-binding interface uses thread-local reference-counting, C++ variadic templates, and perfect-forwarding to simplify dynamic method dispatch via `IDispatch::Invoke`.
 
 **Table of Contents**
 
 - [Design](#desgin)
+  - [IDispatch Wrapper](#idispatch-wrapper)
+  - [Method Dispatch](#dispparams-generation)
+  - [Value Enumeration](#value-enumeration)
 - [Types](#types)
+  - [Literals](#literals)
+  - [Strong-Typing](#strong-typing)
+  - [Type Wrappers](#type-wrappers)
+- [Examples](#examples)
 
 ## Design
 
+The interface implements a wrapper around an `IDispatch` object, simplifying interface construction, method dispatching, and enumerating over variant collections.
+
+### IDispatch Wrapper
+
+`Dispatch` wraps an `IDispatch` resource, and overloads the constructor so the class can be initialized from a `GUID` object, or a string representing a CLSID or ProgID.
+
+```cpp
+{
+    // Calls CoInitializeEx before the COM object is created, 
+    // internationally gets the CLSID from the ProgID, and
+    // creates the IDispatch object.
+    autocom::Dispatch dispatch(L"WScript.Shell.1");
+
+// Upon object destruction, `IUnknown::Release` is called, freeing
+// the object. Since the COM object is the last existing COM instance,
+// the destructor also calls CoUninitialize.
+}
+```
+
+### Method Dispatch
+
+`Dispatch` implements the helper methods `get`, `put`, `putref`, and `method`, which take a function name and arguments for the COM method, returning whether the COM method succeeded. The `VARTYPE`s  of the arguments are deduced using C++'s strong-typing (see [Types](#types) for more information).
+
+```cpp
+// create our arguments
+autocom::Variant style, wait;
+
+// Internally, calls GetIDsOfNames() to get the method ID for "Run",
+// and constructs DISPPARAMS with 3 arguments of type `VT_BSTR`,
+// `VT_VARIANT` and `VT_VARIANT`.
+bool status = dispatch.method(L"Run", L"notepad.exe", &style, &wait);
+```
+
+To return a variant rather than the call status from the COM method, use the `getV`, `putV`, `putrefV`, or `methodV` analogues instead.
+
+### Value Enumeration
+
+COM methods can return collections of variants through the IEnumVariant interface, representing variable-length, heterogeneous data. The `Dispatch` helper method `iter` wraps the IEnumVariant interface using STL iterators, simplifying value enumeration with auto-ranges.
+
+```cpp
+INT index;
+
+// Call a `DISPATCH_PROPERTYGET` method to get the IDispatch object
+// for the iterator, construct an IEnumVariant, and iterate over each
+// IDispatch object in the enumeration.
+for (auto match: dispatch.iter(L"Execute", L"A(b) c35 d_[x] yyy")) {
+    // Get index from IDispatch match object.
+    match.get(L"FirstIndex", index);
+    printf("Index is %d\n", index);
+}
+```
 
 ## Types
 
-The following only applies to the late-binding interface, where the parameter types for COM methods are unknown at compilation.
+AutoCOM uses strong-typing when possible to determine argument type. Argument type deduction can be grouped into 3 general cases:
 
-**Literals**
+- Literals
+- Strong-Typing
+- Type Wrappers
 
-AutoCOM supports C++ literals, however, implicit type-conversion prevents automated type-deducation. For example, `dispatch.get("Put", 2)` could define any integer-literal. Type-safety is therefore only assured for string-literals (both narrow, UTF8 and wide, UTF16), which are internally converted to UTF16-encoded BSTRs.
+### Literals
 
-For arithmetic literals, AutoCOM provides literal overloads in the `autocom::literals` namespace.
+AutoCOM supports C++ character (VT_I1), arithmetic, and string (VT_BSTR) literals.
 
-| Type      | SufFix |
-|:---------:|:------:]
-| CHAR      | _I1    |
-| UCHAR     | _II1   |
-| SHORT     | _I2    |
-| USHORT    | _II2   |
-| INT       | _INT   |
-| UINT      | _IINT  |
-| LONG      | _I4    |
-| ULONG     | _II4   |
-| LONGLONG  | _I8    |
-| ULONGLONG | _II8   |
+For arithmetic literals, autocom has user-defined literals (in the `autocom::literals` namespace) to prevent implicit type-conversion or ambiguous overloads. The user-define literals are:
 
-**Strong-Typing**
+| Type         | Suffix |
+|:------------:|:------:|
+| CHAR         | _I1    |
+| UCHAR        | _II1   |
+| SHORT        | _I2    |
+| USHORT       | _II2   |
+| INT          | _INT   |
+| UINT         | _IINT  |
+| LONG         | _I4    |
+| ULONG        | _II4   |
+| LONGLONG     | _I8    |
+| ULONGLONG    | _II8   |
+| VARIANT_BOOL | _BOOL  |
+| DATE         | _DATE  |
+| SCODE        | _ERROR |
 
-AutoCOM uses C++'s strong-typing to determine VARIANT-type when possible. The following types (include pointers to these types) are automatically deduced:
+```cpp
+using namespace autocom::literals;
+
+dispatch.put("Char", '\0'_I1);
+dispatch.put("UChar", '\0'_UI1);
+dispatch.put("Short", 1_I2);
+dispatch.put("Bool", 0_BOOL);
+dispatch.put("Scode", 1_ERROR);
+```
+
+### Strong-Typing
+
+AutoCOM uses C++'s strong-typing to determine VARTYPE-type when possible. The following types (include pointers to these types) are correctly deduced:
 
 - CHAR
 - UCHAR
@@ -56,14 +131,56 @@ AutoCOM uses C++'s strong-typing to determine VARIANT-type when possible. The fo
 - IDispatch
 - SAFEARRAY
 
-**Wrappers**
+### Type Wrappers
 
-For some types, especially type aliases, automated type-detection can be insufficient (for example, `VARIANT_BOOL` and `SHORT` are both aliases of `short`, and `DATE` is an alias of `DOUBLE`). AutoCOM provides type-safe value and reference wrappers to avoid VARTYPE ambiguity.
+For some types, especially type aliases, strong-typing is insufficient (for example, `VARIANT_BOOL` and `SHORT` are both aliases of `short`, and `DATE` is an alias of `DOUBLE`). AutoCOM provides type-safe value and reference wrappers to avoid VARTYPE ambiguity.
 
 ```cpp
+using namespace autocom::wrappers;
+
 DATE date;
-dispatch.get("GetDate", date);                      // ambiguous
-dispatch.get("GetDate", autocom::GetDate(date));    // safe
+dispatch.get("GetDate", date);              // ambiguous
+dispatch.get("GetDate", G_DATE(date));      // safe, "Get" wrapper
+dispatch.get("GetDate", W_DATE(date));      // safe, generic wrapper
+//dispatch.get("GetDate", G_DATE(5/0));     // cannot "Get" from R-value, won't compile
+//dispatch.get("GetDate", W_DATE(5/0));     // cannot "Get" from R-value, won't compile
 ```
 
-Each COM type has both "Get" and "Put" wrappers. "Put" wrappers accept both L- and R-values, and move/copy the value (or pointer) into DISPPARAMS. "Get" wrappers only accept L-values, assigning directly to the reference.
+Each VARTYPE has "Get" (`G_`) and "Put" (`P_`) wrappers, as well as a generic `W_` wrapper (which detects whether the value is an l- or r-value and constructs the corresponding `G_` or `P_` wrapper, respectively). The type-wrapper functions are:
+
+| Type         | Suffix    | Get        | Put        | Generic    |
+|:------------:|:---------:|:----------:|:----------:|:----------:|
+| CHAR         | _I1       | G_I1       | P_I1       | W_I1       |
+| UCHAR        | _II1      | G_UI1      | P_UI1      | W_UI1      |
+| SHORT        | _I2       | G_I2       | P_I2       | W_I2       |
+| USHORT       | _II2      | G_II2      | P_II2      | W_II2      |
+| INT          | _INT      | G_INT      | P_INT      | W_INT      |
+| UINT         | _IINT     | G_IINT     | P_IINT     | W_IINT     |
+| LONG         | _I4       | G_I4       | P_I4       | W_I4       |
+| ULONG        | _II4      | G_II4      | P_II4      | W_II4      |
+| LONGLONG     | _I8       | G_I8       | P_I8       | W_I8       |
+| ULONGLONG    | _II8      | G_II8      | P_II8      | W_II8      |
+| VARIANT_BOOL | _BOOL     | G_BOOL     | P_BOOL     | W_BOOL     |
+| DATE         | _DATE     | G_DATE     | P_DATE     | W_DATE     |
+| SCODE        | _ERROR    | G_ERROR    | P_ERROR    | W_ERROR    |
+| DECIMAL      | _DECIMAL  | G_DECIMAL  | P_DECIMAL  | W_DECIMAL  |
+| CURRENCY     | _CY       | G_CY       | P_CY       | W_CY       |
+| SAFEARRAY*   | _ARRAY    | G_ARRAY    | P_ARRAY    | W_ARRAY    |
+| VARIANT*     | _VARIANT  | G_VARIANT  | P_VARIANT  | W_VARIANT  |
+| IUnknown*    | _UNKNOWN  | G_UNKNOWN  | P_UNKNOWN  | W_UNKNOWN  |
+| IDispatch*   | _DISPATCH | G_DISPATCH | P_DISPATCH | W_DISPATCH |
+
+The same type-wrapper can be used to pass by-reference, for each, to put a DATE by reference:
+
+```cpp
+using namespace autocom::wrappers;
+
+DATE date = 0.0;
+DATE *pdate = &date;
+dispatch.put("PutDate", P_DATE(date));              // VT_DATE
+dispatch.put("PutDate", P_DATE(pdate));             // VT_DATE | VT_BYREF
+```
+
+## Examples
+
+Examples of the late-binding interface can be found in the [example/late](/example/late) directory.

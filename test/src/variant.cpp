@@ -133,7 +133,11 @@ TEST(Variant, SetVariant)
     variant.set(&var);
     EXPECT_EQ(variant.vt, VT_VARIANT | VT_BYREF);
 
-    // LITERALS
+    // CHAR LITERAL
+    variant.set('\0');
+    EXPECT_EQ(variant.vt, VT_I1);
+
+    // STRING LITERALS
     variant.set(L"");
     EXPECT_EQ(variant.vt, VT_BSTR);
     variant.set("");

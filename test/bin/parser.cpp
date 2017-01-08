@@ -132,8 +132,8 @@ TEST(CoClass, Header)
 TEST(Alias, Header)
 {
     com::detail::Alias value;
-    value.name = "Type";
-    value.parameter.type = "Alias";
+    value.name = "Alias";
+    value.parameter.type = "Type";
 
     EXPECT_EQ(value.header(), "typedef Type Alias;");
 }

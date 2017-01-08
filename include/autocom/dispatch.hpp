@@ -25,8 +25,6 @@ class Dispatch: public DispatchBase
 protected:
     friend class EnumVariant;
 
-    using DispatchBase::invoke;
-
 public:
     Dispatch();
     Dispatch(const Dispatch &other);
@@ -42,11 +40,6 @@ public:
     void open(const Guid &guid,
         LPUNKNOWN outter = nullptr,
         DWORD context = CLSCTX_INPROC_SERVER);
-
-    using DispatchBase::get;
-    using DispatchBase::put;
-    using DispatchBase::putref;
-    using DispatchBase::method;
 
     template <typename... Ts>
     EnumVariant iter(Ts&&... ts);
@@ -67,7 +60,7 @@ EnumVariant Dispatch::iter(Ts&&... ts)
     Variant result;
     if (sizeof...(Ts)) {
         // fetch dispatcher
-        if (!invoke(GET, &result, AUTOCOM_FWD(ts)...)) {
+        if (!DispatchBase::invoke(GET, &result, AUTOCOM_FWD(ts)...)) {
             return EnumVariant();
         }
         dispatch = result.pdispVal;

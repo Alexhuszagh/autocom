@@ -6,7 +6,7 @@ AutoCOM's early-binding interface produces native C++ headers analogous to MSVC'
 
 **Table of Contents**
 
-- [Design](#desgin)
+- [Design](#design)
   - [Definition Exportation](#definition-exportation)
   - [Wrappers](#wrappers)
 - [Header Layout](#header-layout)
@@ -171,4 +171,4 @@ typedef BSTR* Path_0_Arg0;
 
 ## Examples
 
-Examples of the early-binding interface can be found in the [/example/early](/example/early) directory.
+Examples of the early-binding interface can be found in the [example/early](/example/early) directory.

@@ -20,7 +20,7 @@ AutoCOM is a C++11 interface for the Component Object Model (COM), supporting Mi
 
 ## Description
 
-AutoCOM is a COM interface library, supporting both [early-binding](/doc/EarlyBinding.md) and [late-binding](/doc/LateBinding.md) interfaces. AutoCOM internally manages object reference counts and parameter lists construction, for simple, cross-compiler COM use.
+AutoCOM is a COM interface library, supporting both [early-binding](/doc/EarlyBinding.md) and [late-binding](/doc/LateBinding.md) interfaces. AutoCOM internally manages allocated resources and interface initialization, for simple, cross-compiler COM use.
 
 ## Examples
 
@@ -70,7 +70,7 @@ Compare this snippet to [code](https://gist.github.com/Alexhuszagh/c231052cb6e51
 
 AutoCOM believes that resource acquisition is initialization (RAII): that construction should initialize COM resources and destruction should free allocated resources. To ensure resource management is tied to object lifecycle, AutoCOM includes the following features:
 
-- Smart-pointers wrappers for COM objects, replacing manual reference-counting via `AddRef` and `Release`.
+- Smart-pointers wrappers for COM objects, calling `Release` when the last instance is destroyed.
 - Automated `CoInitializeEx` and `CoUninitialize` calls via thread-local COM instance counters. 
 - Wrappers for BSTR (Bstr), VARIANT (Variant), and SAFEARRAY (SafeArray) in the `autocom` namespace.
 
@@ -100,7 +100,7 @@ com::Bstr copy(bstr);
 
 ## Ownership
 
-AutoCOM uses COM ownership semantics for `put` and `method` calls: the COM library takes ownership of objects passed by value, while the ownership of objects passed by reference remains unchanged. Any existing references to objects passed by value are invalidated.
+AutoCOM uses COM ownership semantics for `put` and `method` calls: the COM library takes ownership of "in parameters" passed by value, modifies "in-out parameters" passed by value, while the ownership of objects passed by reference remains unchanged. The caller must call `AddRef` on any COM objects passed as "in-out parameters". For "in-parameters", any existing references to objects passed by value are invalidated.
 
 For `get` calls, the caller takes ownership of objects acquired by value, while the ownership of objects passed by reference remains unchanged.
 

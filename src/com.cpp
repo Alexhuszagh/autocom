@@ -105,6 +105,46 @@ void DispatchBase::open(IDispatch *dispatch)
 }
 
 
+/** \brief Reset interface.
+ */
+void DispatchBase::reset()
+{
+    ppv.reset();
+}
+
+
+/** \brief Dereference IDispatch smart pointer.
+ */
+IDispatch & DispatchBase::operator*()
+{
+    return *ppv;
+}
+
+
+/** \brief Dereference IDispatch smart pointer.
+ */
+const IDispatch & DispatchBase::operator*() const
+{
+    return *ppv;
+}
+
+
+/** \brief Dereference IDispatch smart pointer.
+ */
+IDispatch * DispatchBase::operator->()
+{
+    return ppv.get();
+}
+
+
+/** \brief Dereference IDispatch smart pointer.
+ */
+const IDispatch * DispatchBase::operator->() const
+{
+    return ppv.get();
+}
+
+
 /** \brief Check if class instantiates valid dispatcher.
  */
 DispatchBase::operator bool() const

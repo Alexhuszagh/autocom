@@ -20,7 +20,9 @@ namespace literals
 // LITERALS
 // --------
 
+PutChar operator"" _I1(char);
 PutChar operator"" _I1(unsigned long long int);
+PutUChar operator"" _UI1(char);
 PutUChar operator"" _UI1(unsigned long long int);
 PutShort operator"" _I2(unsigned long long int);
 PutUShort operator"" _UI2(unsigned long long int);

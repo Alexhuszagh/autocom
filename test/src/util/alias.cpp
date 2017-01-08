@@ -50,9 +50,11 @@ TEST(LiteralTypes, Vartype)
     variant.set(0_BOOL);
     EXPECT_EQ(variant.vt, VT_BOOL);
 
+    variant.set('\0'_I1);
     variant.set(0_I1);
     EXPECT_EQ(variant.vt, VT_I1);
 
+    variant.set('\0'_UI1);
     variant.set(0_UI1);
     EXPECT_EQ(variant.vt, VT_UI1);
 

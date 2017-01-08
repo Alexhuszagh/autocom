@@ -18,10 +18,21 @@ namespace literals
 // LITERALS
 // --------
 
+PutChar operator"" _I1(char value)
+{
+    return PutChar(value);
+}
+
 
 PutChar operator"" _I1(unsigned long long int value)
 {
     return PutChar(value);
+}
+
+
+PutUChar operator"" _UI1(char value)
+{
+    return PutUChar(value);
 }
 
 

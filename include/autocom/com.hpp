@@ -167,6 +167,10 @@ public:
     Variant methodV(Ts&&... ts);
 
     explicit operator bool() const;
+    IDispatch & operator*();
+    const IDispatch & operator*() const;
+    IDispatch * operator->();
+    const IDispatch * operator->() const;
 };
 
 
