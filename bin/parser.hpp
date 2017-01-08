@@ -41,7 +41,6 @@ typedef std::string Type;
 typedef std::string Name;
 typedef std::string Array;
 typedef std::string Value;
-typedef std::pair<Type, Array> DataType;
 
 // DESCRIPTIONS
 typedef std::vector<Enum> EnumList;
@@ -98,6 +97,7 @@ struct EnumValue: CppCode
 struct Parameter: CppCode
 {
     Type type;
+    Array array;
     Name name;
 
     Parameter() = default;
@@ -108,17 +108,20 @@ struct Parameter: CppCode
 
     Parameter(const TypeInfo &info,
         const WORD index);
+    Parameter(const Type &type,
+        const Array &array = "",
+        const Name &name = "");
 
     virtual std::string header() const;
+    virtual std::string named() const;
+    virtual std::string anonymous() const;
 };
 
 
 /** \brief Description for a variable with value.
  */
-struct Variable: CppCode
+struct Variable: Parameter
 {
-    Type type;
-    Name name;
     Value value;
 
     Variable() = default;
@@ -157,7 +160,7 @@ struct Property: CppCode
 struct Function: CppCode
 {
     std::string decorator;
-    std::string returns;
+    Parameter returns;
     Name name;
     std::string doc;
     MEMBERID id;
@@ -270,6 +273,7 @@ struct Interface: CppCode
     IgnoredMethods & ignored() const;
     virtual std::string forward() const;
     virtual std::string header() const;
+    virtual std::string signatures() const;
 };
 
 
@@ -320,8 +324,8 @@ struct CoClass: CppCode
  */
 struct Alias: CppCode
 {
+    Parameter parameter;
     Name name;
-    Type type;
 
     Alias() = default;
     Alias(const Alias&) = default;
@@ -352,6 +356,7 @@ struct Union: CppCode
     Union(const TypeInfo &info,
         Description & /*description*/);
 
+    virtual std::string forward() const;
     virtual std::string header() const;
 };
 

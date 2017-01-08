@@ -11,6 +11,7 @@
 #include "util/define.hpp"
 #include "util/enum.hpp"
 #include "util/exception.hpp"
+#include "util/sfinae.hpp"
 #include "util/shared_ptr.hpp"
 #include "util/type.hpp"
 #include "util/variadic.hpp"

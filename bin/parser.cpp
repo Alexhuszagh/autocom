@@ -166,34 +166,35 @@ void parseItem(Description &desc,
 
 /** \brief Get variable type name from VARTYPE descriptor.
  */
-DataType getTypeName(const TypeInfo &info,
+Parameter getTypeName(const TypeInfo &info,
     const TypeDesc &desc)
 {
+    Parameter parameter;
     auto it = TYPE_NAMES.find(desc.vt());
     if (it != TYPE_NAMES.end()) {
-        return std::make_pair(it->second, "");
+        parameter.type = it->second;
     } else if (desc.vt() == VT_CARRAY) {
         // get type description for C-style array: char[5][4]
         auto array = desc.array();
-        auto pair = getTypeName(info, array.type());
+        parameter = getTypeName(info, array.type());
         for (USHORT index = 0; index < array.count(); ++index) {
-            pair.second += "[" + std::to_string(array.bound(index).size()) + "]";
+            auto dimensions = std::to_string(array.bound(index).size());
+            parameter.array += "[" + dimensions + "]";
         }
-        return pair;
     } else if (desc.vt() == VT_PTR) {
         // return pointer type
-        auto pair = getTypeName(info, desc.pointer());
-        pair.first += "*";
-        return pair;
+        parameter = getTypeName(info, desc.pointer());
+        parameter.type += "*";
     } else if (desc.vt() == VT_USERDEFINED) {
-        auto name = info.info(desc.reference()).documentation(-1).name;
-        return std::make_pair(name, "");
+        parameter.type = info.info(desc.reference()).documentation(-1).name;
     } else if (desc.vt() == VT_SAFEARRAY) {
-        return std::make_pair("SAFEARRAY", "");
+        parameter.type = "SAFEARRAY";
+    } else {
+        // VT_VOID
+        throw std::invalid_argument("Invalid type: " + std::to_string(desc.vt()));
     }
 
-    // VT_VOID
-    throw std::invalid_argument("Invalid type: " + std::to_string(desc.vt()));
+    return parameter;
 }
 
 
@@ -303,17 +304,49 @@ Parameter::Parameter(const TypeInfo &info,
     auto vd = info.vardesc(index);
     assert(vd.kind() == VAR_PERINSTANCE);
 
-    auto pair = getTypeName(info, vd.element().type());
-    type = pair.first;
-    name = info.documentation(vd.id()).name + pair.second;
+    *this = getTypeName(info, vd.element().type());
+    name = info.documentation(vd.id()).name;
 }
+
+
+/** \brief Initialize-list constructor.
+ */
+Parameter::Parameter(const Type &type,
+        const Array &array,
+        const Name &name):
+    type(type),
+    array(array),
+    name(name)
+{}
 
 
 /** \brief Get representation in header.
  */
 std::string Parameter::header() const
 {
-    return type + " " + name;
+    return name.empty() ? anonymous() : named();
+}
+
+
+/** \brief Get representation with named variable.
+ *
+ *  Parameter(type="int", name="arg0", array="[50]").named()
+ *      -> "int arg0[50]"
+ */
+std::string Parameter::named() const
+{
+    return type + " " + name + array;
+}
+
+
+/** \brief Get representation with anonymous variable.
+ *
+ *  Parameter(type="int", name="arg0", array="[50]").anonymous()
+ *      -> "int[50]"
+ */
+std::string Parameter::anonymous() const
+{
+    return type + array;
 }
 
 
@@ -326,10 +359,9 @@ Variable::Variable(const TypeInfo &info,
     auto vd = info.vardesc(index);
     assert(vd.kind() == VAR_CONST);
 
-    auto pair = getTypeName(info, vd.element().type());
-    type = pair.first;
+    reinterpret_cast<Parameter&>(*this) = getTypeName(info, vd.element().type());
     name = info.documentation(vd.id()).name;
-    value = getValueName(vd.variant()) + pair.second;
+    value = getValueName(vd.variant());
 }
 
 
@@ -366,17 +398,15 @@ Function::Function(const TypeInfo &info,
     auto documentation = info.documentation(fd.id());
 
     decorator = DECORATIONS[fd.decoration()];
-    auto pair = getTypeName(info, fd.returnType().type());
-    returns = pair.first + pair.second;
+    returns = getTypeName(info, fd.returnType().type());
     name = documentation.name;
     doc = documentation.doc;
     id = fd.id();
     offset = fd.offset();
     args.resize(fd.args());
     for (SHORT index = 0; index < fd.args(); ++index) {
-        pair = getTypeName(info, fd.arg(index).type());
-        args[index].type = pair.first;
-        args[index].name = "arg" + std::to_string(index) + pair.second;
+        args[index] = getTypeName(info, fd.arg(index).type());
+        args[index].name = "arg" + std::to_string(index);
     }
 }
 
@@ -404,7 +434,7 @@ std::string Function::definition() const
 std::string Function::header() const
 {
     std::ostringstream stream;
-    stream << "virtual " << returns << " " << decorator
+    stream << "virtual " << returns.anonymous() << " " << decorator
            << " " << definition() << ";";
 
     return stream.str();
@@ -599,6 +629,38 @@ std::string Interface::header() const
 }
 
 
+/** \brief Write function signature type definitions.
+ */
+std::string Interface::signatures() const
+{
+    std::ostringstream stream;
+    stream << "namespace " << name << "_NS\r\n"
+           << "{\r\n";
+
+    std::unordered_map<std::string, int> counts;
+    for (const auto &item: functions) {
+        auto &count = counts[item.name];
+        // argument count
+        stream << "constexpr size_t " << item.name << "_" << count
+               << "_ArgCount = " << item.args.size() << ";\r\n";
+        // return type
+        stream << "typedef " << item.returns.anonymous() << " "
+               << item.name << "_" << count << "_Returns;\r\n";
+
+       // arguments
+        for (size_t i = 0; i < item.args.size(); ++i) {
+            stream << "typedef " << item.args[i].anonymous() << " "
+               << item.name << "_" << count << "_Arg" << i << ";\r\n";
+        }
+        ++count;
+    }
+
+    stream << "}    /* " << name << "_NS */\r\n";
+
+    return stream.str();
+}
+
+
 /** \brief Initialize Dispatch method description from TypeInfo.
  */
 Dispatch::Dispatch(const TypeInfo &info,
@@ -677,8 +739,8 @@ std::string CoClass::header() const
 Alias::Alias(const TypeInfo &info,
     Description &description)
 {
+    parameter = getTypeName(info, info.attr().alias());
     name = info.documentation(-1).name;
-    type = getTypeName(info, info.attr().alias()).first;
 }
 
 
@@ -686,7 +748,7 @@ Alias::Alias(const TypeInfo &info,
  */
 std::string Alias::header() const
 {
-    return "typedef " + name + " " + type + ";";
+    return "typedef " + parameter.anonymous() + " " + name +  ";";
 }
 
 
@@ -703,6 +765,14 @@ Union::Union(const TypeInfo &info,
         fields.emplace_back(Parameter(info, index));
     }
 }
+
+
+/** \brief Forward declaration for union.
+ */
+std::string Union::forward() const
+{
+    return "union " + name + ";";
+};
 
 
 /** \brief Write union to string for header.
@@ -727,7 +797,6 @@ std::string External::header() const
 {
     assert(false);
 }
-
 
 }   /* detail */
 

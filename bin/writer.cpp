@@ -67,6 +67,9 @@ void writeForwardDeclarations(std::ostream &stream,
            << "// -------\r\n"
            << "\r\n";
 
+    for (const auto &item: tlib.description.unions) {
+        stream << item.forward() << "\r\n";
+    }
     for (const auto &item: tlib.description.records) {
         stream << item.forward() << "\r\n";
     }
@@ -83,6 +86,28 @@ void writeForwardDeclarations(std::ostream &stream,
         stream << item.header() << "\r\n";
     }
     stream << "\r\n";
+}
+
+
+/** \brief Write typedefs for function signatures.
+ */
+writeMethodSignatures(std::ostream &stream,
+    TypeLibDescription &tlib)
+{
+    stream << "namespace signatures"
+           << "{\r\n"
+           << "// SIGNATURES\r\n"
+           << "// ----------\r\n"
+           << "\r\n";
+
+    for (const auto &item: tlib.description.interfaces) {
+        stream << item.signatures() << "\r\n";
+    }
+    for (const auto &item: tlib.description.dispatchers) {
+        stream << item.signatures() << "\r\n";
+    }
+
+    stream << "}   /* signatures */\r\n";
 }
 
 
@@ -120,16 +145,17 @@ std::string writeClsidHeader(TypeLibDescription &tlib,
 
     // SIMPLE
     writeSection(stream, tlib.description.enums, "ENUMS");
-    writeSection(stream, tlib.description.unions, "UNIONS");
-
-    // TYPES
     writeForwardDeclarations(stream, tlib);
+    writeSection(stream, tlib.description.unions, "UNIONS");
 
     // CLASSES
     writeSection(stream, tlib.description.records, "STRUCTS");
     writeSection(stream, tlib.description.interfaces, "INTERFACES");
     writeSection(stream, tlib.description.dispatchers, "DISPATCHERS");
     writeSection(stream, tlib.description.coclasses, "COCLASSES");
+
+    // FUNCTION SIGNATURES
+    writeMethodSignatures(stream, tlib);
 
     return path;
 }

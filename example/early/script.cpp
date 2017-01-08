@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     AutoComScriptControl script;
 
     com::Bstr command(L"VBScript");
-    auto hr = script->Language(command.data());
+    auto hr = script->Language(command);
     assert(SUCCEEDED(hr));
 
     hr = script->AllowUI(VARIANT_FALSE);
@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
     assert(SUCCEEDED(hr));
 
     com::Bstr statement(L"var a = 'test'");
-    hr = script->ExecuteStatement(statement.data());
+    hr = script->ExecuteStatement(statement);
     assert(SUCCEEDED(hr));
 
     return 0;

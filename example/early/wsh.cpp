@@ -10,7 +10,12 @@
 #include <cassert>
 
 namespace com = autocom;
+namespace sig = signatures;
 using namespace com::literals;
+
+// Cross-DLL types
+typedef sig::IWshShell_NS::Run_0_Arg3 CodePtr;
+typedef typename com::DereferenceType<CodePtr>::type CodeType;
 
 
 /** \brief Execute main code block.
@@ -20,7 +25,7 @@ int main(int argc, char *argv[])
     AutoComWshShell wsh;
     com::Bstr command(L"notepad.exe");
     com::Variant style(1_I2), wait;
-    ULONG code;
+    CodeType code;
     auto hr = wsh->Run(command.data(), &style, &wait, &code);
     assert(SUCCEEDED(hr));
 

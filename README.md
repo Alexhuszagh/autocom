@@ -20,11 +20,11 @@ AutoCOM is a C++11 interface for the Component Object Model (COM) supporting Min
 
 ## Description
 
-AutoCOM is a modern COM interface library for C++11 and supports either a [compile-time](/doc/CompileTimeBinding.md)  (analogous to `#import` statements) or [run-time](/doc/RunTimeBinding.md) (IDispatch) interface. AutoCOM manages object reference counts and parameter lists construction, for simple, cross-compiler COM usage. 
+AutoCOM is a COM interface library, supporting both [early-binding](/doc/EarlyBinding.md) (analogous to `#import` statements) and [late-binding](/doc/LateBinding.md) interfaces. AutoCOM manages object reference counts and parameter lists construction, for simple, cross-compiler COM use.
 
 ## Examples
 
-**Compile-Time**
+**Early-Binding**
 
 ```cpp
 #include "MSScriptControl.hpp"
@@ -35,18 +35,18 @@ int main(int argc, char *argv[])
     AutoComScriptControl script;
 
     com::Bstr command(L"VBScript");
-    auto hr = script->Language(command.data());
+    auto hr = script->Language(command);
     hr = script->AllowUI(VARIANT_FALSE);
     hr = script->Timeout(-1);
 
     com::Bstr statement(L"var a = 'test'");
-    hr = script->ExecuteStatement(statement.data());
+    hr = script->ExecuteStatement(statement);
 
     return 0;
 }
 ```
 
-**Run-Time**
+**Late-Binding**
 
 ```cpp
 #include "autocom.hpp"
@@ -68,17 +68,17 @@ Compare this snippet to [code](https://gist.github.com/Alexhuszagh/c231052cb6e51
 
 ## RAII
 
-AutoCOM believes that resource initialization is acquisition, and that object destruction should free allocated resources. 
+AutoCOM believes that resource acquisition is initialization (RAII): that construction should initialize COM objects and destruction should free allocated resources. To ensure resource management is tied to object lifecycle, AutoCOM includes the following features:
 
-- Smart-pointers wrap COM objects, removing calls to `AddRef` and `Release`.
-- Thread-local counters manage COM library initialization/uninitialization in COM object constructors/destructors. 
-- BSTR, VARIANT, and SAFEARRAY have the RAII counterparts Bstr, Variant, SafeArray.
+- Smart-pointers wrappers for COM objects, removing calls to `AddRef` and `Release`.
+- Thread-local counters manage COM library initialization/uninitialization in constructors/destructors. 
+- BSTR, VARIANT, and SAFEARRAY have the RAII counterparts Bstr, Variant, SafeArray in the `autocom` namespace.
 
 ## Standard Template Library
 
-AutoCOM aims to bridge Windows types with the Standard Template Library, to facilitate use of COM APIs in modern C++.
+AutoCOM adds Standard Template Library (STL) container methods to Windows-specific containers, to facilitate use of COM APIs in modern C++.
 
-The `Bstr` and `SafeArray` RAII classes have interfaces comparable to `std::wstring` and `std::vector`, and can be implicitly converted to `BSTR` and `SAFEARRAY`.
+`Bstr` and `SafeArray` have interfaces comparable to `std::wstring` and `std::vector`, and are implicitly convertible to `BSTR` and `SAFEARRAY`.
 
 ```cpp
 com::Bstr string(L"This is a string");
@@ -104,7 +104,7 @@ AutoCOM uses COM ownership semantics for `put` and `method` calls: objects passe
 
 For `get` calls, the inverse is assumed: you take ownership of objects acquired by value, and do not take ownership of objects passed by reference.
 
-Finally, ownership can be transfer from a VARIANT to a SafeArray or Bstr, so the new object is responsible for resource cleanup.
+Finally, SafeArrays and Bstrs can inherit resources from VARIANTs/Variants through object construction or assignment, so VARIANTs can be safely discarded after method dispatch.
 
 ```cpp
 Dispatch disp(L"SomeInterface");
@@ -113,7 +113,7 @@ Variant variant;
 {
     disp.method(L"GetSafearray", &variant);                 // variant owns SA
     SafeArray array(variant);                               // array owns SA
-}       // SA is deallocated since array goes out of scope
+}       // SA is deallocated with array destruction, variant is empty
 ```
 
 ## Unicode

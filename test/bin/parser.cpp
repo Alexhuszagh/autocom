@@ -57,7 +57,7 @@ TEST(Function, Header)
 {
     com::detail::Function value;
     value.decorator = "__stdcall";
-    value.returns = "void";
+    value.returns.type = "void";
     value.name = "Open";
     value.args.resize(1);
     value.args[0].type = "BSTR";
@@ -133,7 +133,7 @@ TEST(Alias, Header)
 {
     com::detail::Alias value;
     value.name = "Type";
-    value.type = "Alias";
+    value.parameter.type = "Alias";
 
     EXPECT_EQ(value.header(), "typedef Type Alias;");
 }

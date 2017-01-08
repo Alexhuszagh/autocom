@@ -136,12 +136,12 @@ if (BUILD_EXAMPLES AND BUILD_GENERATOR)
     target_link_libraries(wsh_early ${AUTOCOM_LIBRARIES})
     add_dependencies(wsh_early "WScript")
 
-    # MSScriptControl
-    AutoComGenerate("MSScriptControl.ScriptControl" "${CMAKE_CURRENT_BINARY_DIR}" "MSScriptControl")
-    add_executable(script_early example/early/script.cpp)
-    target_link_libraries(script_early ${AUTOCOM_LIBRARIES})
-    add_dependencies(script_early "MSScriptControl")
-
+#    # MSScriptControl
+    #AutoComGenerate("MSScriptControl.ScriptControl" "${CMAKE_CURRENT_BINARY_DIR}" "MSScriptControl")
+#    add_executable(script_early example/early/script.cpp)
+#    target_link_libraries(script_early ${AUTOCOM_LIBRARIES})
+#    add_dependencies(script_early "MSScriptControl")
+#
     # Thermo
     if (HAVE_THERMO)
         AutoComGenerate("{1D23188D-53FE-4C25-B032-DC70ACDBDC02}" "${CMAKE_CURRENT_BINARY_DIR}" "MSFileReader")

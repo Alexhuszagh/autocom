@@ -1,6 +1,6 @@
 
-Run-Time AutoCOM
-================
+Late-Binding AutoCOM
+====================
 
 AutoCOM's run-time interface uses thread-local reference-counting, C++ variadic templates, and perfect-forwarding to simplify dynamic method dispatch via `IDispatch::Invoke`. 
 
