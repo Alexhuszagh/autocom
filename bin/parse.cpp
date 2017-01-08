@@ -5,7 +5,7 @@
  *  \brief Parse ITypeInfo data attributes.
  */
 
-#include "parser.hpp"
+#include "parse.hpp"
 
 #include <algorithm>
 #include <cassert>

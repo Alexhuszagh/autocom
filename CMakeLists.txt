@@ -76,12 +76,21 @@ endif()
 # ----
 
 set(AUTOCOM_GENERATOR_SOURCES
-    bin/generator.cpp
-    bin/parser.cpp
-    bin/writer.cpp
+    bin/generate.cpp
+    bin/options.cpp
+    bin/parse.cpp
+    bin/write.cpp
 )
 
-# MSXML2.XMLHTTP implements GetTypeInfo
+set(AUTOCOM_PROGID_SOURCES
+    bin/options.cpp
+    bin/progid.cpp
+)
+
+set(AUTOCOM_CLSID_SOURCES
+    bin/clsid.cpp
+    bin/options.cpp
+)
 
 if(BUILD_GENERATOR)
     add_subdirectory(gflags)
@@ -89,6 +98,14 @@ if(BUILD_GENERATOR)
     add_executable(AutoCOMGenerator ${AUTOCOM_GENERATOR_SOURCES})
     set_target_properties(AutoCOMGenerator PROPERTIES OUTPUT_NAME autocom_generator)
     target_link_libraries(AutoCOMGenerator ${AUTOCOM_LIBRARIES} gflags)
+
+    add_executable(AutoCOMProgID ${AUTOCOM_PROGID_SOURCES})
+    set_target_properties(AutoCOMProgID PROPERTIES OUTPUT_NAME autocom_progid)
+    target_link_libraries(AutoCOMProgID ${AUTOCOM_LIBRARIES} gflags)
+
+    add_executable(AutoCOMCLSID ${AUTOCOM_CLSID_SOURCES})
+    set_target_properties(AutoCOMCLSID PROPERTIES OUTPUT_NAME autocom_clsid)
+    target_link_libraries(AutoCOMCLSID ${AUTOCOM_LIBRARIES} gflags)
 endif()
 
 # EXAMPLES
@@ -158,7 +175,7 @@ endif()
 # -----
 
 set(AUTOCOM_TEST_SOURCES
-    test/bin/parser.cpp
+    test/bin/parse.cpp
     test/src/encoding/converters.cpp
     test/src/encoding/unicode.cpp
     test/src/util/alias.cpp
@@ -171,8 +188,8 @@ set(AUTOCOM_TEST_SOURCES
     test/src/main.cpp
 
     # GENERATOR
-    bin/parser.cpp
-    bin/writer.cpp
+    bin/parse.cpp
+    bin/write.cpp
 )
 
 if (BUILD_TESTS)

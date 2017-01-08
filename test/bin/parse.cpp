@@ -5,7 +5,7 @@
  *  \brief BSTR wrapper test suite.
  */
 
-#include "parser.hpp"
+#include "parse.hpp"
 
 #include <gtest/gtest.h>
 

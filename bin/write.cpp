@@ -5,7 +5,7 @@
  *  \brief Write class attributes into C++ interface.
  */
 
-#include "writer.hpp"
+#include "write.hpp"
 
 #include <fstream>
 #include <ostream>

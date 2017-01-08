@@ -5,38 +5,11 @@
  *  \brief Query COM interface and generate compile-time interface.
  */
 
-#include "parser.hpp"
-#include "writer.hpp"
-
-#include <gflags/gflags.h>
+#include "options.hpp"
+#include "parse.hpp"
+#include "write.hpp"
 
 namespace com = autocom;
-
-
-// VALIDATORS
-// ----------
-
-
-/** \brief Validate PROGID for COM object.
- *
- *  Value can either be a PROGID, or a CLSID as a 36-character hex
- *  identifier enclosed in brackets.
- */
-static bool ValidateProgId(const char *flagname,
-    const std::string &id)
-{
-    if (id.empty()) {
-    } else if (id.front() == '{' || id.back() == '}') {
-        if (id.front() == '{' && id.back() == '}' && id.size() == 38) {
-            return true;
-        }
-    } else {
-        return true;
-    }
-
-    printf("Invalid value for --%s: %s\n", flagname, id.data());
-    return false;
-}
 
 // OPTIONS
 // -------
@@ -64,7 +37,8 @@ int main(int argc, char *argv[])
         // write to file
         com::Files files;
         writeHeaders(description, FLAGS_header, files);
+        exit(EXIT_SUCCESS);
     }
 
-    return 0;
+    exit(EXIT_FAILURE);
 }
