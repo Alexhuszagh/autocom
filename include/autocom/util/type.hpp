@@ -48,11 +48,19 @@ public:
     RValueWrapper(This &&) = default;
     This & operator=(This &&) = default;
 
-    RValueWrapper(const T &t);
-    RValueWrapper(T &&t);
+    RValueWrapper(const T &t) noexcept;
+    RValueWrapper(T &&t) noexcept;
 
     // DATA
-    explicit operator T() const;
+    explicit operator T() const noexcept;
+
+    template <typename U = T>
+    typename std::enable_if<std::is_arithmetic<U>::value, RValueWrapper<U>>::type
+    operator+() const;
+
+    template <typename U = T>
+    typename std::enable_if<std::is_arithmetic<U>::value, RValueWrapper<U>>::type
+    operator-() const;
 };
 
 
@@ -77,10 +85,10 @@ public:
     LValueWrapper(This &&) = default;
     This & operator=(This &&) = default;
 
-    LValueWrapper(R r);
+    LValueWrapper(R r) noexcept;
 
     // DATA
-    explicit operator R() const;
+    explicit operator R() const noexcept;
 };
 
 
@@ -163,7 +171,7 @@ public:
 // TYPES
 // -----
 
-AUTOCOM_WRAP_RVALUE(std::nullptr_t, PutNull);
+AUTOCOM_WRAP_VALUE(std::nullptr_t, Null);
 AUTOCOM_WRAPPER(VARIANT_BOOL, Bool);
 AUTOCOM_WRAPPER(CHAR, Char);
 AUTOCOM_WRAPPER(UCHAR, UChar);
@@ -276,6 +284,7 @@ struct VariantType<SafeArray<T>, true>
  */
 AUTOCOM_VALUE_SPECIALIZER(std::nullptr_t, VT_NULL);
 AUTOCOM_SPECIALIZER(void, VT_VOID);
+AUTOCOM_SPECIALIZER(bool, VT_BOOL);
 AUTOCOM_SPECIALIZER(CHAR, VT_I1);
 AUTOCOM_SPECIALIZER(UCHAR, VT_UI1);
 AUTOCOM_SPECIALIZER(SHORT, VT_I2);
@@ -327,7 +336,7 @@ AUTOCOM_SAFE_POINTER_SPECIALIZER(Decimal, VT_DECIMAL);
 /** \brief Construct from copy of type.
  */
 template <typename T>
-RValueWrapper<T>::RValueWrapper(const T &t):
+RValueWrapper<T>::RValueWrapper(const T &t) noexcept:
     t(t)
 {}
 
@@ -335,7 +344,7 @@ RValueWrapper<T>::RValueWrapper(const T &t):
 /** \brief Construct from moved type.
  */
 template <typename T>
-RValueWrapper<T>::RValueWrapper(T &&t):
+RValueWrapper<T>::RValueWrapper(T &&t) noexcept:
     t(std::move(t))
 {}
 
@@ -343,16 +352,38 @@ RValueWrapper<T>::RValueWrapper(T &&t):
 /** \brief Convert explicitly to the type.
  */
 template <typename T>
-RValueWrapper<T>::operator T() const
+RValueWrapper<T>::operator T() const noexcept
 {
     return t;
+}
+
+
+/** \brief Positive operator overload for arithmetic types.
+ */
+template <typename T>
+template <typename U>
+typename std::enable_if<std::is_arithmetic<U>::value, RValueWrapper<U>>::type
+RValueWrapper<T>::operator+() const
+{
+    return This(+t);
+}
+
+
+/** \brief Negative operator overload for arithmetic types.
+ */
+template <typename T>
+template <typename U>
+typename std::enable_if<std::is_arithmetic<U>::value, RValueWrapper<U>>::type
+RValueWrapper<T>::operator-() const
+{
+    return This(-t);
 }
 
 
 /** \brief Construct from copy of type.
  */
 template <typename T>
-LValueWrapper<T>::LValueWrapper(R r):
+LValueWrapper<T>::LValueWrapper(R r) noexcept:
     r(r)
 {}
 
@@ -361,7 +392,7 @@ LValueWrapper<T>::LValueWrapper(R r):
 /** \brief Convert explicitly to the type.
  */
 template <typename T>
-LValueWrapper<T>::operator R() const
+LValueWrapper<T>::operator R() const noexcept
 {
     return r;
 }

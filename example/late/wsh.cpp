@@ -11,6 +11,7 @@
 #include <cstdio>
 
 namespace com = autocom;
+using namespace com::literals;
 
 
 /** \brief Execute main code block.
@@ -19,8 +20,9 @@ int main(int argc, char *argv[])
 {
     com::Dispatch dispatch(L"WScript.Shell.1");
 
-    com::Variant style(SHORT(1)), wait;
-    assert(dispatch.method(L"Run", L"notepad.exe", &style, &wait));
+    com::Variant style(1_I2), wait;
+    auto status = dispatch.method(L"Run", L"notepad.exe", &style, &wait);
+    assert(status);
 
     return 0;
 }

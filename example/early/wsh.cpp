@@ -10,6 +10,7 @@
 #include <cassert>
 
 namespace com = autocom;
+using namespace com::literals;
 
 
 /** \brief Execute main code block.
@@ -18,7 +19,7 @@ int main(int argc, char *argv[])
 {
     AutoComWshShell wsh;
     com::Bstr command(L"notepad.exe");
-    com::Variant style(SHORT(1)), wait;
+    com::Variant style(1_I2), wait;
     ULONG code;
     auto hr = wsh->Run(command.data(), &style, &wait, &code);
     assert(SUCCEEDED(hr));

@@ -65,6 +65,7 @@ TEST(VariantType, Types)
 {
     EXPECT_EQ(com::VariantType<std::nullptr_t>::vt, VT_NULL);
     EXPECT_EQ(com::VariantType<VARIANT*>::vt, VT_VARIANT | VT_BYREF);
+    EXPECT_EQ(com::VariantType<bool>::vt, VT_BOOL);
     TEST_VARIANT_TYPE(void, VT_VOID)();
     TEST_VARIANT_TYPE(CHAR, VT_I1)();
     TEST_VARIANT_TYPE(UCHAR, VT_UI1)();
@@ -114,4 +115,12 @@ TEST(VariantType, Wrappers)
     TEST_VARIANT_WRAPPER(Date, VT_DATE)();
     TEST_VARIANT_WRAPPER(IUnknown, VT_UNKNOWN)();
     TEST_VARIANT_WRAPPER(IDispatch, VT_DISPATCH)();
+}
+
+
+TEST(RValueWrapper, Operators)
+{
+    com::PutInt x(5);
+    EXPECT_EQ(int(-x), -5);
+    EXPECT_EQ(int(+x), 5);
 }

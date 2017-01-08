@@ -63,7 +63,7 @@ TEST(Function, Header)
     value.args[0].type = "BSTR";
     value.args[0].name = "arg0";
 
-    EXPECT_EQ(value.header(), "__stdcall void Open(BSTR arg0);");
+    EXPECT_EQ(value.header(), "virtual void __stdcall Open(BSTR arg0);");
 }
 
 

@@ -28,17 +28,25 @@ void testSet(com::Variant &variant,
 
 
 template <
-    typename Type,
-    typename TypePtr,
-    DWORD VT
+    typename PutType,
+    typename PutTypePtr,
+    typename GetType,
+    typename GetTypePtr
 >
 void testSetWrapper(com::Variant &variant)
 {
-    variant.set(Type());
-    EXPECT_EQ(variant.vt, VT);
+    typedef typename PutType::type T;
+    T t;
+    T *p = &t;
+    variant.set(PutType());
+    EXPECT_EQ(variant.vt, com::VariantType<PutType>::vt);
+    variant.set(GetType(t));
+    EXPECT_EQ(variant.vt, com::VariantType<PutType>::vt);
 
-    variant.set(TypePtr());
-    EXPECT_EQ(variant.vt, VT | VT_BYREF);
+    variant.set(PutTypePtr());
+    EXPECT_EQ(variant.vt, com::VariantType<PutTypePtr>::vt);
+    variant.set(PutTypePtr(p));
+    EXPECT_EQ(variant.vt, com::VariantType<PutTypePtr>::vt);
 }
 
 
@@ -76,7 +84,7 @@ void testGetWrapper(com::Variant &variant)
 
 
 #define TEST_SET(T) testSet<T>
-#define TEST_SET_WRAPPER(Type, Vt) testSetWrapper<Type, Type##Ptr, Vt>
+#define TEST_SET_WRAPPER(Type) testSetWrapper<com::Put##Type, com::Put##Type##Ptr, com::Get##Type, com::Get##Type##Ptr>
 #define TEST_GET(T) testGet<T>
 #define TEST_GET_WRAPPER(Type) testGetWrapper<com::Get##Type, com::Get##Type##Ptr, com::Put##Type, com::Put##Type##Ptr>
 
@@ -110,6 +118,10 @@ TEST(Variant, SetVariant)
     // nullptr
     variant.set(nullptr);
     EXPECT_EQ(variant.vt, VT_NULL);
+
+    // bool
+    variant.set(true);
+    EXPECT_EQ(variant.vt, VT_BOOL);
 
     // DECIMAL
     DECIMAL dec;
@@ -166,25 +178,25 @@ TEST(Variant, SetWrapperVariant)
     EXPECT_EQ(variant.vt, VT_VARIANT | VT_BYREF);
 
     // WRAPPERS
-    TEST_SET_WRAPPER(com::PutBool, VT_BOOL)(variant);
-    TEST_SET_WRAPPER(com::PutChar, VT_I1)(variant);
-    TEST_SET_WRAPPER(com::PutUChar, VT_UI1)(variant);
-    TEST_SET_WRAPPER(com::PutShort, VT_I2)(variant);
-    TEST_SET_WRAPPER(com::PutUShort, VT_UI2)(variant);
-    TEST_SET_WRAPPER(com::PutInt, VT_INT)(variant);
-    TEST_SET_WRAPPER(com::PutUInt, VT_UINT)(variant);
-    TEST_SET_WRAPPER(com::PutLong, VT_I4)(variant);
-    TEST_SET_WRAPPER(com::PutULong, VT_UI4)(variant);
-    TEST_SET_WRAPPER(com::PutFloat, VT_R4)(variant);
-    TEST_SET_WRAPPER(com::PutDouble, VT_R8)(variant);
-    TEST_SET_WRAPPER(com::PutLongLong, VT_I8)(variant);
-    TEST_SET_WRAPPER(com::PutULongLong, VT_UI8)(variant);
-    TEST_SET_WRAPPER(com::PutBstr, VT_BSTR)(variant);
-    TEST_SET_WRAPPER(com::PutCurrency, VT_CY)(variant);
-    TEST_SET_WRAPPER(com::PutError, VT_ERROR)(variant);
-    TEST_SET_WRAPPER(com::PutDate, VT_DATE)(variant);
-    TEST_SET_WRAPPER(com::PutIUnknown, VT_UNKNOWN)(variant);
-    TEST_SET_WRAPPER(com::PutIDispatch, VT_DISPATCH)(variant);
+    TEST_SET_WRAPPER(Bool)(variant);
+    TEST_SET_WRAPPER(Char)(variant);
+    TEST_SET_WRAPPER(UChar)(variant);
+    TEST_SET_WRAPPER(Short)(variant);
+    TEST_SET_WRAPPER(UShort)(variant);
+    TEST_SET_WRAPPER(Int)(variant);
+    TEST_SET_WRAPPER(UInt)(variant);
+    TEST_SET_WRAPPER(Long)(variant);
+    TEST_SET_WRAPPER(ULong)(variant);
+    TEST_SET_WRAPPER(Float)(variant);
+    TEST_SET_WRAPPER(Double)(variant);
+    TEST_SET_WRAPPER(LongLong)(variant);
+    TEST_SET_WRAPPER(ULongLong)(variant);
+    TEST_SET_WRAPPER(Bstr)(variant);
+    TEST_SET_WRAPPER(Currency)(variant);
+    TEST_SET_WRAPPER(Error)(variant);
+    TEST_SET_WRAPPER(Date)(variant);
+    TEST_SET_WRAPPER(IUnknown)(variant);
+    TEST_SET_WRAPPER(IDispatch)(variant);
 }
 
 

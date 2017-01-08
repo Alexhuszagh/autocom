@@ -129,7 +129,9 @@ VARTYPE TO_VARTYPE(const T t)
  */
 #define AUTOCOM_SAFE_VALUE_SETTER(type)                                 \
     AUTOCOM_SAFE_MOVE(Put##type);                                       \
-    AUTOCOM_SAFE_COPY(Put##type)
+    AUTOCOM_SAFE_COPY(Put##type);                                       \
+    AUTOCOM_SAFE_MOVE(Get##type);                                       \
+    AUTOCOM_SAFE_COPY(Get##type)
 
 /** \brief Type-safe wrapper for pointer setters.
  */
@@ -160,6 +162,11 @@ void set(VARIANT &variant,
  */
 void set(VARIANT &variant,
     PutNull value);
+
+/** \brief Set a null parameter.
+ */
+void set(VARIANT &variant,
+    GetNull value);
 
 /** \brief Overload from character literals.
  */
@@ -211,6 +218,21 @@ void set(VARIANT &variant,
 void set(VARIANT &variant,
     PutBstrPtr value);
 
+/** \brief Set a BSTR value from wrapper.
+ */
+void set(VARIANT &variant,
+    GetBstr &&value);
+
+/** \brief Set a BSTR value from wrapper.
+ */
+void set(VARIANT &variant,
+    GetBstr &value);
+
+/** \brief Set a pointer to BSTR from wrapper.
+ */
+void set(VARIANT &variant,
+    GetBstrPtr value);
+
 /** \brief Set a pointer to a SAFEARRAY pointer.
  */
 void set(VARIANT &variant,
@@ -230,6 +252,16 @@ void set(VARIANT &variant,
  */
 void set(VARIANT &variant,
     PutSafeArrayPtr value);
+
+/** \brief Set a SAFEARRAY pointer-wrapper.
+ */
+void set(VARIANT &variant,
+    GetSafeArray value);
+
+/** \brief Set a SAFEARRAY double pointer-wrapper.
+ */
+void set(VARIANT &variant,
+    GetSafeArrayPtr value);
 
 
 /** \brief Set SafeArray pointer.
@@ -255,6 +287,7 @@ void set(VARIANT &variant,
 
 
 // GENERIC
+AUTOCOM_SET_PRIMITIVE(bool);
 AUTOCOM_PRIMITIVE_SETTER(CHAR);
 AUTOCOM_PRIMITIVE_SETTER(UCHAR);
 AUTOCOM_PRIMITIVE_SETTER(SHORT);

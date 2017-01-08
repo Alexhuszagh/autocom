@@ -17,6 +17,7 @@
 #include <cstdio>
 
 namespace com = autocom;
+using namespace com::literals;
 
 
 struct PrecursorInfo
@@ -40,11 +41,11 @@ int main(int argc, char *argv[])
     dispatch.method(L"GetVersionNumber", &version);
     printf("Version is %d\n", version);
 
-    dispatch.method(L"SetCurrentController", LONG(0), LONG(1));
+    dispatch.method(L"SetCurrentController", 0_I4, 1_I4);
 
     com::Variant info;
     LONG size = 0;
-    dispatch.method(L"GetPrecursorInfoFromScanNum", LONG(3), &info, &size);
+    dispatch.method(L"GetPrecursorInfoFromScanNum", 3_I4, &info, &size);
     printf("Precursor info size is %d\n", size);
     com::SafeArray<PrecursorInfo> array(info);
     for (auto it = array.begin(); it < array.begin() + size; ++it) {

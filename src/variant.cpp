@@ -125,7 +125,9 @@ bool changeVariantType(VARIANT &variant,
  */
 #define AUTOCOM_SAFE_VALUE_SETTER(type, field)                          \
     AUTOCOM_SAFE_MOVE(Put##type, field)                                 \
-    AUTOCOM_SAFE_COPY(Put##type, field)
+    AUTOCOM_SAFE_COPY(Put##type, field)                                 \
+    AUTOCOM_SAFE_MOVE(Get##type, field)                                 \
+    AUTOCOM_SAFE_COPY(Get##type, field)
 
 /** \brief Type-safe wrapper for pointer setters.
  */
@@ -160,6 +162,15 @@ void set(VARIANT &variant,
  */
 void set(VARIANT &variant,
     PutNull value)
+{
+    variant.vt = VT_NULL;
+}
+
+
+/** \brief Set a null parameter.
+ */
+void set(VARIANT &variant,
+    GetNull value)
 {
     variant.vt = VT_NULL;
 }
@@ -267,6 +278,35 @@ void set(VARIANT &variant,
 }
 
 
+/** \brief Set a BSTR value from wrapper.
+ */
+void set(VARIANT &variant,
+    GetBstr &&value)
+{
+    variant.vt = VariantType<GetBstr>::vt;
+    variant.bstrVal = typename GetBstr::type(value);
+}
+
+
+/** \brief Set a BSTR value from wrapper.
+ */
+void set(VARIANT &variant,
+    GetBstr &value)
+{
+    set(variant, typename GetBstr::type(value));
+}
+
+
+/** \brief Set a pointer to BSTR from wrapper.
+ */
+void set(VARIANT &variant,
+    GetBstrPtr value)
+{
+    variant.vt = VariantType<GetBstrPtr>::vt;
+    variant.pbstrVal = typename GetBstrPtr::type(value);
+}
+
+
 /** \brief Set a pointer to a SAFEARRAY pointer.
  */
 void set(VARIANT &variant,
@@ -306,7 +346,26 @@ void set(VARIANT &variant,
 }
 
 
+/** \brief Set a SAFEARRAY pointer-wrapper.
+ */
+void set(VARIANT &variant,
+    GetSafeArray value)
+{
+    set(variant, typename GetSafeArray::type(value));
+}
+
+
+/** \brief Set a SAFEARRAY double pointer-wrapper.
+ */
+void set(VARIANT &variant,
+    GetSafeArrayPtr value)
+{
+    set(variant, typename GetSafeArrayPtr::type(value));
+}
+
+
 // GENERIC
+AUTOCOM_SET_PRIMITIVE(bool, boolVal)
 AUTOCOM_PRIMITIVE_SETTER(CHAR, cVal)
 AUTOCOM_PRIMITIVE_SETTER(UCHAR, bVal)
 AUTOCOM_PRIMITIVE_SETTER(SHORT, iVal)
