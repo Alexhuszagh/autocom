@@ -142,11 +142,11 @@ DATE date;
 dispatch.get("GetDate", date);              // ambiguous
 dispatch.get("GetDate", G_DATE(date));      // safe, "Get" wrapper
 dispatch.get("GetDate", W_DATE(date));      // safe, generic wrapper
-//dispatch.get("GetDate", G_DATE(5/0));     // cannot "Get" from R-value, won't compile
-//dispatch.get("GetDate", W_DATE(5/0));     // cannot "Get" from R-value, won't compile
+//dispatch.get("GetDate", G_DATE(5.0));     // cannot "Get" from R-value, won't compile
+//dispatch.get("GetDate", W_DATE(5.0));     // cannot "Get" from R-value, won't compile
 ```
 
-Each VARTYPE has "Get" (`G_`) and "Put" (`P_`) wrappers, as well as a generic `W_` wrapper (which detects whether the value is an l- or r-value and constructs the corresponding `G_` or `P_` wrapper, respectively). The type-wrapper functions are:
+Each VARTYPE has "Get" (`G_`) and "Put" (`P_`) wrappers, as well as a generic `W_` wrapper (which detects whether the value is an L- or R-value and constructs the corresponding `G_` or `P_` wrapper, respectively). The type-wrapper functions are:
 
 | Type         | Suffix    | Get        | Put        | Generic    |
 |:------------:|:---------:|:----------:|:----------:|:----------:|
