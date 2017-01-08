@@ -60,6 +60,27 @@ Bstr::~Bstr()
 }
 
 
+
+/** \brief Copy asignment operator.
+ */
+Bstr & Bstr::operator=(const BSTR &other)
+{
+    clear();
+    string = SysAllocStringLen(other, SysStringLen(other));
+    return *this;
+}
+
+
+/** \brief Move asignment operator.
+ */
+Bstr & Bstr::operator=(BSTR &&other)
+{
+    clear();
+    string = std::move(other);
+    return *this;
+}
+
+
 /** \brief Initialize string from narrow string.
  */
 Bstr::Bstr(const std::string &string)
@@ -274,24 +295,6 @@ bool Bstr::empty() const
 
 /** \brief Access character at index.
  */
-auto Bstr::operator[](size_t position)
-    -> reference
-{
-    return at(position);
-}
-
-
-/** \brief Access character at index.
- */
-auto Bstr::operator[](size_t position) const
-    -> const_reference
-{
-    return at(position);
-}
-
-
-/** \brief Access character at index.
- */
 auto Bstr::at(size_t position)
     -> reference
 {
@@ -434,11 +437,19 @@ Bstr::operator bool() const
 }
 
 
-/** \brief Convert type explicitly to BSTR.
+/** \brief Convert type to BSTR.
  */
-Bstr::operator BSTR() const
+Bstr::operator BSTR()
 {
-    return copy();
+    return string;
+}
+
+
+/** \brief Convert type to LPCOLESTR.
+ */
+Bstr::operator LPCOLESTR() const
+{
+    return string;
 }
 
 

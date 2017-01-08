@@ -7,9 +7,7 @@
 
 #pragma once
 
-#include <rpc.h>
-
-#include <string>
+#include "bstr.hpp"
 
 
 namespace autocom
@@ -27,8 +25,7 @@ protected:
 
     friend class Dispatch;
 
-    void open(const std::string &string);
-    void open(const std::wstring &string);
+    void open(const Bstr &string);
 
 public:
     Guid() = default;
@@ -38,7 +35,7 @@ public:
     Guid & operator=(Guid&&) = default;
 
     Guid(const GUID &guid);
-
+    Guid(const Bstr &string);
     Guid(const char *cstring);
     Guid(const char *array,
         const size_t length);

@@ -49,6 +49,9 @@ struct Bstr
     Bstr & operator=(Bstr &&other);
     virtual ~Bstr();
 
+    Bstr & operator=(const BSTR &other);
+    Bstr & operator=(BSTR &&other);
+
     Bstr(const std::string &string);
     Bstr(const std::wstring &string);
     Bstr(VARIANT &variant);
@@ -80,8 +83,8 @@ struct Bstr
     bool empty() const;
 
     // ELEMENT ACCESS
-    reference operator[](size_t position);
-    const_reference operator[](size_t position) const;
+    // reference operator[](size_t position);
+    // const_reference operator[](size_t position) const;
     reference at(size_t position);
     const_reference at(size_t position) const;
     reference front();
@@ -108,7 +111,8 @@ struct Bstr
     // OPERATORS
     BSTR & data();
     const BSTR & data() const;
-    explicit operator BSTR() const;
+    operator BSTR();
+    operator LPCOLESTR() const;
     explicit operator bool() const;
     explicit operator std::string() const;
     explicit operator std::wstring() const;

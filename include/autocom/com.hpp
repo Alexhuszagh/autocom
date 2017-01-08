@@ -97,8 +97,7 @@ class DispatchBase
 protected:
     SharedPointer<IDispatch> ppv;
 
-    Function getFunction(const Name &name);
-    Function getFunction(const WName &name);
+    Function getFunction(const Bstr &name);
 
     template <typename... Ts>
     bool invoke(DispatchFlags flags,
@@ -109,13 +108,7 @@ protected:
     template <typename... Ts>
     bool invoke(DispatchFlags flags,
         VARIANT *result,
-        const Name &name,
-        Ts&&... ts);
-
-    template <typename... Ts>
-    bool invoke(DispatchFlags flags,
-        VARIANT *result,
-        const WName &name,
+        const Bstr &name,
         Ts&&... ts);
 
     template <typename... Ts>
@@ -227,19 +220,7 @@ bool DispatchBase::invoke(DispatchFlags flags,
 template <typename... Ts>
 bool DispatchBase::invoke(DispatchFlags flags,
     VARIANT *result,
-    const Name &name,
-    Ts&&... ts)
-{
-    return invoke(flags, result, getFunction(name), AUTOCOM_FWD(ts)...);
-}
-
-
-/** \brief Call dispatch method by wide function name.
- */
-template <typename... Ts>
-bool DispatchBase::invoke(DispatchFlags flags,
-    VARIANT *result,
-    const WName &name,
+    const Bstr &name,
     Ts&&... ts)
 {
     return invoke(flags, result, getFunction(name), AUTOCOM_FWD(ts)...);

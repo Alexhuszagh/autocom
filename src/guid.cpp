@@ -54,22 +54,14 @@ auto TO_LPIID(GUID *guid)
 // -------
 
 
-/** \brief Open GUID from string identifier.
- */
-void Guid::open(const std::string &string)
-{
-    open(WIDE(string));
-}
-
-
 /** \brief Open GUID from wide-string identifier.
  */
-void Guid::open(const std::wstring &string)
+void Guid::open(const Bstr &string)
 {
     if (!string.empty() && string.front() == L'{') {
-        CLSIDFromString(string.data(), TO_LPCLSID(&id));
+        CLSIDFromString(string, TO_LPCLSID(&id));
     } else {
-        CLSIDFromProgID(string.data(), TO_LPCLSID(&id));
+        CLSIDFromProgID(string, TO_LPCLSID(&id));
     }
 }
 
@@ -81,11 +73,19 @@ Guid::Guid(const GUID &guid):
 {}
 
 
+/** \brief Initializer from existing Bstr wrapper.
+ */
+Guid::Guid(const Bstr &string)
+{
+    open(string);
+}
+
+
 /** \brief Initializer from C-string.
  */
 Guid::Guid(const char *cstring)
 {
-    open(std::string(cstring));
+    open(Bstr(cstring));
 }
 
 
@@ -94,7 +94,7 @@ Guid::Guid(const char *cstring)
 Guid::Guid(const char *array,
     const size_t length)
 {
-    open(std::string(array, length));
+    open(Bstr(array, length));
 }
 
 
@@ -110,7 +110,7 @@ Guid::Guid(const std::string &string)
  */
 Guid::Guid(const wchar_t *cstring)
 {
-    open(std::wstring(cstring));
+    open(Bstr(cstring));
 }
 
 
@@ -119,7 +119,7 @@ Guid::Guid(const wchar_t *cstring)
 Guid::Guid(const wchar_t *array,
     const size_t length)
 {
-    open(std::wstring(array, length));
+    open(Bstr(array, length));
 }
 
 

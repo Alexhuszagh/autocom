@@ -233,8 +233,8 @@ void set(VARIANT &variant,
     Bstr &value)
 {
     variant.vt = VariantType<Bstr>::vt;
-    variant.bstrVal = value.data();
-    value.data() = nullptr;
+    variant.bstrVal = value;
+    value = nullptr;
 }
 
 /** \brief Set a pointer to BSTR from wrapper.

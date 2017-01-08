@@ -57,15 +57,7 @@ void uninitialize()
 
 /** \brief Get dispatch identifier from function identifier.
  */
-Function DispatchBase::getFunction(const Name &name)
-{
-    return getFunction(WIDE(name));
-}
-
-
-/** \brief Get dispatch identifier from function identifier.
- */
-Function DispatchBase::getFunction(const WName &name)
+Function DispatchBase::getFunction(const Bstr &name)
 {
     DISPID id;
     WORD flags = DISPATCH_METHOD;
