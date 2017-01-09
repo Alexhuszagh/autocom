@@ -118,6 +118,8 @@ For example, to generate a header in the namespace "wsh" from "WScript.Shell.1",
 
 **CMake Processing**
 
+CMake can automate COM header creation, inclusion, and linking for automated builds, using the following steps:
+
 1. Add the directory containing [autocom_configure](/cmake/autocom_configure.cmake) and [FindAutoCOM](/cmake/FindAutoCOM.cmake) to the module path. 
 2. Find the AutoCOM installation with `find_package(AutoCOM)`
 3. Include the configuration macros with `include(autocom_configure)`
