@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 
 ```cpp
 #include <iostream>
-#include "autocom.hpp"
+#include <autocom.hpp>
 namespace com = autocom;
 
 int main(int argc, char *argv[])
