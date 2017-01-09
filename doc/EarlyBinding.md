@@ -106,7 +106,7 @@ Header generation and inclusion can be automated with the macro [AutoCOMConfigur
 
 **Source**
 
-First, add an include, starting with "@AUTOCOM", signifying that AutoCOM should process the include. The include has one mandatory key ("progid") and one optional property ("namespace"), delimited by ":".
+First, add an include, starting with "@AUTOCOM", signifying that AutoCOM should process the include. Key-value pairs are joined as `key=value`, and multiple key-value pairs can be joined as `k1=v1:k2=v2`. The include has one mandatory key ("progid") and one optional key ("namespace").
 
 For example, to generate a header in the namespace "wsh" from "WScript.Shell.1", we can add the following line to our source file.
 
