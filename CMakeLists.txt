@@ -83,7 +83,9 @@ set(AUTOCOM_EXECUTABLE_SOURCES
 )
 
 if(BUILD_EXECUTABLE)
-    add_subdirectory(gflags)
+    if(NOT TARGET gflags)
+        add_subdirectory(gflags)
+    endif()
     include_directories("${CMAKE_CURRENT_BINARY_DIR}/gflags/include")
     add_executable(AutoCOMConfigure ${AUTOCOM_EXECUTABLE_SOURCES})
     set_target_properties(AutoCOMConfigure PROPERTIES OUTPUT_NAME autocom)
