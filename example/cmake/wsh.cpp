@@ -8,7 +8,7 @@
  *  the following code, where `MODULE_DIR` is the directory
  *  containing `FindAutoCOM.cmake` and `autocom_configure.cmake`:
  *
- *      ----------------------------------
+ *      -----------------------------------------------------------
  *      cmake_minimum_required(VERSION 2.8)
  *      set(CMAKE_MODULE_PATH "${MODULE_DIR}" ${CMAKE_MODULE_PATH})
  *
@@ -19,7 +19,7 @@
  *      AutoCOMConfigure(wsh wsh.cpp)
  *      add_executable(${wsh})
  *      target_link_libraries("${AutoCOM_LIBRARIES}")
- *      ----------------------------------
+ *      -----------------------------------------------------------
  */
 
 #include "@AUTOCOM:progid=WScript.Shell.1@"

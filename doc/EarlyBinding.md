@@ -127,7 +127,22 @@ For example, to generate a header in the namespace "wsh" from "WScript.Shell.1",
 
 **Examples**
 
-Examples can be found in the [example/cmake](/example/cmake) directory.
+An example `CMakeLists.txt` for the [wsh.cpp](/example/cmake/wsh.cpp) is:
+
+```cmake
+cmake_minimum_required(VERSION 2.8)
+set(CMAKE_MODULE_PATH "${MODULE_DIR}" ${CMAKE_MODULE_PATH})
+
+find_package(AutoCOM REQUIRED)
+include(autocom_configure)
+
+include_directories("${AutoCOM_INCLUDE_DIRS}")
+AutoCOMConfigure(wsh wsh.cpp)
+add_executable(${wsh})
+target_link_libraries("${AutoCOM_LIBRARIES}")
+```
+
+Further examples can be found in the [example/cmake](/example/cmake) directory.
 
 ## Header Layout
 
