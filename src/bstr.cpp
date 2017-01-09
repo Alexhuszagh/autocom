@@ -11,6 +11,11 @@
 #include <cassert>
 #include <cwchar>
 
+#ifdef _MSC_VER
+#   pragma warning(push)
+#   pragma warning(disable:4267)
+#endif          // MSVC
+
 
 namespace autocom
 {
@@ -535,5 +540,8 @@ void swap(Bstr &left,
     std::swap(left.string, right.string);
 }
 
-
 }   /* autocom */
+
+#ifdef _MSC_VER
+#   pragma warning(pop)
+#endif          // MSVC
