@@ -131,7 +131,7 @@ An example `CMakeLists.txt` for the [wsh.cpp](/example/cmake/wsh.cpp) is:
 
 ```cmake
 cmake_minimum_required(VERSION 2.8)
-set(CMAKE_MODULE_PATH "${MODULE_DIR}" ${CMAKE_MODULE_PATH})
+set(CMAKE_MODULE_PATH "cmake" ${CMAKE_MODULE_PATH})
 
 find_package(AutoCOM REQUIRED)
 include(autocom_configure)
