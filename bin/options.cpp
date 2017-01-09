@@ -7,6 +7,7 @@
 
 #include "options.hpp"
 
+#include <regex>
 
 // VALIDATORS
 // ----------
@@ -20,13 +21,34 @@ bool ValidateProgId(const char *flagname,
 {
     if (id.empty()) {
     } else if (id.front() == '{' || id.back() == '}') {
-        if (id.front() == '{' && id.back() == '}' && id.size() == 38) {
+        std::regex validator("\\{[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}\\}");
+        if (std::regex_match(id, validator)) {
             return true;
         }
     } else {
-        return true;
+        // ProgIDs must be 39 characters or less, and cannot have any
+        // punctuation, except periods, and cannot start with a digit
+        std::regex validator("[A-Za-z][A-Za-z.0-9]{0,38}");
+        if (std::regex_match(id, validator)) {
+            return true;
+        }
     }
 
     printf("Invalid value for --%s: %s\n", flagname, id.data());
+    return false;
+}
+
+
+/** \brief Validate namespace for COM object.
+ */
+bool ValidateNamespace(const char *flagname,
+    const std::string &ns)
+{
+    std::regex validator("[A-Za-z_]\\w*");
+    if (ns.empty() || std::regex_match(ns, validator)) {
+        return true;
+    }
+
+    printf("Invalid value for --%s: %s\n", flagname, ns.data());
     return false;
 }

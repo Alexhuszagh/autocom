@@ -33,6 +33,7 @@ struct Files
 /** \brief Write C++ header file from file description.
  */
 void writeHeaders(TypeLibDescription &tlib,
+    std::string &ns,
     std::string &directory,
     Files &files);
 

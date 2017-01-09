@@ -132,6 +132,7 @@ std::string writeImportHeader(TypeLibDescription &tlib,
 /** \brief Write header with unique CLSID as an identifier.
  */
 std::string writeClsidHeader(TypeLibDescription &tlib,
+    std::string &ns,
     std::string &directory)
 {
     auto name = tlib.guid.uuid() + ".hpp";
@@ -141,6 +142,10 @@ std::string writeClsidHeader(TypeLibDescription &tlib,
     // write data
     writeDocString(stream);
     stream << "#include <autocom.hpp>\r\n\r\n";
+    if (!ns.empty()) {
+        stream << "namespace " << ns << "\r\n"
+               << "{\r\n\r\n";
+    }
     stream << tlib.guid.define("CLSID", tlib.documentation.name) << "\r\n\r\n";
 
     // SIMPLE
@@ -157,6 +162,10 @@ std::string writeClsidHeader(TypeLibDescription &tlib,
     // FUNCTION SIGNATURES
     writeMethodSignatures(stream, tlib);
 
+    if (!ns.empty()) {
+        stream << "}   /*" << ns << "*/\r\n";
+    }
+
     return path;
 }
 
@@ -164,11 +173,12 @@ std::string writeClsidHeader(TypeLibDescription &tlib,
 /** \brief Write C++ header file from TypeLib description.
  */
 void writeHeaders(TypeLibDescription &tlib,
+    std::string &ns,
     std::string &directory,
     Files &files)
 {
     files.headers.emplace_back(writeImportHeader(tlib, directory));
-    files.headers.emplace_back(writeClsidHeader(tlib, directory));
+    files.headers.emplace_back(writeClsidHeader(tlib, ns, directory));
 }
 
 

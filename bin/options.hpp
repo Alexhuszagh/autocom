@@ -17,3 +17,8 @@
  */
 bool ValidateProgId(const char *flagname,
     const std::string &id);
+
+/** \brief Validate namespace for COM object.
+ */
+bool ValidateNamespace(const char *flagname,
+    const std::string &ns);

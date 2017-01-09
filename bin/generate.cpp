@@ -15,8 +15,10 @@ namespace com = autocom;
 // -------
 
 DEFINE_string(progid, "", "Program ID or CLSID for COM object");
+DEFINE_string(ns, "", "Namespace to store COM definitions.");
 DEFINE_string(header, "./", "Directory to store generated header.");
 DEFINE_validator(progid, &ValidateProgId);
+DEFINE_validator(ns, &ValidateNamespace);
 
 // FUNCTIONS
 // ---------
@@ -36,7 +38,7 @@ int main(int argc, char *argv[])
 
         // write to file
         com::Files files;
-        writeHeaders(description, FLAGS_header, files);
+        writeHeaders(description, FLAGS_ns, FLAGS_header, files);
         exit(EXIT_SUCCESS);
     }
 
