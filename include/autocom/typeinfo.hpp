@@ -36,8 +36,8 @@ class ParamDesc;
 // TYPES
 // -----
 
-typedef itl::shared_ptr<ITypeInfo> ITypeInfoPtr;
-typedef itl::shared_ptr<ITypeLib> ITypeLibPtr;
+typedef SharedPointer<ITypeInfo> ITypeInfoPtr;
+typedef SharedPointer<ITypeLib> ITypeLibPtr;
 typedef std::shared_ptr<TYPEATTR> TYPEATTRPtr;
 typedef std::shared_ptr<TLIBATTR> TLIBATTRPtr;
 typedef std::shared_ptr<VARDESC> VARDESCPtr;
@@ -76,7 +76,7 @@ TLIBATTR * newTypeLibAttr(ITypeLib *tlib);
 class TypeInfo
 {
 protected:
-    ITypeInfoPtr ppv;
+    ITypeInfoPtr ppv = nullptr;
 
     friend bool operator==(const TypeInfo &left,
         const TypeInfo &right);
@@ -120,7 +120,7 @@ public:
 class TypeLib
 {
 protected:
-    ITypeLibPtr ppv;
+    ITypeLibPtr ppv = nullptr;
 
     friend bool operator==(const TypeLib &left,
         const TypeLib &right);
@@ -155,8 +155,8 @@ public:
 class TypeAttr
 {
 protected:
-    ITypeInfoPtr ppv;
-    TYPEATTRPtr attr;
+    ITypeInfoPtr ppv = nullptr;
+    TYPEATTRPtr attr = nullptr;
 
 public:
     TypeAttr() = default;
@@ -212,8 +212,8 @@ public:
 class TypeLibAttr
 {
 protected:
-    ITypeLibPtr ppv;
-    TLIBATTRPtr attr;
+    ITypeLibPtr ppv = nullptr;
+    TLIBATTRPtr attr = nullptr;
 
 public:
     TypeLibAttr() = default;
@@ -291,8 +291,8 @@ struct DllEntry
 class VarDesc
 {
 protected:
-    ITypeInfoPtr ppv;
-    VARDESCPtr desc;
+    ITypeInfoPtr ppv = nullptr;
+    VARDESCPtr desc = nullptr;
 
 public:
     VarDesc() = default;
@@ -328,8 +328,8 @@ public:
 class FuncDesc
 {
 protected:
-    ITypeInfoPtr ppv;
-    FUNCDESCPtr desc;
+    ITypeInfoPtr ppv = nullptr;
+    FUNCDESCPtr desc = nullptr;
 
 public:
     FuncDesc() = default;

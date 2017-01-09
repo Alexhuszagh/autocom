@@ -43,6 +43,11 @@ protected:
 
 public:
     constexpr SharedPointer() noexcept;
+    SharedPointer(const SharedPointer&) = default;
+    This & operator=(const SharedPointer&) = default;
+    SharedPointer(SharedPointer&&) = default;
+    This & operator=(SharedPointer&&) = default;
+
     constexpr SharedPointer(std::nullptr_t nullp) noexcept;
     SharedPointer(T *t);
 

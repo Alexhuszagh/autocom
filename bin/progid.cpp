@@ -28,7 +28,8 @@ int main(int argc, char *argv[])
 
     com::Dispatch dispatch(FLAGS_progid);
     if (dispatch) {
-        printf("%s", dispatch.info().typelib().documentation(-1).name.data());
+        auto tlib = dispatch.info().typelib();
+        printf("%s", tlib.documentation(-1).name.data());
         exit(EXIT_SUCCESS);
     }
 

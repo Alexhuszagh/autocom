@@ -409,6 +409,7 @@ void Bstr::reset(VARIANT &variant)
     } else if (variant.vt & VT_BSTR) {
         string = variant.bstrVal;
         variant.bstrVal = nullptr;
+        variant.vt = VT_EMPTY;
     }
 }
 

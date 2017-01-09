@@ -61,7 +61,7 @@ ITypeLib * newTypeLib(ITypeInfo *info)
  */
 TYPEATTR * newTypeAttr(ITypeInfo *info)
 {
-    TYPEATTR *attr;
+    TYPEATTR *attr = nullptr;
     if (FAILED(info->GetTypeAttr(&attr))) {
         throw ComMethodError("ITypeInfo", "GetTypeAttr(...)");
     }
@@ -75,7 +75,7 @@ TYPEATTR * newTypeAttr(ITypeInfo *info)
 VARDESC * newVarDesc(ITypeInfo *info,
     const UINT index)
 {
-    VARDESC *desc;
+    VARDESC *desc = nullptr;
     if (FAILED(info->GetVarDesc(index, &desc))) {
         throw ComMethodError("ITypeInfo", "GetVarDesc(...)");
     }
@@ -89,7 +89,7 @@ VARDESC * newVarDesc(ITypeInfo *info,
 FUNCDESC * newFuncDesc(ITypeInfo *info,
     const UINT index)
 {
-    FUNCDESC *desc;
+    FUNCDESC *desc = nullptr;
     if (FAILED(info->GetFuncDesc(index, &desc))) {
         throw ComMethodError("ITypeInfo", "GetFuncDesc(...)");
     }
@@ -102,7 +102,7 @@ FUNCDESC * newFuncDesc(ITypeInfo *info,
  */
 TLIBATTR * newTypeLibAttr(ITypeLib *tlib)
 {
-    TLIBATTR *attr;
+    TLIBATTR *attr = nullptr;
     if (FAILED(tlib->GetLibAttr(&attr))) {
         throw ComMethodError("ITypeLib", "GetLibAttr(...)");
     }
@@ -262,7 +262,6 @@ DllEntry TypeInfo::entry(const MEMBERID id,
     DllEntry entry;
     Bstr dll, name;
     WORD ordinal;
-    printf("Dll name is %S\n", dll);
     if (FAILED(ppv->GetDllEntry(id, invocation, &dll.data(), &name.data(), &ordinal))) {
         throw ComMethodError("ITypeInfo", "GetDllEntry()");
     }

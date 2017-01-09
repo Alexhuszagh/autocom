@@ -256,6 +256,7 @@ void SafeArray<T>::assign(VARIANT &variant)
     } else if (variant.vt & VT_ARRAY) {
         assign(*variant.parray);
         variant.parray = nullptr;
+        variant.vt = VT_EMPTY;
     } else {
         throw ComTypeError("VT_ARRAY", std::to_string(variant.vt), "&");
     }
