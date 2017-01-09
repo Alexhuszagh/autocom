@@ -191,7 +191,7 @@ if (BUILD_TESTS)
         ${AUTOCOM_LIBRARIES}
     )
 
-     add_custom_target(check
+     add_custom_target(check_autocom
         COMMAND $<TARGET_FILE:AutoCOMTests>
         DEPENDS AutoCOMTests
     )
