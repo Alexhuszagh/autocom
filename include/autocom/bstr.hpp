@@ -25,8 +25,11 @@ namespace autocom
  *  dynamically-sized objects. Every single operation that changes size
  *  causes a reallocation. Consider yourself warned.
  */
-struct Bstr
+class Bstr
 {
+protected:
+    typedef BSTR* LPBSTR;
+
 public:
     BSTR string = nullptr;
 

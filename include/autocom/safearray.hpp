@@ -69,6 +69,7 @@ class SafeArray
 {
 protected:
     typedef SafeArray<T> This;
+    typedef LPSAFEARRAY* LPLPSAFEARRAY;
 
     void lock();
     void unlock();

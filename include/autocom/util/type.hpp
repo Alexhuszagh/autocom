@@ -18,7 +18,7 @@ namespace autocom
 // FORWARD
 // -------
 
-struct Bstr;
+class Bstr;
 struct Variant;
 
 template <typename T>
