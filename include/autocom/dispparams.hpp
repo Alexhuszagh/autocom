@@ -10,6 +10,11 @@
 #include "variant.hpp"
 #include "util/enum.hpp"
 
+#ifdef _MSC_VER
+#   pragma warning(push)
+#   pragma warning(disable:4800)
+#endif          // MSVC
+
 
 namespace autocom
 {
@@ -69,7 +74,8 @@ void setArg(VariantList &variants,
     const size_t index,
     T &&t)
 {
-    variants[index].set(AUTOCOM_FWD(t));
+    // use set(), rather than variant.set(), so clear() is not called
+    set(variants[index], AUTOCOM_FWD(t));
 }
 
 
@@ -147,3 +153,7 @@ void DispParams::setArgs(Ts&&... ts)
 }
 
 }   /* autocom */
+
+#ifdef _MSC_VER
+#   pragma warning(pop)
+#endif          // MSVC

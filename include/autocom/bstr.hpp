@@ -27,6 +27,7 @@ namespace autocom
  */
 struct Bstr
 {
+public:
     BSTR string = nullptr;
 
     // MEMBER TYPES
@@ -49,7 +50,9 @@ struct Bstr
     Bstr & operator=(Bstr &&other);
     virtual ~Bstr();
 
+    Bstr(const BSTR &other);
     Bstr & operator=(const BSTR &other);
+    Bstr(BSTR &&other);
     Bstr & operator=(BSTR &&other);
 
     Bstr(const std::string &string);
@@ -112,16 +115,19 @@ struct Bstr
     BSTR & data();
     const BSTR & data() const;
     operator BSTR();
-    operator LPCOLESTR() const;
+    operator BSTR() const;
     explicit operator bool() const;
     explicit operator std::string() const;
-    explicit operator std::wstring() const;
 
     // FRIENDS
     friend bool operator==(const Bstr &left,
         const Bstr &right);
     friend bool operator!=(const Bstr &left,
         const Bstr &right);
+    friend std::ostream & operator<<(std::ostream &os,
+        const Bstr &string);
+    friend std::wostream & operator<<(std::wostream &os,
+        const Bstr &string);
     friend void swap(Bstr &left,
         Bstr &right);
 };

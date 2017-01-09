@@ -41,10 +41,14 @@ int main(int argc, char *argv[])
     LONG size = 0;
     hr = raw->GetPrecursorInfoFromScanNum(3, &info, &size);
     assert(SUCCEEDED(hr));
-    printf("Precursor info size is %d\n", size);
+    std::cout << "Precursor info size is " << size << "\n";
     com::SafeArray<MS_PrecursorInfo> array(info);
     for (auto it = array.begin(); it < array.begin() + size; ++it) {
-        printf("MS_PrecursorInfo(dMonoIsoMZ=%f, dIsolationMZ=%f, nChargeState=%d, nScanNumber=%d)\n", it->dMonoIsoMZ, it->dIsolationMZ, it->nChargeState, it->nScanNumber);
+        std::cout << "PrecursorInfo(dIsolationMass=" << it->dIsolationMass
+                  << ", dMonoIsoMass=" << it->dMonoIsoMass
+                  << ", nChargeState=" << it->nChargeState
+                  << ", nScanNumber=" << it->nScanNumber
+                  << ")\n";
     }
 
     raw->Close();

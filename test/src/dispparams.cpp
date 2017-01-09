@@ -48,7 +48,7 @@ TEST(DispParams, SetPrimitive)
     EXPECT_EQ(dp.args().size(), 0);
 
     // safe overloads
-    BOOL boolean;
+    BOOL boolean = FALSE;
     INT integer;
 
     dp.setArgs(com::PutBool(boolean), com::PutInt(integer));

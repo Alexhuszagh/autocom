@@ -7,7 +7,7 @@
 
 #include "autocom.hpp"
 
-#include <cstdio>
+#include <iostream>
 
 namespace com = autocom;
 
@@ -28,7 +28,8 @@ int main(int argc, char *argv[])
         match.get(L"FirstIndex", index);
         match.get(L"Length", length);
         match.get(L"Value", text);
-        printf("Match found from %d-%d and is '%S'\n", index, index+length, text.string);
+        std::wcout << L"Match found from " << index << "-" << index+length
+                   << " and is '" << text << "'\n";
     }
 
     return 0;

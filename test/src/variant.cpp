@@ -33,17 +33,17 @@ template <
     typename GetType,
     typename GetTypePtr
 >
-void testSetWrapper(com::Variant &variant)
+void testSetWrapper(com::Variant &variant,
+    typename PutType::type t = typename PutType::type())
 {
     typedef typename PutType::type T;
-    T t;
     T *p = &t;
-    variant.set(PutType());
+    variant.set(PutType(t));
     EXPECT_EQ(variant.vt, com::VariantType<PutType>::vt);
     variant.set(GetType(t));
     EXPECT_EQ(variant.vt, com::VariantType<PutType>::vt);
 
-    variant.set(PutTypePtr());
+    variant.set(PutTypePtr(p));
     EXPECT_EQ(variant.vt, com::VariantType<PutTypePtr>::vt);
     variant.set(PutTypePtr(p));
     EXPECT_EQ(variant.vt, com::VariantType<PutTypePtr>::vt);
@@ -111,7 +111,7 @@ TEST(Variant, Variant)
 }
 
 
-TEST(Variant, SetVariant)
+TEST(Variant, Set)
 {
     com::Variant variant;
 
@@ -163,6 +163,62 @@ TEST(Variant, SetVariant)
 }
 
 
+TEST(Variant, SetString)
+{
+    // need to make sure we don't get any leaks
+    {
+        com::Variant variant;
+        com::Bstr bstr(L"1");
+        EXPECT_TRUE(bstr);
+        variant.set(bstr);
+
+        // check empty and null
+        EXPECT_FALSE(bstr);
+    }
+    {
+        // move construction, if it is implicitly converted to BSTR,
+        // there will be a double-free
+        com::Variant variant;
+        variant.set(com::Bstr(L"1"));
+    }
+    {
+        // check pointer
+        com::Variant variant;
+        com::Bstr bstr(L"1");
+        variant.set(&bstr);
+        EXPECT_TRUE(bstr);
+    }
+}
+
+
+TEST(Variant, SetArray)
+{
+    // need to make sure we don't get any leaks
+    {
+        com::Variant variant;
+        com::SafeArray<INT> array = {1, 2, 3};
+        EXPECT_TRUE(array);
+        variant.set(array);
+
+        // check empty and null
+        EXPECT_FALSE(array);
+    }
+    {
+        // move construction, if it is implicitly converted to SAFEARRAY,
+        // there will be a double-free
+        com::Variant variant;
+        variant.set(com::SafeArray<INT>({1, 2, 3}));
+    }
+    {
+        // check pointer
+        com::Variant variant;
+        com::SafeArray<INT> array = {1, 2, 3};
+        variant.set(&array);
+        EXPECT_TRUE(array);
+    }
+}
+
+
 TEST(Variant, SetWrapperVariant)
 {
     com::Variant variant;
@@ -195,12 +251,12 @@ TEST(Variant, SetWrapperVariant)
     TEST_SET_WRAPPER(Double)(variant);
     TEST_SET_WRAPPER(LongLong)(variant);
     TEST_SET_WRAPPER(ULongLong)(variant);
-    TEST_SET_WRAPPER(Bstr)(variant);
+    TEST_SET_WRAPPER(Bstr)(variant, nullptr);
     TEST_SET_WRAPPER(Currency)(variant);
     TEST_SET_WRAPPER(Error)(variant);
     TEST_SET_WRAPPER(Date)(variant);
-    TEST_SET_WRAPPER(IUnknown)(variant);
-    TEST_SET_WRAPPER(IDispatch)(variant);
+    TEST_SET_WRAPPER(IUnknown)(variant, nullptr);
+    TEST_SET_WRAPPER(IDispatch)(variant, nullptr);
 }
 
 

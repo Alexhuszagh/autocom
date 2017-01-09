@@ -49,14 +49,6 @@ TEST(SafeArray, Stl)
 }
 
 
-TEST(SafeArray, WinApi)
-{
-    com::SafeArray<INT> array = {3, 4, 5};
-    EXPECT_EQ(array.cDims, 1);
-    EXPECT_EQ(array.cLocks, 1);
-}
-
-
 TEST(SafeArray, Type)
 {
      EXPECT_EQ(com::SafeArray<X>::vt, VT_RECORD);

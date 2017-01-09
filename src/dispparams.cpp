@@ -7,6 +7,12 @@
 
 #include "autocom/dispparams.hpp"
 
+#ifdef _MSC_VER
+#   pragma warning(push)
+#   pragma warning(disable:4267)
+#   pragma warning(disable:4800)
+#endif          // MSVC
+
 
 namespace autocom
 {
@@ -54,7 +60,7 @@ DispParams::DispParams()
 DispParams::DispParams(const DispParams &other):
     vargs(other.vargs)
 {
-    reset(other.dp.rgdispidNamedArgs);
+    reset(other.dp.cNamedArgs);
 }
 
 
@@ -63,7 +69,7 @@ DispParams::DispParams(const DispParams &other):
 DispParams & DispParams::operator=(const DispParams &other)
 {
     vargs = other.vargs;
-    reset(other.dp.rgdispidNamedArgs);
+    reset(other.dp.cNamedArgs);
 
     return *this;
 }
@@ -129,5 +135,8 @@ const VariantList & DispParams::args() const
     return vargs;
 }
 
-
 }   /* autocom */
+
+#ifdef _MSC_VER
+#   pragma warning(pop)
+#endif          // MSVC

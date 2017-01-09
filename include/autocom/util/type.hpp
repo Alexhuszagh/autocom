@@ -22,7 +22,7 @@ struct Bstr;
 struct Variant;
 
 template <typename T>
-struct SafeArray;
+class SafeArray;
 
 // OBJECTS
 // -------

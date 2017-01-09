@@ -35,9 +35,9 @@ using namespace com::wrappers;
 #define TEST_ALIAS1(T)                                                  \
     TEST_ALIAS2(T, T)
 
-
+#define ID(x) x
 #define GET_MACRO(_1,_2,_3,NAME,...) NAME
-#define TEST_ALIAS(...) GET_MACRO(__VA_ARGS__, TEST_ALIAS3, TEST_ALIAS2, TEST_ALIAS1)(__VA_ARGS__)
+#define TEST_ALIAS(...) ID(GET_MACRO(__VA_ARGS__, TEST_ALIAS3, TEST_ALIAS2, TEST_ALIAS1)(__VA_ARGS__))
 
 
 // TESTS

@@ -10,6 +10,11 @@
 
 #include "autocom/util/alias.hpp"
 
+#ifdef _MSC_VER
+#   pragma warning(push)
+#   pragma warning(disable:4244)
+#endif          // MSVC
+
 
 namespace autocom
 {
@@ -220,3 +225,7 @@ AUTOCOM_VALUE_ALIASER(VARIANT*, Variant, VARIANT)
 
 }   /* wrappers */
 }   /* autocom */
+
+#ifdef _MSC_VER
+#   pragma warning(pop)
+#endif          // MSVC

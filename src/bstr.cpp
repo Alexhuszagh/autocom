@@ -60,6 +60,12 @@ Bstr::~Bstr()
 }
 
 
+/** \brief Copy constructor.
+ */
+Bstr::Bstr(const BSTR &other):
+    string(SysAllocStringLen(other, SysStringLen(other)))
+{}
+
 
 /** \brief Copy asignment operator.
  */
@@ -71,12 +77,22 @@ Bstr & Bstr::operator=(const BSTR &other)
 }
 
 
+/** \brief Move constructor.
+ */
+Bstr::Bstr(BSTR &&other):
+    string(other)
+{
+    other = nullptr;
+}
+
+
 /** \brief Move asignment operator.
  */
 Bstr & Bstr::operator=(BSTR &&other)
 {
     clear();
     string = std::move(other);
+    other = nullptr;
     return *this;
 }
 
@@ -446,9 +462,9 @@ Bstr::operator BSTR()
 }
 
 
-/** \brief Convert type to LPCOLESTR.
+/** \brief Convert type to BSTR.
  */
-Bstr::operator LPCOLESTR() const
+Bstr::operator BSTR() const
 {
     return string;
 }
@@ -459,14 +475,6 @@ Bstr::operator LPCOLESTR() const
 Bstr::operator std::string() const
 {
     return NARROW(std::wstring(string, size()));
-}
-
-
-/** \brief Convert type explicitly to wide string.
- */
-Bstr::operator std::wstring() const
-{
-    return std::wstring(string, size());
 }
 
 
@@ -496,6 +504,26 @@ bool operator!=(const Bstr &left,
     const Bstr &right)
 {
     return !(left == right);
+}
+
+
+/** \brief Print to ostream.
+ */
+std::ostream & operator<<(std::ostream &os,
+    const Bstr &string)
+{
+    os << std::string(string);
+    return os;
+}
+
+
+/** \brief Print to wostream.
+ */
+std::wostream & operator<<(std::wostream &os,
+    const Bstr &string)
+{
+    os << std::wstring(string.string, string.size());
+    return os;
 }
 
 

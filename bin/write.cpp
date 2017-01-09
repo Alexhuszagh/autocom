@@ -91,7 +91,7 @@ void writeForwardDeclarations(std::ostream &stream,
 
 /** \brief Write typedefs for function signatures.
  */
-writeMethodSignatures(std::ostream &stream,
+void writeMethodSignatures(std::ostream &stream,
     TypeLibDescription &tlib)
 {
     stream << "namespace signatures"

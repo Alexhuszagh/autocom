@@ -14,7 +14,7 @@
 
 #include "autocom.hpp"
 
-#include <cstdio>
+#include <iostream>
 
 namespace com = autocom;
 using namespace com::literals;
@@ -39,17 +39,21 @@ int main(int argc, char *argv[])
 
     LONG version;
     dispatch.method(L"GetVersionNumber", &version);
-    printf("Version is %d\n", version);
+    std::cout << "Version is " << version << "\n";
 
     dispatch.method(L"SetCurrentController", 0_I4, 1_I4);
 
     com::Variant info;
     LONG size = 0;
     dispatch.method(L"GetPrecursorInfoFromScanNum", 3_I4, &info, &size);
-    printf("Precursor info size is %d\n", size);
+    std::cout << "Precursor info size is " << size << "\n";
     com::SafeArray<PrecursorInfo> array(info);
     for (auto it = array.begin(); it < array.begin() + size; ++it) {
-        printf("PrecursorInfo(dIsolationMass=%f, dMonoIsoMass=%f, nChargeState=%d, nScanNumber=%d)\n", it->dIsolationMass, it->dMonoIsoMass, it->nChargeState, it->nScanNumber);
+        std::cout << "PrecursorInfo(dIsolationMass=" << it->dIsolationMass
+                  << ", dMonoIsoMass=" << it->dMonoIsoMass
+                  << ", nChargeState=" << it->nChargeState
+                  << ", nScanNumber=" << it->nScanNumber
+                  << ")\n";
     }
 
     dispatch.method(L"Close");

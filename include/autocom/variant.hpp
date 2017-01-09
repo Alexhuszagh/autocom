@@ -198,6 +198,11 @@ void set(VARIANT &variant,
 void set(VARIANT &variant,
     Bstr &value);
 
+/** \brief Set a BSTR value from wrapper.
+ */
+void set(VARIANT &variant,
+    Bstr &&value);
+
 /** \brief Set a pointer to BSTR from wrapper.
  */
 void set(VARIANT &variant,
@@ -268,10 +273,23 @@ void set(VARIANT &variant,
  */
 template <typename T>
 void set(VARIANT &variant,
-    SafeArray<T> *value)
+    SafeArray<T> &value)
 {
     variant.vt = VariantType<T>::vt | VT_ARRAY;
-    variant.parray = value;
+    variant.parray = value.array;
+    value.array = nullptr;
+}
+
+
+/** \brief Set SafeArray pointer from move.
+ */
+template <typename T>
+void set(VARIANT &variant,
+    SafeArray<T> &&value)
+{
+    variant.vt = VariantType<T>::vt | VT_ARRAY;
+    variant.parray = value.array;
+    value.array = nullptr;
 }
 
 
@@ -279,10 +297,10 @@ void set(VARIANT &variant,
  */
 template <typename T>
 void set(VARIANT &variant,
-    SafeArray<T> **value)
+    SafeArray<T> *value)
 {
     variant.vt = VariantType<T>::vt | VT_ARRAY | VT_BYREF;
-    variant.pparray = value;
+    variant.pparray = &value->array;
 }
 
 
@@ -511,12 +529,13 @@ void get(VARIANT &variant,
  */
 template <typename T>
 void get(VARIANT &variant,
-    SafeArray<T> *&value)
+    SafeArray<T> &value)
 {
     if (!(variant.vt & VariantType<T, true>::vt)) {
         throw std::invalid_argument("SafeArray types do not match.");
     }
-    get(variant, reinterpret_cast<SAFEARRAY*&>(value));
+    value.array = variant.parray;
+    variant.parray = nullptr;
 }
 
 
@@ -529,7 +548,9 @@ void get(VARIANT &variant,
     if (!(variant.vt & VariantType<T, true>::vt)) {
         throw std::invalid_argument("SafeArray types do not match.");
     }
-    get(variant, reinterpret_cast<SAFEARRAY**&>(value));
+    if (variant.pparray) {
+        value->array = *variant.pparray;
+    }
 }
 
 
@@ -601,9 +622,17 @@ struct Variant: public VARIANT
     Variant(Variant &&other);
     Variant & operator=(Variant &&other);
 
+    /** \brief Initalize and set variant value.
+     *
+     *  \warning For some reason, MSVC raises C2244 if the function
+     *  declaration and implementation are separated.
+     */
     template <typename T>
     Variant(T &&t,
-        typename std::enable_if<!IsVariantV<T>>::type* = 0);
+        typename std::enable_if<!IsVariantV<T>, void>::type* = 0)
+    {
+        set(AUTOCOM_FWD(t));
+    }
 
     // MODIFIERS
     void init();
@@ -631,21 +660,12 @@ static_assert(sizeof(Variant) == sizeof(VARIANT), "sizeof(Variant) != sizeof(VAR
 // --------------
 
 
-/** \brief Initalize and set variant value.
- */
-template <typename T>
-Variant::Variant(T &&t,
-    typename std::enable_if<!IsVariantV<T>>::type*)
-{
-    set(AUTOCOM_FWD(t));
-}
-
-
 /** \brief Set value in variant.
  */
 template <typename T>
 void Variant::set(T &&t)
 {
+    clear();
     autocom::set(*this, AUTOCOM_FWD(t));
 }
 

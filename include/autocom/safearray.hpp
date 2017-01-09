@@ -65,31 +65,27 @@ struct SafeArrayBound: SAFEARRAYBOUND
  *  conversions.
  */
 template <typename T>
-class SafeArray: public SAFEARRAY
+class SafeArray
 {
 protected:
     typedef SafeArray<T> This;
 
     void lock();
     void unlock();
+    void checkNull() const;
 
     // INITIALIZERS
     void create(UINT dimensions,
         SafeArrayBound *bound);
     void close();
+    void copy(const SAFEARRAY *in,
+        SAFEARRAY **out);
 
     // ASSIGNERS
-    void assign(SAFEARRAY &safearray);
     void assign(VARIANT &variant);
 
 public:
-    // WinAPI
-    // USHORT         cDims;
-    // USHORT         fFeatures;
-    // ULONG          cbElements;
-    // ULONG          cLocks;
-    // PVOID          pvData;
-    // SAFEARRAYBOUND rgsabound[1];
+    SAFEARRAY *array = nullptr;
 
     // MEMBER TYPES
     // ------------
@@ -108,12 +104,16 @@ public:
     ~SafeArray();
     SafeArray(const This &other);
     This & operator=(const This &other);
-    SafeArray(This&&) = default;
-    SafeArray & operator=(This&&) = default;
+    SafeArray(This &&other);
+    This & operator=(This &&other);
 
-    SafeArray(const SAFEARRAY &other);
-    This & operator=(const SAFEARRAY &other);
-    SafeArray(SAFEARRAY &&other);
+    SafeArray(std::nullptr_t nullp);
+    This & operator=(std::nullptr_t nullp);
+    SafeArray(const SAFEARRAY *other);
+    This & operator=(const SAFEARRAY *other);
+    SafeArray(SAFEARRAY *&&other);
+    This & operator=(SAFEARRAY *&&other);
+
     SafeArray(const std::vector<T> &other);
     SafeArray(const std::initializer_list<T> other);
     SafeArray(VARIANT &variant);
@@ -171,29 +171,31 @@ public:
     void resize(SafeArrayBound *bound);
     void resize(const LONG size);
     void reset();
-    void reset(SAFEARRAY &safearray);
+    void reset(SAFEARRAY *safearray);
     void reset(VARIANT &variant);
 
-    // DATA
-    This copy() const;
+    // CONVERSIONS
+    operator LPSAFEARRAY();
+    operator LPSAFEARRAY() const;
 };
 
 // DOWNCASTING
 // -----------
 
 static_assert(sizeof(SafeArrayBound) == sizeof(SAFEARRAYBOUND), "sizeof(SafeArrayBound) != sizeof(SAFEARRAYBOUND), cannot safely downcast");
-static_assert(sizeof(SafeArray<INT>) == sizeof(SAFEARRAY), "sizeof(SafeArray) != sizeof(SAFEARRAY), cannot safely downcast");
 
 // IMPLEMENTATION
 // --------------
 
 
 /** \brief Lock array, forcing it to take a take a fixed memory location.
+ *
+ *  \warning These functions do not check for NULL values.
  */
 template <typename T>
 void SafeArray<T>::lock()
 {
-    auto hr = SafeArrayLock(this);
+    auto hr = SafeArrayLock(array);
     if (FAILED(hr)) {
         printf("FUCK: %d\n", hr);
         throw ComFunctionError("SafeArrayLock()");
@@ -201,13 +203,26 @@ void SafeArray<T>::lock()
 }
 
 
-/** \brief Ulock array.
+/** \brief Unlock array.
+ *
+ *  \warning These functions do not check for NULL values.
  */
 template <typename T>
 void SafeArray<T>::unlock()
 {
-    if (FAILED(SafeArrayUnlock(this))) {
+    if (FAILED(SafeArrayUnlock(array))) {
         throw ComFunctionError("SafeArrayUnlock()");
+    }
+}
+
+
+/** \brief Check if array is null.
+ */
+template <typename T>
+void SafeArray<T>::checkNull() const
+{
+    if (!array) {
+        throw std::runtime_error("Cannot access SafeArray data, array is null.");
     }
 }
 
@@ -218,12 +233,10 @@ template <typename T>
 void SafeArray<T>::create(UINT dimensions,
     SafeArrayBound *bound)
 {
-
-    auto *array = SafeArrayCreate(vt, dimensions, (bound));
+    array = SafeArrayCreate(vt, dimensions, bound);
     if (!array) {
         throw std::runtime_error("Unhandled exception in SafeArrayCreate, maybe out of memory?\n");
     }
-    assign(*array);
 }
 
 
@@ -232,17 +245,23 @@ void SafeArray<T>::create(UINT dimensions,
 template <typename T>
 void SafeArray<T>::close()
 {
-    unlock();
-    SafeArrayDestroy(this);
+    if (array) {
+        unlock();
+        SafeArrayDestroy(array);
+        array = nullptr;
+    }
 }
 
 
-/** \brief Assign data from SAFEARRAY.
+/** \brief Copy array.
  */
 template <typename T>
-void SafeArray<T>::assign(SAFEARRAY &safearray)
+void SafeArray<T>::copy(const SAFEARRAY *in,
+    SAFEARRAY **out)
 {
-    reinterpret_cast<SAFEARRAY&>(*this) = safearray;
+    if (SafeArrayCopy(in, out) == E_OUTOFMEMORY) {
+        throw std::runtime_error("E_OUTOFMEMORY from SafeArrayCopy()\n");
+    }
 }
 
 
@@ -254,7 +273,7 @@ void SafeArray<T>::assign(VARIANT &variant)
     if (variant.vt & (VT_BYREF)) {
         throw std::runtime_error("Cannot take ownership of value by reference");
     } else if (variant.vt & VT_ARRAY) {
-        assign(*variant.parray);
+        array = variant.parray;
         variant.parray = nullptr;
         variant.vt = VT_EMPTY;
     } else {
@@ -289,14 +308,54 @@ template <typename T>
 auto SafeArray<T>::operator=(const This &other)
     -> This &
 {
-    SAFEARRAY *array;
-    auto *ptr = reinterpret_cast<const SAFEARRAY*>(&other);
-    if (SafeArrayCopy(ptr, &array) == E_OUTOFMEMORY) {
-        throw std::runtime_error("E_OUTOFMEMORY from SafeArrayCopy()\n");
-    }
-    assign(*array);
-    lock();
+    return operator=(other.array);
+}
 
+
+/** \brief Move constructor.
+ */
+template <typename T>
+SafeArray<T>::SafeArray(This &&other)
+{
+    operator=(std::move(other));
+}
+
+
+/** \brief Move assignment operator.
+ */
+template <typename T>
+auto SafeArray<T>::operator=(This &&other)
+    -> This &
+{
+    if (other.array) {
+        other.unlock();
+    }
+
+    array = std::move(other.array);
+    other.array = nullptr;
+    if (array) {
+        lock();
+    }
+
+    return *this;
+}
+
+
+/** \brief Initialize empty array.
+ */
+template <typename T>
+SafeArray<T>::SafeArray(std::nullptr_t nullp):
+    array(nullp)
+{}
+
+
+/** \brief Initialize empty array.
+ */
+template <typename T>
+auto SafeArray<T>::operator=(std::nullptr_t nullp)
+    -> This &
+{
+    close();
     return *this;
 }
 
@@ -304,7 +363,7 @@ auto SafeArray<T>::operator=(const This &other)
 /** \brief Copy array.
  */
 template <typename T>
-SafeArray<T>::SafeArray(const SAFEARRAY &other)
+SafeArray<T>::SafeArray(const SAFEARRAY *other)
 {
     operator=(other);
 }
@@ -313,18 +372,17 @@ SafeArray<T>::SafeArray(const SAFEARRAY &other)
 /** \brief Copy array.
  */
 template <typename T>
-auto SafeArray<T>::operator=(const SAFEARRAY &other)
+auto SafeArray<T>::operator=(const SAFEARRAY *other)
     -> This &
 {
-    if (vt != getSafeArrayType(&other)) {
+    if (vt != getSafeArrayType(other)) {
         throw std::invalid_argument("Cannot change type of SafeArray");
     }
-    SAFEARRAY *array;
-    if (SafeArrayCopy(&other, &array) == E_OUTOFMEMORY) {
-        throw std::runtime_error("E_OUTOFMEMORY from SafeArrayCopy()\n");
+    close();
+    if (other) {
+        copy(other, &array);
+        lock();
     }
-    assign(*array);
-    lock();
 
     return *this;
 }
@@ -333,10 +391,25 @@ auto SafeArray<T>::operator=(const SAFEARRAY &other)
 /** \brief Move array.
  */
 template <typename T>
-SafeArray<T>::SafeArray(SAFEARRAY &&other):
-    SAFEARRAY(std::move(other))
+SafeArray<T>::SafeArray(SAFEARRAY *&&other)
 {
-    lock();
+    operator=(std::move(other));
+}
+
+
+/** \brief Move assignment for array.
+ */
+template <typename T>
+auto SafeArray<T>::operator=(SAFEARRAY *&&other)
+    -> This &
+{
+    array = std::move(other);
+    other = nullptr;
+    if (array) {
+        lock();
+    }
+
+    return *this;
 }
 
 
@@ -349,9 +422,9 @@ SafeArray<T>::SafeArray(const std::vector<T> &other)
     create(1, &bound);
     lock();
 
-    auto *array = reinterpret_cast<pointer>(SAFEARRAY::pvData);
+    auto *buffer = reinterpret_cast<pointer>(array->pvData);
     for (const auto &item: other) {
-        *array++ = item;
+        *buffer++ = item;
     }
 }
 
@@ -365,9 +438,9 @@ SafeArray<T>::SafeArray(const std::initializer_list<T> other)
     create(1, &bound);
     lock();
 
-    auto *array = reinterpret_cast<pointer>(SAFEARRAY::pvData);
+    auto *buffer = reinterpret_cast<pointer>(array->pvData);
     for (const auto &item: other) {
-        *array++ = item;
+        *buffer++ = item;
     }
 }
 
@@ -395,9 +468,9 @@ SafeArray<T>::SafeArray(Iter begin,
     create(1, &bound);
     lock();
 
-    auto *array = reinterpret_cast<pointer>(SAFEARRAY::pvData);
+    auto *buffer = reinterpret_cast<pointer>(array->pvData);
     while (begin < end) {
-        *array++ = *begin++;
+        *buffer++ = *begin++;
     }
 }
 
@@ -417,7 +490,8 @@ template <typename T>
 auto SafeArray<T>::begin() noexcept
     -> iterator
 {
-    return reinterpret_cast<iterator>(SAFEARRAY::pvData);
+    checkNull();
+    return reinterpret_cast<iterator>(array->pvData);
 }
 
 
@@ -536,21 +610,23 @@ auto SafeArray<T>::crend() const noexcept
 template <typename T>
 size_t SafeArray<T>::size(const LONG size) const
 {
-    if (size >= SAFEARRAY::cDims) {
+    checkNull();
+
+    if (size >= array->cDims) {
         throw std::out_of_range("SafeArray:: Size requested is out of bounds");
     }
 
     if (size < 0) {
         // get all dimensions
         size_t size = 1;
-        for (USHORT i = 0; i < SAFEARRAY::cDims; ++i) {
-            const auto &bound = SAFEARRAY::rgsabound[i];
+        for (USHORT i = 0; i < array->cDims; ++i) {
+            const auto &bound = array->rgsabound[i];
             size *= (bound.cElements - bound.lLbound);
         }
         return size;
     } else {
         // get single dimension
-        const auto &bound = SAFEARRAY::rgsabound[size];
+        const auto &bound = array->rgsabound[size];
         return (bound.cElements - bound.lLbound);
     }
 }
@@ -561,7 +637,7 @@ size_t SafeArray<T>::size(const LONG size) const
 template <typename T>
 bool SafeArray<T>::empty() const
 {
-    return size(-1) == 0;
+    return array ? size(-1) == 0 : true;
 }
 
 
@@ -594,8 +670,9 @@ template <typename U>
 typename std::enable_if<std::is_pointer<U>::value, T&>::type
 SafeArray<T>::at(U indices)
 {
+    checkNull();
     T *data;
-    SafeArrayPtrOfIndex(this, indices, (void**) &data);
+    SafeArrayPtrOfIndex(array, indices, (void**) &data);
 
     return *data;
 }
@@ -608,8 +685,9 @@ template <typename U>
 typename std::enable_if<std::is_pointer<U>::value, const T&>::type
 SafeArray<T>::at(U indices) const
 {
+    checkNull();
     T *data;
-    SafeArrayPtrOfIndex(this, indices, (void**) &data);
+    SafeArrayPtrOfIndex(array, indices, (void**) &data);
 
     return const_cast<const_reference>(data);
 }
@@ -641,8 +719,9 @@ template <typename T>
 auto SafeArray<T>::at(const LONG index)
     -> reference
 {
-    auto *array = reinterpret_cast<pointer>(SAFEARRAY::pvData);
-    return array[index];
+    checkNull();
+    auto *buffer = reinterpret_cast<pointer>(array->pvData);
+    return buffer[index];
 }
 
 
@@ -652,8 +731,9 @@ template <typename T>
 auto SafeArray<T>::at(const LONG index) const
     -> const_reference
 {
-    auto *array = reinterpret_cast<pointer>(SAFEARRAY::pvData);
-    return const_cast<const_reference>(array[index]);
+    checkNull();
+    auto *buffer = reinterpret_cast<pointer>(array->pvData);
+    return const_cast<const_reference>(buffer[index]);
 }
 
 
@@ -663,6 +743,7 @@ template <typename T>
 auto SafeArray<T>::front()
     -> reference
 {
+    checkNull();
     return *begin();
 }
 
@@ -673,6 +754,7 @@ template <typename T>
 auto SafeArray<T>::front() const
     -> const_reference
 {
+    checkNull();
     return *cbegin();
 }
 
@@ -683,6 +765,7 @@ template <typename T>
 auto SafeArray<T>::back()
     -> reference
 {
+    checkNull();
     return *(end() - 1);
 }
 
@@ -693,6 +776,7 @@ template <typename T>
 auto SafeArray<T>::back() const
     -> const_reference
 {
+    checkNull();
     return *(cend() - 1);
 }
 
@@ -703,8 +787,9 @@ template <typename T>
 auto SafeArray<T>::data() const
     -> const_pointer
 {
-    auto *array = reinterpret_cast<pointer>(SAFEARRAY::pvData);
-    return const_cast<const_pointer>(array);
+    checkNull();
+    auto *buffer = reinterpret_cast<pointer>(array->pvData);
+    return const_cast<const_pointer>(buffer);
 }
 
 
@@ -715,11 +800,12 @@ auto SafeArray<T>::data() const
 template <typename T>
 void SafeArray<T>::resize(SafeArrayBound *bound)
 {
+    checkNull();
+
     unlock();
-    if (FAILED(SafeArrayRedim(this, bound))) {
+    if (FAILED(SafeArrayRedim(array, bound))) {
         throw ComMethodError("SafeArray", "SafeArrayRedim");
     }
-
     lock();
 }
 
@@ -729,13 +815,15 @@ void SafeArray<T>::resize(SafeArrayBound *bound)
 template <typename T>
 void SafeArray<T>::resize(const LONG size)
 {
+    checkNull();
+
     // create custom bounds
-    SafeArrayBound *bound = new SafeArrayBound[SAFEARRAY::cDims];
-    for (USHORT i = 0; i < SAFEARRAY::cDims - 1; ++i) {
-        bound[i] = SAFEARRAY::rgsabound[i];
+    SafeArrayBound *bound = new SafeArrayBound[array->cDims];
+    for (USHORT i = 0; i < array->cDims - 1; ++i) {
+        bound[i] = array->rgsabound[i];
     }
-    bound[SAFEARRAY::cDims-1].lLbound = 0;
-    bound[SAFEARRAY::cDims-1].cElements = size;
+    bound[array->cDims-1].lLbound = 0;
+    bound[array->cDims-1].cElements = size;
 
     resize(bound);
     delete[] bound;
@@ -757,10 +845,10 @@ void SafeArray<T>::reset()
 /** \brief Reset SAFEARRAY and own new array.
  */
 template <typename T>
-void SafeArray<T>::reset(SAFEARRAY &safearray)
+void SafeArray<T>::reset(SAFEARRAY *safearray)
 {
     close();
-    assign(safearray);
+    array = safearray;
     lock();
 }
 
@@ -776,19 +864,21 @@ void SafeArray<T>::reset(VARIANT &variant)
 }
 
 
-/** \brief Copy array data.
+/** \brief Convert to SAFEARRAY*.
  */
 template <typename T>
-auto SafeArray<T>::copy() const
-    -> This
+SafeArray<T>::operator LPSAFEARRAY()
 {
-    This copy;
-    if (SafeArrayCopy(this, &(&copy)) == E_OUTOFMEMORY) {
-        throw std::runtime_error("E_OUTOFMEMORY from SafeArrayCopy()\n");
-    }
-    copy.lock();
+    return array;
+}
 
-    return copy;
+
+/** \brief Convert to SAFEARRAY*.
+ */
+template <typename T>
+SafeArray<T>::operator LPSAFEARRAY() const
+{
+    return array;
 }
 
 

@@ -385,6 +385,7 @@ Property::Property(const TypeInfo &info,
 std::string Property::header() const
 {
     assert(false);
+    return "";
 }
 
 
@@ -796,6 +797,7 @@ std::string Union::header() const
 std::string External::header() const
 {
     assert(false);
+    return "";
 }
 
 }   /* detail */

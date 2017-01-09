@@ -9,6 +9,11 @@
 #include "autocom/variant.hpp"
 #include "autocom/encoding/converters.hpp"
 
+#ifdef _MSC_VER
+#   pragma warning(push)
+#   pragma warning(disable:4267)
+#endif          // MSVC
+
 
 namespace autocom
 {
@@ -233,9 +238,21 @@ void set(VARIANT &variant,
     Bstr &value)
 {
     variant.vt = VariantType<Bstr>::vt;
-    variant.bstrVal = value;
-    value = nullptr;
+    variant.bstrVal = value.string;
+    value.string = nullptr;
 }
+
+
+/** \brief Set a BSTR value from wrapper.
+ */
+void set(VARIANT &variant,
+    Bstr &&value)
+{
+    variant.vt = VariantType<Bstr>::vt;
+    variant.bstrVal = std::move(value.string);
+    value.string = nullptr;
+}
+
 
 /** \brief Set a pointer to BSTR from wrapper.
  */
@@ -243,7 +260,7 @@ void set(VARIANT &variant,
     Bstr *value)
 {
     variant.vt = VariantType<Bstr*>::vt;
-    variant.pbstrVal = &value->data();
+    variant.pbstrVal = &value->string;
 }
 
 
@@ -539,7 +556,7 @@ void get(VARIANT &variant,
 {
     AUTOCOM_CONVERT_TYPE(variant, VariantType<Bstr>::vt);
     value.clear();
-    value.data() = variant.bstrVal;
+    value.string = variant.bstrVal;
     variant.bstrVal = nullptr;
 }
 
@@ -551,7 +568,9 @@ void get(VARIANT &variant,
 {
     AUTOCOM_CONVERT_TYPE(variant, VariantType<Bstr*>::vt);
     value->clear();
-    value->data() = *variant.pbstrVal;
+    if (variant.pbstrVal) {
+        value->string = *variant.pbstrVal;
+    }
 }
 
 
@@ -838,3 +857,7 @@ void Variant::reset()
 }
 
 }   /* autocom */
+
+#ifdef _MSC_VER
+#   pragma warning(pop)
+#endif          // MSVC
