@@ -16,9 +16,9 @@
  *      include(autocom_configure)
  *
  *      include_directories("${AutoCOM_INCLUDE_DIRS}")
- *      AutoCOMConfigure(wsh wsh.cpp)
- *      add_executable(${wsh})
- *      target_link_libraries("${AutoCOM_LIBRARIES}")
+ *      AutoCOMConfigure(wsh_source wsh.cpp)
+ *      add_executable(wsh ${wsh_source})
+ *      target_link_libraries(wsh ${AutoCOM_LIBRARIES})
  *      -----------------------------------------------------------
  */
 
