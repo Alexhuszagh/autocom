@@ -44,8 +44,8 @@ int main(int argc, char *argv[])
     std::cout << "Precursor info size is " << size << "\n";
     com::SafeArray<MS_PrecursorInfo> array(info);
     for (auto it = array.begin(); it < array.begin() + size; ++it) {
-        std::cout << "PrecursorInfo(dIsolationMass=" << it->dIsolationMass
-                  << ", dMonoIsoMass=" << it->dMonoIsoMass
+        std::cout << "MS_PrecursorInfo(dMonoIsoMZ=" << it->dMonoIsoMZ
+                  << ", dIsolationMZ=" << it->dIsolationMZ
                   << ", nChargeState=" << it->nChargeState
                   << ", nScanNumber=" << it->nScanNumber
                   << ")\n";

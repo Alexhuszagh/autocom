@@ -141,6 +141,8 @@ public:
     const_reverse_iterator crend() const noexcept;
 
     // ELEMENT ACCESS
+
+    // MULTIDIMENSIONAL
     template <typename U>
     typename std::enable_if<std::is_pointer<U>::value, reference>::type
     operator[](U indices);
@@ -157,10 +159,22 @@ public:
     typename std::enable_if<std::is_pointer<U>::value, const_reference>::type
     at(U indices) const;
 
-    reference operator[](const LONG index);
-    const_reference operator[](const LONG index) const;
-    reference at(const LONG index);
-    const_reference at(const LONG index) const;
+    // 1-DIMENSIONAL
+    template <typename U>
+    typename std::enable_if<std::is_integral<U>::value, reference>::type
+    operator[](const U index);
+
+    template <typename U>
+    typename std::enable_if<std::is_integral<U>::value, const_reference>::type
+    operator[](const U index) const;
+
+    template <typename U>
+    typename std::enable_if<std::is_integral<U>::value, reference>::type
+    at(const U index);
+
+    template <typename U>
+    typename std::enable_if<std::is_integral<U>::value, const_reference>::type
+    at(const U index) const;
 
     reference front();
     const_reference front() const;
@@ -404,6 +418,10 @@ template <typename T>
 auto SafeArray<T>::operator=(SAFEARRAY *&&other)
     -> This &
 {
+    if (vt != getSafeArrayType(other)) {
+        throw std::invalid_argument("Cannot change type of SafeArray");
+    }
+    close();
     array = std::move(other);
     other = nullptr;
     if (array) {
@@ -697,8 +715,9 @@ SafeArray<T>::at(U indices) const
 /** \brief Get element at index (STL-like).
  */
 template <typename T>
-auto SafeArray<T>::operator[](const LONG index)
-    -> reference
+template <typename U>
+typename std::enable_if<std::is_integral<U>::value, T&>::type
+SafeArray<T>::operator[](const U index)
 {
     return at(index);
 }
@@ -707,8 +726,9 @@ auto SafeArray<T>::operator[](const LONG index)
 /** \brief Get element at index (STL-like).
  */
 template <typename T>
-auto SafeArray<T>::operator[](const LONG index) const
-    -> const_reference
+template <typename U>
+typename std::enable_if<std::is_integral<U>::value, const T&>::type
+SafeArray<T>::operator[](const U index) const
 {
     return at(index);
 }
@@ -717,8 +737,9 @@ auto SafeArray<T>::operator[](const LONG index) const
 /** \brief Get element at index (STL-like).
  */
 template <typename T>
-auto SafeArray<T>::at(const LONG index)
-    -> reference
+template <typename U>
+typename std::enable_if<std::is_integral<U>::value, T&>::type
+SafeArray<T>::at(const U index)
 {
     checkNull();
     auto *buffer = reinterpret_cast<pointer>(array->pvData);
@@ -729,8 +750,9 @@ auto SafeArray<T>::at(const LONG index)
 /** \brief Get element at index (STL-like).
  */
 template <typename T>
-auto SafeArray<T>::at(const LONG index) const
-    -> const_reference
+template <typename U>
+typename std::enable_if<std::is_integral<U>::value, const T&>::type
+SafeArray<T>::at(const U index) const
 {
     checkNull();
     auto *buffer = reinterpret_cast<pointer>(array->pvData);
