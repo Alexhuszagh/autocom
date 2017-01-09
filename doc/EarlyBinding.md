@@ -9,6 +9,9 @@ AutoCOM's early-binding interface produces native C++ headers analogous to MSVC'
 - [Design](#design)
   - [Definition Exportation](#definition-exportation)
   - [Wrappers](#wrappers)
+- [Use](#use)
+ - [CMake]#(cmake)
+- [Namespaces](#namespaces)
 - [Header Layout](#header-layout)
   - [CLSID](#clsid)
   - [Primitives & Enums](#primitives--enums)
@@ -73,6 +76,14 @@ typedef ComObject<CoClass, Interface2> MyInterface;
 MyInterface obj;
 obj->NewMethod();
 ```
+
+## Use
+
+### CMake
+
+## Namespaces
+
+By default, AutoCOM reconstructs the header in the global namespace.
 
 ## Header Layout
 

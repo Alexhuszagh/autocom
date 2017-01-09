@@ -163,7 +163,7 @@ std::string writeClsidHeader(TypeLibDescription &tlib,
     writeMethodSignatures(stream, tlib);
 
     if (!ns.empty()) {
-        stream << "}   /*" << ns << "*/\r\n";
+        stream << "}   /* " << ns << " */\r\n";
     }
 
     return path;

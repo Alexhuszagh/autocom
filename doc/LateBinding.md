@@ -133,20 +133,29 @@ AutoCOM uses C++'s strong-typing to determine VARTYPE-type when possible. The fo
 
 ### Type Wrappers
 
-For some types, especially type aliases, strong-typing is insufficient (for example, `VARIANT_BOOL` and `SHORT` are both aliases of `short`, and `DATE` is an alias of `DOUBLE`). AutoCOM provides type-safe value and reference wrappers to avoid VARTYPE ambiguity.
+For some types, especially type aliases, strong-typing is insufficient for type deduction. For example, `VARIANT_BOOL` (`VT_BOOL`) and `SHORT` (`VT_I2`) are both aliases of `short`, preventing VARTYPE deduction. AutoCOM provides type-safe value and reference wrappers to avoid VARTYPE ambiguity.
 
 ```cpp
 using namespace autocom::wrappers;
 
-DATE date;
+DATE date = 0.0;
+DATE *pdate = &date;
+
+// by-value
 dispatch.get("GetDate", date);              // ambiguous
-dispatch.get("GetDate", G_DATE(date));      // safe, "Get" wrapper
-dispatch.get("GetDate", W_DATE(date));      // safe, generic wrapper
+dispatch.get("GetDate", G_DATE(date));      // safe, "Get" wrapper, `VT_DATE`
+dispatch.get("GetDate", W_DATE(date));      // safe, generic wrapper, `VT_DATE`
+
+// by-reference
+dispatch.get("GetDate", pdate);             // ambiguous
+dispatch.get("GetDate", G_DATE(pdate));     // safe, `VT_DATE | VT_BYREF`
+
+// sanity checks
 //dispatch.get("GetDate", G_DATE(5.0));     // cannot "Get" from R-value, won't compile
 //dispatch.get("GetDate", W_DATE(5.0));     // cannot "Get" from R-value, won't compile
 ```
 
-Each VARTYPE has "Get" (`G_`) and "Put" (`P_`) wrappers, as well as a generic `W_` wrapper (which detects whether the value is an L- or R-value and constructs the corresponding `G_` or `P_` wrapper, respectively). The type-wrapper functions are:
+Each VARTYPE has "Get" (`G_`) and "Put" (`P_`) wrappers, as well as a generic `W_` wrapper (detecting L- or R-values and constructs the desired `G_` or `P_` wrapper, respectively). The type-wrapper functions are:
 
 | Type         | Suffix    | Get        | Put        | Generic    |
 |:------------:|:---------:|:----------:|:----------:|:----------:|
@@ -169,17 +178,6 @@ Each VARTYPE has "Get" (`G_`) and "Put" (`P_`) wrappers, as well as a generic `W
 | VARIANT*     | _VARIANT  | G_VARIANT  | P_VARIANT  | W_VARIANT  |
 | IUnknown*    | _UNKNOWN  | G_UNKNOWN  | P_UNKNOWN  | W_UNKNOWN  |
 | IDispatch*   | _DISPATCH | G_DISPATCH | P_DISPATCH | W_DISPATCH |
-
-The same type-wrapper can be used to pass by-reference, for each, to put a DATE by reference:
-
-```cpp
-using namespace autocom::wrappers;
-
-DATE date = 0.0;
-DATE *pdate = &date;
-dispatch.put("PutDate", P_DATE(date));              // VT_DATE
-dispatch.put("PutDate", P_DATE(pdate));             // VT_DATE | VT_BYREF
-```
 
 ## Examples
 

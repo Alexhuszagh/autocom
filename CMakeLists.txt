@@ -17,7 +17,7 @@ if(NOT WIN32)
 endif()
 
 option(BUILD_EXAMPLES "Build example files" ON)
-option(BUILD_GENERATOR "Build early-binding generator" ON)
+option(BUILD_AUTOCOM_CONFIGURE "Build executable for early-binding COM DLL configuration" ON)
 option(BUILD_STATIC "Build static library" ON)
 option(BUILD_TESTS "Build unittests (requires GTest)" OFF)
 option(HAVE_THERMO "Have Thermo MSFileReader for examples" OFF)
@@ -75,43 +75,23 @@ endif()
 # BIN
 # ----
 
-set(AUTOCOM_GENERATOR_SOURCES
-    bin/generate.cpp
+set(AUTOCOM_EXECUTABLE_SOURCES
+    bin/autocom.cpp
     bin/options.cpp
     bin/parse.cpp
     bin/write.cpp
 )
 
-set(AUTOCOM_PROGID_SOURCES
-    bin/options.cpp
-    bin/progid.cpp
-)
-
-set(AUTOCOM_CLSID_SOURCES
-    bin/clsid.cpp
-    bin/options.cpp
-)
-
-if(BUILD_GENERATOR)
+if(BUILD_AUTOCOM_CONFIGURE)
     add_subdirectory(gflags)
     include_directories("${CMAKE_CURRENT_BINARY_DIR}/gflags/include")
-    add_executable(AutoCOMGenerator ${AUTOCOM_GENERATOR_SOURCES})
-    set_target_properties(AutoCOMGenerator PROPERTIES OUTPUT_NAME autocom_generator)
-    target_link_libraries(AutoCOMGenerator ${AUTOCOM_LIBRARIES} gflags)
-
-    add_executable(AutoCOMProgID ${AUTOCOM_PROGID_SOURCES})
-    set_target_properties(AutoCOMProgID PROPERTIES OUTPUT_NAME autocom_progid)
-    target_link_libraries(AutoCOMProgID ${AUTOCOM_LIBRARIES} gflags)
-
-    add_executable(AutoCOMCLSID ${AUTOCOM_CLSID_SOURCES})
-    set_target_properties(AutoCOMCLSID PROPERTIES OUTPUT_NAME autocom_clsid)
-    target_link_libraries(AutoCOMCLSID ${AUTOCOM_LIBRARIES} gflags)
+    add_executable(AutoCOMConfigure ${AUTOCOM_EXECUTABLE_SOURCES})
+    set_target_properties(AutoCOMConfigure PROPERTIES OUTPUT_NAME autocom)
+    target_link_libraries(AutoCOMConfigure ${AUTOCOM_LIBRARIES} gflags)
 endif()
 
 # EXAMPLES
 # --------
-
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
 set(AUTOCOM_LATEBINDING_EXAMPLE_SOURCES
     example/late/regexp.cpp
@@ -144,19 +124,22 @@ if (BUILD_EXAMPLES)
 endif()
 
 # LATE
-if (BUILD_EXAMPLES AND BUILD_GENERATOR)
-    include(generator)
+if (BUILD_EXAMPLES AND BUILD_AUTOCOM_CONFIGURE)
     include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
     # WScript
-    AutoComGenerate("WScript.Shell.1" "${CMAKE_CURRENT_BINARY_DIR}" "WScript")
+    add_custom_target(WScript
+        COMMAND $<TARGET_FILE:AutoCOMConfigure> -progid="WScript.Shell.1"
+        DEPENDS AutoCOMConfigure)
     add_executable(wsh_early example/early/wsh.cpp)
     target_link_libraries(wsh_early ${AUTOCOM_LIBRARIES})
     add_dependencies(wsh_early "WScript")
 
     # MSScriptControl
     if(HAVE_SCRIPTCONTROL)
-        AutoComGenerate("MSScriptControl.ScriptControl" "${CMAKE_CURRENT_BINARY_DIR}" "MSScriptControl")
+        add_custom_target(MSScriptControl
+            COMMAND $<TARGET_FILE:AutoCOMConfigure> -progid="MSScriptControl.ScriptControl"
+            DEPENDS AutoCOMConfigure)
         add_executable(script_early example/early/script.cpp)
         target_link_libraries(script_early ${AUTOCOM_LIBRARIES})
         add_dependencies(script_early "MSScriptControl")
@@ -164,7 +147,9 @@ if (BUILD_EXAMPLES AND BUILD_GENERATOR)
 
     # Thermo
     if (HAVE_THERMO)
-        AutoComGenerate("{1D23188D-53FE-4C25-B032-DC70ACDBDC02}" "${CMAKE_CURRENT_BINARY_DIR}" "MSFileReader")
+        add_custom_target(MSFileReader
+            COMMAND $<TARGET_FILE:AutoCOMConfigure> -progid="{1D23188D-53FE-4C25-B032-DC70ACDBDC02}"
+            DEPENDS AutoCOMConfigure)
         add_executable(thermo_early example/early/thermo.cpp)
         target_link_libraries(thermo_early ${AUTOCOM_LIBRARIES})
         add_dependencies(thermo_early "MSFileReader")

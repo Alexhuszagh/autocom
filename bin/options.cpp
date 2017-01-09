@@ -9,6 +9,23 @@
 
 #include <regex>
 
+// MODES
+// -----
+
+/** \brief Hash lower-case version of string.
+ */
+size_t CaseInsensitiveHash::operator()(std::string string) const
+{
+    std::transform(string.begin(), string.end(), string.begin(), tolower);
+    return std::hash<std::string>()(string);
+}
+
+std::unordered_map<std::string, AutoComMode, CaseInsensitiveHash> AutoComModes = {
+    {"generate", AUTOCOM_GENERATE},
+    {"progid",   AUTOCOM_PROGID  },
+    {"clsid",    AUTOCOM_CLSID   },
+};
+
 // VALIDATORS
 // ----------
 
@@ -35,6 +52,20 @@ bool ValidateProgId(const char *flagname,
     }
 
     printf("Invalid value for --%s: %s\n", flagname, id.data());
+    return false;
+}
+
+
+/** \brief Validate mode for AutoCOM executable.
+ */
+bool ValidateMode(const char *flagname,
+    const std::string &mode)
+{
+    if (AutoComModes.find(mode) != AutoComModes.end()) {
+        return true;
+    }
+
+    printf("Invalid value for --%s: %s\n", flagname, mode.data());
     return false;
 }
 

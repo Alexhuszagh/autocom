@@ -49,6 +49,7 @@ int main(int argc, char *argv[])
 **Late-Binding**
 
 ```cpp
+#include <iostream>
 #include "autocom.hpp"
 namespace com = autocom;
 
@@ -78,7 +79,7 @@ AutoCOM believes that resource acquisition is initialization (RAII): that constr
 
 AutoCOM adds Standard Template Library (STL) container methods to Windows-specific containers, to facilitate use of COM APIs in modern C++.
 
-`Bstr` and `SafeArray` have interfaces comparable to `std::wstring` and `std::vector`, and are implicitly convertible to `BSTR` and `SAFEARRAY`, respectively.
+`Bstr` and `SafeArray` have interfaces comparable to `std::wstring` and `std::vector`, and are implicitly convertible to `BSTR` and `LPSAFEARRAY`, respectively.
 
 ```cpp
 com::Bstr string(L"This is a string");
