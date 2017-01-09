@@ -118,8 +118,8 @@ For example, to generate a header in the namespace "wsh" from "WScript.Shell.1",
 
 **CMake Processing**
 
-1. Add [autocom_configure](/cmake/autocom_configure.cmake) to the module path. 
-2. Find the [AutoCOM installation](/cmake/FindAutoCOM.cmake) with `find_package(AutoCOM)`
+1. Add the directory containing [autocom_configure](/cmake/autocom_configure.cmake) and [FindAutoCOM](/cmake/FindAutoCOM.cmake) to the module path. 
+2. Find the AutoCOM installation with `find_package(AutoCOM)`
 3. Include the configuration macros with `include(autocom_configure)`
 4. Configure each source file with `AutoCOMConfigure(output /path/to/source.cpp)`.
 5. Add the output file to the resulting library/executable (`add_executable(${output}`)
