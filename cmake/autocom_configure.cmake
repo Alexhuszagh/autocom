@@ -1,22 +1,36 @@
 #   :copyright: (c) 2015-2016 The Regents of the University of California.
 #   :license: MIT, see LICENSE.md for more details.
+
+# autocom_configure
+# -----------------
 #
-#   \brief This script generates header import files for the COM DLL.
+# This script generates header include files for the COM DLL.
+#
+# Use this module by invoking AutoCOMConfigure with the form:
+#
+#   AutoCOMConfigure(Output             # Variable to store generated file
+#     Source                            # Path to source file.
+#     )
 #
 #   Requires:
 #       The generate tool requires a pre-built AutoCOM executable, and
-#       this must be "found" by CMake, setting `AutoCOM_FOUND`,
-#       `AutoCOM_CONFIGURE_EXECUTABLE`, and `AutoCOM_INCLUDE_DIRS`.
+#       `AutoCOM_FOUND` must be set to `TRUE`, and the the path of
+#       the executable stored in `AutoCOM_EXECUTABLE`. This can be done
+#       with `find_package(AutoCOM)` for the `FindAutoCOM` module.
 #
-#   SourceFile:
-#       The source file should have `#include` directives with:
-#           `#inclue "@AUTOCOM:progid=WScript.Shell.1:namespace=wsh@"
+#   Args:
+#       Output -- Variable name to store path of generated file
+#       Source -- Path to source file to configure
 #
-#       Required fileds:
-#           progid --       ProgID or CLSID for COM object
+#   Source File:
+#       For information on how to create the include directives, see
+#       [EarlyBinding.md](/doc/EarlyBinding.md#cmake).
 #
-#       Optional Fields:
-#           namespace --    Valid namespace identifier for import
+#       Each AutoCOM include directive will be processed to export
+#       the COM declarations to a C++ header, and the line processed
+#       to include the processed file. An example AutoCOM include
+#       directive is:
+#           `#include "@AUTOCOM:progid=WScript.Shell.1:namespace=wsh@"
 #
 #   \use
 #       AutoCOMConfigure(source "/path/to/source.cpp")
@@ -37,7 +51,7 @@ endif()
 #       GetCLSID(clsid "WScript.Shell.1")
 #
 function(GetCLSID output progid)
-    execute_process(COMMAND ${AutoCOM_CONFIGURE_EXECUTABLE} -progid=${progid} -mode=clsid
+    execute_process(COMMAND ${AutoCOM_EXECUTABLE} -progid=${progid} -mode=clsid
         OUTPUT_VARIABLE clsid
         RESULT_VARIABLE status
     )
@@ -59,7 +73,7 @@ endfunction(GetCLSID)
 #       ConfigureCom("WScript.Shell.1" "")
 #
 function(ConfigureCom progid namespace)
-    execute_process(COMMAND ${AutoCOM_CONFIGURE_EXECUTABLE} -progid=${progid} -ns=${namespace}
+    execute_process(COMMAND ${AutoCOM_EXECUTABLE} -progid=${progid} -ns=${namespace}
         RESULT_VARIABLE status
     )
     if (${status})
@@ -78,9 +92,6 @@ endfunction(ConfigureCom)
 #
 
 function(AutoCOMConfigure output source)
-    include_directories("${CMAKE_CURRENT_BINARY_DIR}")
-    include_directories(${AutoCOM_INCLUDE_DIRS})
-
     # PATTERNS
     set(progid_re ".*:progid=([{}A-Za-z.0-9]+)[:@](.*)")
     set(namespace_re ".*:namespace=([A-Za-z_0-9]*)[:@].*")

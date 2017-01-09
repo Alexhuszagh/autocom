@@ -10,8 +10,8 @@ AutoCOM's early-binding interface produces native C++ headers analogous to MSVC'
   - [Definition Exportation](#definition-exportation)
   - [Wrappers](#wrappers)
 - [Use](#use)
- - [CMake]#(cmake)
-- [Namespaces](#namespaces)
+ - [Header Generation](#header-generation)
+ - [CMake](#cmake)
 - [Header Layout](#header-layout)
   - [CLSID](#clsid)
   - [Primitives & Enums](#primitives--enums)
@@ -79,11 +79,55 @@ obj->NewMethod();
 
 ## Use
 
+To use the early-binding interface, you must:
+
+1. Generate COM headers
+2. Include generated headers
+3. Link with AutoCOM
+
+This entire process can be automated with [CMake](#cmake) macros.
+
+### Header Generation
+
+AutoCOM includes an executable file, "autocom.exe", which generates C++ headers from a COM DLL. Both human-readable and CLSID-based headers are generated.
+
+To generate headers, simply run the executable with the ProgID or CLSID desired, with an optional namespace:
+
+```bash
+$ # Generate input headers in namespace "wsh".
+$ # Generates "IWshRuntimeLibrary.hpp" and 
+$ # "F935DC20-1CF0-11D0-ADB9-00C04FD58A0B.hpp"
+$ ./autocom.exe -progid="WScript.Shell.1" -ns=wsh
+```
+
 ### CMake
 
-## Namespaces
+Header generation and inclusion can be automated with the macro [AutoCOMConfigure](/cmake/autocom_configure.cmake) when using the CMake build system.
 
-By default, AutoCOM reconstructs the header in the global namespace.
+**Source**
+
+First, add an include, starting with "@AUTOCOM", signifying that AutoCOM should process the include. The include has one mandatory key ("progid") and one optional property ("namespace"), delimited by ":".
+
+For example, to generate a header in the namespace "wsh" from "WScript.Shell.1", we can add the following line to our source file.
+
+```cpp
+...
+#include "@AUTOCOM:progid=WScript.Shell.1:namespace=wsh@"
+...
+```
+
+**CMake Processing**
+
+1. Add [autocom_configure](/cmake/autocom_configure.cmake) to the module path. 
+2. Find the [AutoCOM installation](/cmake/FindAutoCOM.cmake) with `find_package(AutoCOM)`
+3. Include the configuration macros with `include(autocom_configure)`
+4. Configure each source file with `AutoCOMConfigure(output /path/to/source.cpp)`.
+5. Add the output file to the resulting library/executable (`add_executable(${output}`)
+6. Link with AutoCOM (`target_link_libraries(AutoCOM_LIBRARIES)`).
+
+**Examples**
+
+Examples can be found in the [example/cmake](/example/cmake) directory.
 
 ## Header Layout
 

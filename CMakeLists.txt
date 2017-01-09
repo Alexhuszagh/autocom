@@ -17,7 +17,7 @@ if(NOT WIN32)
 endif()
 
 option(BUILD_EXAMPLES "Build example files" ON)
-option(BUILD_AUTOCOM_CONFIGURE "Build executable for early-binding COM DLL configuration" ON)
+option(BUILD_EXECUTABLE "Build AutoCOM executable" ON)
 option(BUILD_STATIC "Build static library" ON)
 option(BUILD_TESTS "Build unittests (requires GTest)" OFF)
 option(HAVE_THERMO "Have Thermo MSFileReader for examples" OFF)
@@ -82,7 +82,7 @@ set(AUTOCOM_EXECUTABLE_SOURCES
     bin/write.cpp
 )
 
-if(BUILD_AUTOCOM_CONFIGURE)
+if(BUILD_EXECUTABLE)
     add_subdirectory(gflags)
     include_directories("${CMAKE_CURRENT_BINARY_DIR}/gflags/include")
     add_executable(AutoCOMConfigure ${AUTOCOM_EXECUTABLE_SOURCES})
@@ -124,7 +124,7 @@ if (BUILD_EXAMPLES)
 endif()
 
 # LATE
-if (BUILD_EXAMPLES AND BUILD_AUTOCOM_CONFIGURE)
+if (BUILD_EXAMPLES AND BUILD_EXECUTABLE)
     include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
     # WScript
