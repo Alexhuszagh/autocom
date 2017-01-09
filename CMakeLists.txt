@@ -178,7 +178,9 @@ set(AUTOCOM_TEST_SOURCES
 )
 
 if (BUILD_TESTS)
-     add_subdirectory(googletest)
+    if(NOT TARGET gtest)
+        add_subdirectory(googletest)
+    endif()
      include_directories("${CMAKE_CURRENT_SOURCE_DIR}/bin")
      add_executable(AutoCOMTests ${AUTOCOM_TEST_SOURCES})
      target_link_libraries(AutoCOMTests
