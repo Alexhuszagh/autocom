@@ -55,11 +55,11 @@ namespace com = autocom;
 int main(int argc, char *argv[])
 {
     com::Bstr text;
-    com::Dispatch dispatch("VBScript.RegExp");
-    dispatch.put("Pattern", L"\\w+");
-    for (auto match: dispatch.iter("Execute", L"A(b) c35 d_[x] yyy")) {
-        match.get("Value", text);
-        printf("Match is %S\n", text);
+    com::Dispatch dispatch(L"VBScript.RegExp");
+    dispatch.put(L"Pattern", L"\\w+");
+    for (auto match: dispatch.iter(L"Execute", L"A(b) c35 d_[x] yyy")) {
+        match.get(L"Value", text);
+        std::wcout << L"Match is '" <<  text << "'\n";
     }
 }
 ```
@@ -133,7 +133,7 @@ Variant variant;
 
 AutoCOM supports Unicode through Windows wide-string APIs, and assumes `char`-based strings are UTF-8 encoded, while `wchar_t`-based strings are UTF-16 encoded. 
 
-To convert to UTF-8, the functions `UTF32_TO_UTF8` and `UTF16_TO_UTF8` are provided.
+Text passed by value as an in-parameter, or for method lookup can be passed using string literals, STL strings, or BSTR/Bstr, however, for performance reasons, wide strings should be preferred when possible.
 
 ## Building
 
