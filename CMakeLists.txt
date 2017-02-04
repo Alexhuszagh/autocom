@@ -88,7 +88,7 @@ if(BUILD_EXECUTABLE)
     endif()
     include_directories("${CMAKE_CURRENT_BINARY_DIR}/gflags/include")
     add_executable(AutoCOMConfigure ${AUTOCOM_EXECUTABLE_SOURCES})
-    set_target_properties(AutoCOMConfigure PROPERTIES OUTPUT_NAME autocom)
+    set_target_properties(AutoCOMConfigure PROPERTIES OUTPUT_NAME autocomconf)
     target_link_libraries(AutoCOMConfigure ${AUTOCOM_LIBRARIES} gflags)
 endif()
 
