@@ -26,7 +26,7 @@ class Iterator: public std::iterator<
     >
 {
 protected:
-    itl::weak_ptr<IEnumVARIANT> ppv;
+    std::weak_ptr<IEnumVARIANT> ppv;
     DispatchBase dispatch;
 
 public:
@@ -36,7 +36,7 @@ public:
     Iterator(Iterator&&) = default;
     Iterator & operator=(Iterator&&) = default;
 
-    Iterator(itl::weak_ptr<IEnumVARIANT> ppv);
+    Iterator(std::weak_ptr<IEnumVARIANT> ppv);
 
     DispatchBase & operator*();
     const DispatchBase & operator*() const;

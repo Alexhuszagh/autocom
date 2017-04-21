@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <itl/memory.hpp>
+#include <memory>
 
 
 namespace autocom
@@ -33,10 +33,10 @@ void release(T *t)
 /** \brief Shared pointer for wrapping COM objects.
  */
 template <typename T>
-class SharedPointer: public itl::shared_ptr<T>
+class SharedPointer: public std::shared_ptr<T>
 {
 protected:
-    typedef itl::shared_ptr<T> Base;
+    typedef std::shared_ptr<T> Base;
     typedef SharedPointer<T> This;
 
     using Base::reset;

@@ -26,8 +26,6 @@ endif()
 # ----
 
 FIND_PATH(AutoCOM_INCLUDE_DIRS autocom.hpp)
-FIND_PATH(ITL_INCLUDE_DIR itl/memory.hpp)
-list(APPEND AutoCOM_INCLUDE_DIRS ${ITL_INCLUDE_DIR})
 FIND_PROGRAM(AutoCOM_EXECUTABLE
     NAMES autocomconf
     PATH_SUFFIXES bin

@@ -16,7 +16,7 @@ namespace autocom
 
 /** \brief Initializer list constructor.
  */
-Iterator::Iterator(itl::weak_ptr<IEnumVARIANT> ppv):
+Iterator::Iterator(std::weak_ptr<IEnumVARIANT> ppv):
     ppv(ppv)
 {}
 

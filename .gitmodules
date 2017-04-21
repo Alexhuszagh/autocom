@@ -4,6 +4,3 @@
 [submodule "gflags"]
 	path = gflags
 	url = https://github.com/Alexhuszagh/gflags
-[submodule "itl"]
-	path = itl
-	url = https://github.com/Alexhuszagh/itl
