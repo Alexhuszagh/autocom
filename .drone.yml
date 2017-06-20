@@ -5,7 +5,7 @@ build:
   commands:
     - if [ $$arch = 32 ]; then target=i686; fi
     - if [ $$arch = 64 ]; then target=x86_64; fi
-    - pacman -S --needed --noconfirm --noprogressbar mingw-w64-${target}-pkg-config cmake msys2-devel mingw-w64-${target}-toolchain base-devel
+    - pacman -S --needed --noconfirm --noprogressbar mingw-w64-${target}-pkg-config cmake msys2-devel mingw-w64-${target}-toolchain base-devel msys2-runtime
 #    - git submodule update --init --recursive
 #    - mkdir -p build
 #    - cd build
