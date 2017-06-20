@@ -2,6 +2,9 @@
 AutoCOM
 =======
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/01fcadd11fae44f7a21b5a5272623b5d)](https://www.codacy.com/app/Alexhuszagh/autocom?utm_source=github.com&utm_medium=referral&utm_content=Alexhuszagh/autocom&utm_campaign=badger)
+
+
 AutoCOM is a C++11 interface for the Component Object Model (COM), supporting MinGW and MSVC, inspired by [ComTypes](https://github.com/enthought/comtypes).
 
 **Table of Contents**
