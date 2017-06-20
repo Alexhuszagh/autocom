@@ -5,15 +5,13 @@ build:
   commands:
     - if [ $$arch = 32 ]; then target=i686; fi
     - if [ $$arch = 64 ]; then target=x86_64; fi
-    - pacman -Syu
-    - pacman -S --needed --noconfirm --noprogressbar mingw-w64-${target}-pkg-config cmake
+    - pacman -S --needed --noconfirm --noprogressbar mingw-w64-${target}-pkg-config cmake msys2-devel mingw-w64-${target}-toolchain
 #    - git submodule update --init --recursive
 #    - mkdir -p build
 #    - cd build
     - ls /
     - ls /mingw32
     - ls /mingw32/include
-    - locate direct.h
 #    - cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON ..
 #    - make -j 8
 #    - ctest -C Release -V
