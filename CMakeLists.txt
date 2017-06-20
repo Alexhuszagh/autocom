@@ -2,12 +2,14 @@
 #  :license: BSD, see LICENSE.md for more details.
 
 cmake_minimum_required(VERSION 2.8)
-project(AutoCOM CXX)
+project(autocom CXX)
+enable_testing()
 
 # FLAGS
 # -----
 
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED on)
 
 # OPTIONS
 # -------
@@ -27,9 +29,18 @@ if(BUILD_STATIC)
     if (MINGW)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
     elseif(MSVC)
-        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_RELEASE} /MTd /O0")
-        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT /Ox")
+        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd /O0 /Fd${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pdb")
+        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT /Ox /Zi /Fd${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pdb")
+        set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} /MT /Zi /Fd${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pdb")
+        set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /MT /Fd${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pdb")
     endif()
+endif()
+
+# Need to manually set compiler flags for Travis CI
+if(MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++14")
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 endif()
 
 # LIBRARY
@@ -55,16 +66,15 @@ set(AUTOCOM_SOURCES
 
 set(AUTOCOM_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 set(AUTOCOM_INCLUDE_DIRS ${AUTOCOM_INCLUDE_DIR})
-include_directories(${AUTOCOM_INCLUDE_DIRS} ${ITL_INCLUDE_DIRS})
+include_directories(${AUTOCOM_INCLUDE_DIRS})
 
 if(BUILD_STATIC)
-    add_library(AutoCOM STATIC ${AUTOCOM_SOURCES})
+    add_library(autocom STATIC ${AUTOCOM_SOURCES})
 else()
-    add_library(AutoCOM SHARED ${AUTOCOM_SOURCES})
+    add_library(autocom SHARED ${AUTOCOM_SOURCES})
 endif()
 
-set_target_properties(AutoCOM PROPERTIES OUTPUT_NAME autocom)
-set(AUTOCOM_LIBRARIES AutoCOM)
+set(AUTOCOM_LIBRARIES autocom)
 if(MSVC)
     list(APPEND AUTOCOM_LIBRARIES ole32.lib oleaut32.lib uuid.lib)
 elseif(MINGW)
@@ -86,9 +96,8 @@ if(BUILD_EXECUTABLE)
         add_subdirectory(gflags)
     endif()
     include_directories("${CMAKE_CURRENT_BINARY_DIR}/gflags/include")
-    add_executable(AutoCOMConfigure ${AUTOCOM_EXECUTABLE_SOURCES})
-    set_target_properties(AutoCOMConfigure PROPERTIES OUTPUT_NAME autocomconf)
-    target_link_libraries(AutoCOMConfigure ${AUTOCOM_LIBRARIES} gflags)
+    add_executable(autocomconf ${AUTOCOM_EXECUTABLE_SOURCES})
+    target_link_libraries(autocomconf ${AUTOCOM_LIBRARIES} gflags)
 endif()
 
 # EXAMPLES
@@ -100,7 +109,7 @@ set(AUTOCOM_LATEBINDING_EXAMPLE_SOURCES
     example/late/wsh.cpp
 )
 
-# EARLY
+# LATE
 if (BUILD_EXAMPLES)
     set(OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
     if(MSVC)
@@ -117,43 +126,42 @@ if (BUILD_EXAMPLES)
 
     foreach(source ${AUTOCOM_LATEBINDING_EXAMPLE_SOURCES})
         get_filename_component(example ${source} NAME_WE)
-        set(target "AutoCOMLate_${example}")
+        set(target "${example}_laye")
         add_executable(${target} "${source}")
-        set_target_properties(${target} PROPERTIES OUTPUT_NAME ${example}_late)
         target_link_libraries(${target} ${AUTOCOM_LIBRARIES})
     endforeach(source)
 endif()
 
-# LATE
+# EARLY
 if (BUILD_EXAMPLES AND BUILD_EXECUTABLE)
     include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
     # WScript
-    add_custom_target(WScript
-        COMMAND $<TARGET_FILE:AutoCOMConfigure> -progid="WScript.Shell.1"
-        DEPENDS AutoCOMConfigure)
+    add_custom_target(wscript
+        COMMAND $<TARGET_FILE:autocomconf> -progid="WScript.Shell.1"
+        DEPENDS autocomconf)
     add_executable(wsh_early example/early/wsh.cpp)
     target_link_libraries(wsh_early ${AUTOCOM_LIBRARIES})
-    add_dependencies(wsh_early "WScript")
+    add_dependencies(wsh_early "wscript")
 
     # MSScriptControl
     if(HAVE_SCRIPTCONTROL)
-        add_custom_target(MSScriptControl
-            COMMAND $<TARGET_FILE:AutoCOMConfigure> -progid="MSScriptControl.ScriptControl"
-            DEPENDS AutoCOMConfigure)
+        add_custom_target(msscriptcontrol
+            COMMAND $<TARGET_FILE:autocomconf> -progid="MSScriptControl.ScriptControl"
+            DEPENDS autocomconf)
         add_executable(script_early example/early/script.cpp)
         target_link_libraries(script_early ${AUTOCOM_LIBRARIES})
-        add_dependencies(script_early "MSScriptControl")
+        add_dependencies(script_early "msscriptcontrol")
     endif()
 
     # Thermo
     if (HAVE_THERMO)
-        add_custom_target(MSFileReader
-            COMMAND $<TARGET_FILE:AutoCOMConfigure> -progid="{1D23188D-53FE-4C25-B032-DC70ACDBDC02}"
-            DEPENDS AutoCOMConfigure)
+        add_custom_target(msfilereader
+            COMMAND $<TARGET_FILE:autocomconf> -progid="{1D23188D-53FE-4C25-B032-DC70ACDBDC02}"
+            DEPENDS autocomconf)
         add_executable(thermo_early example/early/thermo.cpp)
         target_link_libraries(thermo_early ${AUTOCOM_LIBRARIES})
-        add_dependencies(thermo_early "MSFileReader")
+        add_dependencies(thermo_early "msfilereader")
     endif()
 endif()
 
@@ -182,17 +190,25 @@ if (BUILD_TESTS)
     if(NOT TARGET gtest)
         add_subdirectory(googletest)
     endif()
-     include_directories("${CMAKE_CURRENT_SOURCE_DIR}/bin")
-     add_executable(AutoCOMTests ${AUTOCOM_TEST_SOURCES})
-     target_link_libraries(AutoCOMTests
+    include_directories(googletest/googletest/include bin)
+
+    add_executable(autocom_tests ${AUTOCOM_TEST_SOURCES})
+    target_link_libraries(autocom_tests
         gtest
         gtest_main
         ${AUTOCOM_LIBRARIES}
     )
 
-     add_custom_target(check_autocom
-        COMMAND $<TARGET_FILE:AutoCOMTests>
-        DEPENDS AutoCOMTests
+    # Need to specify proper exception handling for Windows.
+    if(MSVC)
+        set_target_properties(autocom_tests PROPERTIES
+            COMPILE_OPTIONS "/EHsc"
+        )
+    endif()
+
+    add_test(NAME autocom_tests
+        COMMAND autocom_tests
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
 
 endif()

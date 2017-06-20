@@ -1,8 +1,14 @@
-
 AutoCOM
 =======
 
 AutoCOM is a C++11 interface for the Component Object Model (COM), supporting MinGW and MSVC, inspired by [ComTypes](https://github.com/enthought/comtypes).
+
+[![Build Status](https://travis-ci.org/Alexhuszagh/autocom.svg?branch=master)](https://travis-ci.org/Alexhuszagh/AutoCOM)
+[![Build Status](https://tea-ci.org/api/badges/Alexhuszagh/autocom/status.svg)](https://tea-ci.org/Alexhuszagh/autocom)
+[![Build status](https://ci.appveyor.com/api/projects/status/jx4mmgo25myx9u9i?svg=true)](https://ci.appveyor.com/project/Alexhuszagh/autocom)
+[![Coverity Scan Build Status](https://scan.coverity.com/projects/12989/badge.svg)](https://scan.coverity.com/projects/alexhuszagh-autocom)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/01fcadd11fae44f7a21b5a5272623b5d)](https://www.codacy.com/app/Alexhuszagh/autocom?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Alexhuszagh/autocom&amp;utm_campaign=Badge_Grade)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Alexhuszagh/AutoCOM/blob/master/LICENSE.md)
 
 **Table of Contents**
 
@@ -159,12 +165,11 @@ Any other issues can be reported on the [bug tracker](https://github.com/Alexhus
 
 ## Platforms
 
-AutoCOM has been tested and confirmed to work with the following compilers/ecosystems:
+AutoCOM is continually built with the following compiler and compiler versions:
 
-- MSYS2, GCC 6.2
+- MinGW 5.3.0 (MXE, MinGW, and MSYS2) 
 - Visual Studio 14 2015
-- MinGW 5.4, Linux (running on 32-bit Wine)
-- MXE (running on 32-bit Wine)
+- Visual Studio 15 2017
 
 ## Contributors
 
