@@ -6,11 +6,12 @@ build:
     - if [ $$arch = 32 ]; then target=i686; fi
     - if [ $$arch = 64 ]; then target=x86_64; fi
     - pacman -S --needed --noconfirm --noprogressbar mingw-w64-${target}-pkg-config cmake
-    - git submodule update --init --recursive
-    - mkdir -p build
-    - cd build
+#    - git submodule update --init --recursive
+#    - mkdir -p build
+#    - cd build
     - ls /
-    - ls /include
+    - ls /mingw64
+    - ls /mingw64/include
     - locate direct.h
 #    - cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON ..
 #    - make -j 8
