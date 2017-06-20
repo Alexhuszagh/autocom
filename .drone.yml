@@ -9,9 +9,12 @@ build:
     - git submodule update --init --recursive
     - mkdir -p build
     - cd build
-    - cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON ..
-    - make -j 8
-    - ctest -C Release -V
+    - ls /
+    - ls /include
+    - locate direct.h
+#    - cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON ..
+#    - make -j 8
+#    - ctest -C Release -V
 
 matrix:
   arch:
