@@ -78,7 +78,7 @@ endif()
 set(AUTOCOM_LIBRARIES autocom)
 if(MSVC)
     list(APPEND AUTOCOM_LIBRARIES ole32.lib oleaut32.lib uuid.lib)
-elseif(MINGW)
+elseif(MINGW OR MSYS)
     list(APPEND AUTOCOM_LIBRARIES -lole32 -loleaut32 -luuid)
 endif()
 
