@@ -9,6 +9,8 @@ notifications:
       - ahuszagh@gmail.com
     on_success: never
     on_failure: always
+    on_cancel: never
+    on_error: never
 
 os:
   - linux
