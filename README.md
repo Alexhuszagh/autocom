@@ -148,7 +148,7 @@ Simply clone, configure with CMake, and build.
 
 ```bash
 git clone https://github.com/Alexhuszagh/autocom.git
-git submodule update --init  
+git submodule update --init  --recursive
 cd autocom/build
 cmake ..                        # `-DBUILD_EXAMPLES=ON`, `-DBUILD_TESTS=ON`
 make -j 5                       # "msbuild AutoCOM.sln" for MSVC

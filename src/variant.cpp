@@ -183,10 +183,10 @@ void set(VARIANT &variant,
 
 /** \brief Overload from character literals.
  */
-void set(VARIANT &variant,
-    const char *value)
+void set(VARIANT &variant, const char *value)
 {
     variant.vt = VT_BSTR;
+    // TODO: here...
     auto wide = WIDE(std::string(value));
     variant.bstrVal = SysAllocStringLen(wide.data(), wide.size());
 }

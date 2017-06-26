@@ -6,7 +6,8 @@
  */
 
 #include "autocom/guid.hpp"
-#include "autocom/encoding/converters.hpp"
+
+#include <codec.h>
 
 
 namespace autocom
@@ -157,7 +158,7 @@ std::string Guid::toProgid()
         return "";
     }
 
-    std::string narrow = NARROW(progid);
+    std::string narrow = codec_utf16_utf8(reinterpret_cast<char16_t*>(progid));
     CoTaskMemFree(progid);
 
     return narrow;
@@ -190,7 +191,7 @@ std::string Guid::toClsid()
         return "";
     }
 
-    std::string narrow = NARROW(clsid);
+    std::string narrow = codec_utf16_utf8(reinterpret_cast<char16_t*>(clsid));
     CoTaskMemFree(clsid);
 
     return narrow;
@@ -201,7 +202,8 @@ std::string Guid::toClsid()
  */
 Guid Guid::fromIid(const std::string &string)
 {
-    return fromIid(WIDE(string));
+    auto u16 = codec_utf8_utf16(string);
+    return fromIid(reinterpret_cast<const wchar_t*>(u16.data()));
 }
 
 
@@ -226,7 +228,7 @@ std::string Guid::toIid()
         return "";
     }
 
-    std::string narrow = NARROW(iid);
+    std::string narrow = codec_utf16_utf8(reinterpret_cast<char16_t*>(iid));
     CoTaskMemFree(iid);
 
     return narrow;

@@ -6,8 +6,8 @@
  */
 
 #include "autocom/bstr.hpp"
-#include "autocom/encoding/converters.hpp"
 
+#include <codec.h>
 #include <cassert>
 #include <cwchar>
 
@@ -106,8 +106,9 @@ Bstr & Bstr::operator=(BSTR &&other)
  */
 Bstr::Bstr(const std::string &string)
 {
-    auto wide = WIDE(string);
-    this->string = SysAllocStringLen(wide.data(), wide.size());
+    auto wide = codec_utf8_utf16(string);
+    auto *data = reinterpret_cast<const wchar_t*>(wide.data());
+    this->string = SysAllocStringLen(data, wide.size());
 }
 
 
@@ -126,13 +127,13 @@ Bstr::Bstr(VARIANT &variant)
 }
 
 
-
 /** \brief Initialize string from narrow C-string.
  */
 Bstr::Bstr(const char *cstring)
 {
-    auto wide = WIDE(std::string(cstring));
-    this->string = SysAllocStringLen(wide.data(), wide.size());
+    auto wide = codec_utf8_utf16(cstring);
+    auto *data = reinterpret_cast<const wchar_t*>(wide.data());
+    this->string = SysAllocStringLen(data, wide.size());
 }
 
 
@@ -146,18 +147,17 @@ Bstr::Bstr(const wchar_t *cstring)
 
 /** \brief Initialize string from narrow character array.
  */
-Bstr::Bstr(const char *array,
-    const size_t length)
+Bstr::Bstr(const char *array, const size_t length)
 {
-    auto wide = WIDE(std::string(array, length));
-    this->string = SysAllocStringLen(wide.data(), wide.size());
+    auto wide = codec_utf8_utf16(std::string(array, length));
+    auto *data = reinterpret_cast<const wchar_t*>(wide.data());
+    this->string = SysAllocStringLen(data, wide.size());
 }
 
 
 /** \brief Initialize string from wide character array.
  */
-Bstr::Bstr(const wchar_t *array,
-        const size_t length)
+Bstr::Bstr(const wchar_t *array, const size_t length)
 {
     this->string = SysAllocStringLen(array, length);
 }
@@ -479,7 +479,8 @@ Bstr::operator BSTR() const
  */
 Bstr::operator std::string() const
 {
-    return NARROW(std::wstring(string, size()));
+    auto *data = reinterpret_cast<const char16_t*>(string);
+    return codec_utf16_utf8(std::u16string(data, size()));
 }
 
 

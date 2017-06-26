@@ -4,3 +4,6 @@
 [submodule "gflags"]
 	path = gflags
 	url = https://github.com/Alexhuszagh/gflags
+[submodule "crosscxx"]
+	path = crosscxx
+	url = https://github.com/Alexhuszagh/crosscxx
