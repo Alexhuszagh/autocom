@@ -9,7 +9,6 @@
 #include "autocom/com.hpp"
 #include "autocom/dispatch.hpp"
 #include "autocom/dispparams.hpp"
-#include "autocom/encoding.hpp"
 #include "autocom/enum.hpp"
 #include "autocom/guid.hpp"
 #include "autocom/safearray.hpp"

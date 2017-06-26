@@ -6,7 +6,6 @@
  */
 
 #include "autocom/com.hpp"
-#include "autocom/encoding/converters.hpp"
 #include "autocom/util/exception.hpp"
 
 #include <thread>
@@ -151,6 +150,5 @@ DispatchBase::operator bool() const
 {
     return bool(ppv);
 }
-
 
 }   /* autocom */

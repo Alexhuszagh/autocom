@@ -54,8 +54,6 @@ include_directories(crosscxx/src)
 # -------
 
 set(AUTOCOM_SOURCES
-    src/encoding/converters.cpp
-    src/encoding/unicode.cpp
     src/util/alias.cpp
     src/util/exception.cpp
     src/util/type.cpp
@@ -177,8 +175,6 @@ endif()
 
 set(AUTOCOM_TEST_SOURCES
     test/bin/parse.cpp
-    test/src/encoding/converters.cpp
-    test/src/encoding/unicode.cpp
     test/src/util/alias.cpp
     test/src/util/type.cpp
     test/src/bstr.cpp

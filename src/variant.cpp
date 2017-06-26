@@ -7,7 +7,8 @@
 
 #include "autocom/safearray.hpp"
 #include "autocom/variant.hpp"
-#include "autocom/encoding/converters.hpp"
+
+#include <codec.h>
 
 #ifdef _MSC_VER
 #   pragma warning(push)
@@ -186,9 +187,9 @@ void set(VARIANT &variant,
 void set(VARIANT &variant, const char *value)
 {
     variant.vt = VT_BSTR;
-    // TODO: here...
-    auto wide = WIDE(std::string(value));
-    variant.bstrVal = SysAllocStringLen(wide.data(), wide.size());
+    auto u16 = codec_utf8_utf16(value);
+    auto* data = reinterpret_cast<const wchar_t*>(u16.data());
+    variant.bstrVal = SysAllocStringLen(data, u16.size());
 }
 
 /** \brief Overload from character literals.
