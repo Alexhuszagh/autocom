@@ -47,8 +47,8 @@ endif()
 # DEPENDENCIES
 # ------------
 
-add_subdirectory(crosscxx)
-include_directories(crosscxx/src)
+add_subdirectory(funxx)
+include_directories(funxx/src)
 
 # LIBRARY
 # -------
@@ -79,7 +79,7 @@ else()
     add_library(autocom SHARED ${AUTOCOM_SOURCES})
 endif()
 
-set(AUTOCOM_LIBRARIES autocom crosscxx)
+set(AUTOCOM_LIBRARIES autocom funxx)
 if(MSVC)
     list(APPEND AUTOCOM_LIBRARIES ole32.lib oleaut32.lib uuid.lib)
 elseif(MINGW OR MSYS)
