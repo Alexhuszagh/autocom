@@ -21,12 +21,11 @@ endif()
 
 option(BUILD_EXAMPLES "Build example files" ON)
 option(BUILD_EXECUTABLE "Build AutoCOM executable" ON)
-option(BUILD_STATIC "Build static library" ON)
 option(BUILD_TESTS "Build unittests (requires GTest)" OFF)
 option(HAVE_THERMO "Have Thermo MSFileReader for examples" OFF)
 option(HAVE_SCRIPTCONTROL "Have MSScriptControl for examples" OFF)
 
-if(BUILD_STATIC)
+if(NOT BUILD_SHARED_LIBS)
     if (MINGW)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
     elseif(MSVC)
@@ -44,74 +43,67 @@ else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 endif()
 
-# DEPENDENCIES
-# ------------
-
-add_subdirectory(funxx)
-include_directories(funxx/src)
-
 # LIBRARY
 # -------
 
+add_subdirectory(third_party/pycpp)
+
 set(AUTOCOM_SOURCES
-    src/util/alias.cpp
-    src/util/exception.cpp
-    src/util/type.cpp
-    src/bstr.cpp
-    src/com.cpp
-    src/dispparams.cpp
-    src/dispatch.cpp
-    src/enum.cpp
-    src/iterator.cpp
-    src/guid.cpp
-    src/safearray.cpp
-    src/typeinfo.cpp
-    src/variant.cpp
+    src/util/alias.cc
+    src/util/exception.cc
+    src/util/type.cc
+    src/bstr.cc
+    src/com.cc
+    src/dispparams.cc
+    src/dispatch.cc
+    src/enum.cc
+    src/iterator.cc
+    src/guid.cc
+    src/safearray.cc
+    src/typeinfo.cc
+    src/variant.cc
 )
 
 set(AUTOCOM_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 set(AUTOCOM_INCLUDE_DIRS ${AUTOCOM_INCLUDE_DIR})
-include_directories(${AUTOCOM_INCLUDE_DIRS})
 
-if(BUILD_STATIC)
-    add_library(autocom STATIC ${AUTOCOM_SOURCES})
-else()
-    add_library(autocom SHARED ${AUTOCOM_SOURCES})
-endif()
-
-set(AUTOCOM_LIBRARIES autocom funxx)
+set(AUTOCOM_LINK_LIBRARIES pycpp)
 if(MSVC)
-    list(APPEND AUTOCOM_LIBRARIES ole32.lib oleaut32.lib uuid.lib)
+    list(APPEND AUTOCOM_LINK_LIBRARIES ole32.lib oleaut32.lib uuid.lib)
 elseif(MINGW OR MSYS)
-    list(APPEND AUTOCOM_LIBRARIES -lole32 -loleaut32 -luuid)
+    list(APPEND AUTOCOM_LINK_LIBRARIES -lole32 -loleaut32 -luuid)
 endif()
+
+add_library(autocom ${AUTOCOM_SOURCES})
+target_include_directories(autocom PUBLIC ${AUTOCOM_INCLUDE_DIRS})
+target_link_libraries(autocom LINK_PUBLIC ${AUTOCOM_LINK_LIBRARIES})
 
 # BIN
 # ----
 
 set(AUTOCOM_EXECUTABLE_SOURCES
-    bin/autocom.cpp
-    bin/options.cpp
-    bin/parse.cpp
-    bin/write.cpp
+    bin/autocom.cc
+    bin/options.cc
+    bin/parse.cc
+    bin/write.cc
 )
 
 if(BUILD_EXECUTABLE)
     if(NOT TARGET gflags)
-        add_subdirectory(gflags)
+        add_subdirectory(third_party/gflags)
     endif()
-    include_directories("${CMAKE_CURRENT_BINARY_DIR}/gflags/include")
     add_executable(autocomconf ${AUTOCOM_EXECUTABLE_SOURCES})
-    target_link_libraries(autocomconf ${AUTOCOM_LIBRARIES} gflags)
+    target_link_libraries(autocomconf PUBLIC autocom gflags)
+    target_include_directories(autocomconf PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/third_party/gflags/include")
 endif()
 
 # EXAMPLES
 # --------
 
 set(AUTOCOM_LATEBINDING_EXAMPLE_SOURCES
-    example/late/regexp.cpp
-    example/late/thermo.cpp
-    example/late/wsh.cpp
+    example/late/regexp.cc
+    example/late/thermo.cc
+    example/late/wsh.cc
 )
 
 # LATE
@@ -133,20 +125,20 @@ if (BUILD_EXAMPLES)
         get_filename_component(example ${source} NAME_WE)
         set(target "${example}_laye")
         add_executable(${target} "${source}")
-        target_link_libraries(${target} ${AUTOCOM_LIBRARIES})
+        target_link_libraries(${target} PUBLIC autocom)
     endforeach(source)
 endif()
 
 # EARLY
 if (BUILD_EXAMPLES AND BUILD_EXECUTABLE)
-    include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
     # WScript
     add_custom_target(wscript
         COMMAND $<TARGET_FILE:autocomconf> -progid="WScript.Shell.1"
         DEPENDS autocomconf)
-    add_executable(wsh_early example/early/wsh.cpp)
-    target_link_libraries(wsh_early ${AUTOCOM_LIBRARIES})
+    add_executable(wsh_early example/early/wsh.cc)
+    target_link_libraries(wsh_early PUBLIC autocom)
+    target_include_directories(wsh_early PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
     add_dependencies(wsh_early "wscript")
 
     # MSScriptControl
@@ -154,8 +146,9 @@ if (BUILD_EXAMPLES AND BUILD_EXECUTABLE)
         add_custom_target(msscriptcontrol
             COMMAND $<TARGET_FILE:autocomconf> -progid="MSScriptControl.ScriptControl"
             DEPENDS autocomconf)
-        add_executable(script_early example/early/script.cpp)
-        target_link_libraries(script_early ${AUTOCOM_LIBRARIES})
+        add_executable(script_early example/early/script.cc)
+        target_link_libraries(script_early PUBLIC autocom)
+        target_include_directories(script_early PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
         add_dependencies(script_early "msscriptcontrol")
     endif()
 
@@ -164,8 +157,9 @@ if (BUILD_EXAMPLES AND BUILD_EXECUTABLE)
         add_custom_target(msfilereader
             COMMAND $<TARGET_FILE:autocomconf> -progid="{1D23188D-53FE-4C25-B032-DC70ACDBDC02}"
             DEPENDS autocomconf)
-        add_executable(thermo_early example/early/thermo.cpp)
-        target_link_libraries(thermo_early ${AUTOCOM_LIBRARIES})
+        add_executable(thermo_early example/early/thermo.cc)
+        target_link_libraries(thermo_early PUBLIC autocom)
+        target_include_directories(thermo_early PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
         add_dependencies(thermo_early "msfilereader")
     endif()
 endif()
@@ -174,32 +168,32 @@ endif()
 # -----
 
 set(AUTOCOM_TEST_SOURCES
-    test/bin/parse.cpp
-    test/src/util/alias.cpp
-    test/src/util/type.cpp
-    test/src/bstr.cpp
-    test/src/dispparams.cpp
-    test/src/guid.cpp
-    test/src/safearray.cpp
-    test/src/variant.cpp
-    test/src/main.cpp
+    test/bin/parse.cc
+    test/src/util/alias.cc
+    test/src/util/type.cc
+    test/src/bstr.cc
+    test/src/dispparams.cc
+    test/src/guid.cc
+    test/src/safearray.cc
+    test/src/variant.cc
+    test/src/main.cc
 
     # GENERATOR
-    bin/parse.cpp
-    bin/write.cpp
+    bin/parse.cc
+    bin/write.cc
 )
 
 if (BUILD_TESTS)
     if(NOT TARGET gtest)
-        add_subdirectory(googletest)
+        add_subdirectory(third_party/googletest)
     endif()
-    include_directories(googletest/googletest/include bin)
 
     add_executable(autocom_tests ${AUTOCOM_TEST_SOURCES})
+    target_include_directories(autocom_tests PRIVATE googletest/googletest/include bin)
     target_link_libraries(autocom_tests
         gtest
         gtest_main
-        ${AUTOCOM_LIBRARIES}
+        autocom
     )
 
     # Need to specify proper exception handling for Windows.

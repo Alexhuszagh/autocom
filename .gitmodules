@@ -1,9 +1,9 @@
 [submodule "googletest"]
-	path = googletest
+	path = third_party/googletest
 	url = https://github.com/Alexhuszagh/googletest/
 [submodule "gflags"]
-	path = gflags
+	path = third_party/gflags
 	url = https://github.com/Alexhuszagh/gflags
-[submodule "funxx"]
-	path = funxx
-	url = https://github.com/Alexhuszagh/funxx.git
+[submodule "third_party/pycpp"]
+	path = third_party/pycpp
+	url = https://github.com/Alexhuszagh/pycpp.git
