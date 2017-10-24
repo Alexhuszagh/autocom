@@ -55,8 +55,8 @@ int main(int argc, char *argv[])
 **Late-Binding**
 
 ```cpp
+#include <autocom.h>
 #include <iostream>
-#include <autocom.hpp>
 namespace com = autocom;
 
 int main(int argc, char *argv[])
@@ -78,7 +78,7 @@ Compare this snippet to [code](https://gist.github.com/Alexhuszagh/c231052cb6e51
 AutoCOM believes that resource acquisition is initialization (RAII): that construction should initialize COM resources and destruction should free allocated resources. To ensure resource management is tied to object lifecycle, AutoCOM includes the following features:
 
 - Smart-pointers wrappers for COM objects, calling `Release` when the last instance is destroyed.
-- Automated `CoInitializeEx` and `CoUninitialize` calls via thread-local COM instance counters. 
+- Automated `CoInitializeEx` and `CoUninitialize` calls via thread-local COM instance counters.
 - Wrappers for BSTR (Bstr), VARIANT (Variant), and SAFEARRAY (SafeArray) in the `autocom` namespace.
 
 ## Standard Template Library
@@ -138,7 +138,7 @@ Variant variant;
 
 ## Unicode
 
-AutoCOM supports Unicode through Windows wide-string APIs, and assumes `char`-based strings are UTF-8 encoded, while `wchar_t`-based strings are UTF-16 encoded. 
+AutoCOM supports Unicode through Windows wide-string APIs, and assumes `char`-based strings are UTF-8 encoded, while `wchar_t`-based strings are UTF-16 encoded.
 
 Text passed by value as an in-parameter, or for method lookup can be passed using string literals, STL strings, or BSTR/Bstr, however, for performance reasons, wide strings should be preferred when possible.
 
@@ -167,7 +167,7 @@ Any other issues can be reported on the [bug tracker](https://github.com/Alexhus
 
 AutoCOM is continually built with the following compiler and compiler versions:
 
-- MinGW 5.3.0 (MXE, MinGW, and MSYS2) 
+- MinGW 5.3.0 (MXE, MinGW, and MSYS2)
 - Visual Studio 14 2015
 - Visual Studio 15 2017
 

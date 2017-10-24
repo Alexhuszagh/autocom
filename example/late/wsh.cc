@@ -5,8 +5,7 @@
  *  \brief Example to use Windows Shell (WSH) from C++.
  */
 
-#include "autocom.hpp"
-
+#include <autocom.h>
 #include <cassert>
 #include <cstdio>
 

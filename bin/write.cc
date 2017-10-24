@@ -141,7 +141,7 @@ std::string writeClsidHeader(TypeLibDescription &tlib,
 
     // write data
     writeDocString(stream);
-    stream << "#include <autocom.hpp>\r\n\r\n";
+    stream << "#include <autocom.h>\r\n\r\n";
     if (!ns.empty()) {
         stream << "namespace " << ns << "\r\n"
                << "{\r\n\r\n";

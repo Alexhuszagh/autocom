@@ -12,8 +12,7 @@
  *  registering.
  */
 
-#include "autocom.hpp"
-
+#include <autocom.h>
 #include <iostream>
 
 namespace com = autocom;

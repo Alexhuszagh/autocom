@@ -5,7 +5,7 @@
  *  \brief Example to use VBScript Regexp modules.
  */
 
-#include "autocom.hpp"
+#include <autocom.h>
 
 #include <iostream>
 
